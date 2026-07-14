@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบติดตามหนี้เช่า · Lease Receivables Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f172a;
+    --blue: #1e3a8a;
+    --accent: #2563eb;
+    --light-blue: #eff6ff;
+    --grey: #f8fafc;
+    --green: #16a34a;
+    --amber: #d97706;
+    --red: #dc2626;
+    --line: #e2e8f0;
+    --ok: #dcfce7;
+    --warn: #fee2e2;
+    --doubt: #fef9c3;
+    --glass: rgba(255, 255, 255, 0.8);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Inter', 'Sarabun', sans-serif; 
+    background: #f1f5f9; 
+    color: #1e293b; 
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { 
+    background: linear-gradient(135deg, var(--navy), var(--blue)); 
+    color: #fff; 
+    padding: 16px 24px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    flex-wrap: wrap; 
+    gap: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  header .sub { font-size: 12px; opacity: .85; font-weight: 400; background: rgba(255, 255, 255, 0.1); padding: 2px 8px; border-radius: 4px; }
+  header .db { 
+    font-size: 11px; 
+    background: rgba(255,255,255,.1); 
+    padding: 6px 12px; 
+    border-radius: 8px; 
+    display: flex; 
+    gap: 8px; 
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .dbdot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+  header .asof { font-size: 12px; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.1); padding: 5px 12px; border-radius: 8px; }
+  header .asof input { border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; outline: none; background: #fff; color: #1e293b; font-weight: 600; }
+  
+  /* User Profile UI */
+  #userInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+  }
+  .role-badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  
+  nav { background: #fff; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; padding: 0 24px; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+  nav button { background: none; border: none; padding: 16px 20px; font-size: 14px; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; font-family: inherit; font-weight: 500; transition: all 0.2s; }
+  nav button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+  nav button:hover { background: var(--grey); color: #0f172a; }
+  
+  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { 
+    background: #fff; 
+    border-radius: 12px; 
+    padding: 18px 20px; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); 
+    border-left: 5px solid var(--accent);
+    transition: transform 0.2s;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card .lbl { font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card .val { font-size: 26px; font-weight: 700; color: var(--navy); }
+  .card .val.red { color: var(--red); }
+  .card .val.amber { color: var(--amber); }
+  .card .foot { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+  
+  .panel { 
+    background: #fff; 
+    border-radius: 12px; 
+    padding: 20px 24px; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); 
+    margin-bottom: 24px; 
+  }
+  .panel h2 { font-size: 18px; color: var(--navy); margin-bottom: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+  .panel h2 .hint { font-size: 12px; font-weight: 400; color: #64748b; }
+  
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { background: #f8fafc; color: #475569; text-align: left; padding: 12px 14px; font-weight: 600; border-bottom: 2px solid var(--line); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: #334155; }
+  tr:hover td { background: var(--light-blue); }
+  .r { text-align: right; }
+  .c { text-align: center; }
+  .num { font-variant-numeric: tabular-nums; font-weight: 500; }
+  
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; text-align: center; }
+  .p-cur { background: var(--ok); color: #166534; }
+  .p-b1 { background: #dbeafe; color: #1e40af; }
+  .p-b2 { background: var(--doubt); color: #854d0e; }
+  .p-b3 { background: #ffe4e6; color: #9f1239; }
+  .p-b4 { background: #fecdd3; color: #be123c; }
+  .p-b5 { background: #fda4af; color: #9f1239; }
+  .p-b6 { background: #9f1239; color: #fff; }
+  .p-paid { background: #e2e8f0; color: #475569; }
+  .p-wo { background: #334155; color: #fff; }
+  .p-lit { background: #7c3aed; color: #fff; }
+  
+  button { font-family: inherit; transition: all 0.2s; }
+  button.act { 
+    background: var(--accent); 
+    color: #fff; 
+    border: none; 
+    border-radius: 8px; 
+    padding: 10px 18px; 
+    font-size: 13.5px; 
+    cursor: pointer; 
+    font-weight: 600; 
+  }
+  button.act:hover { background: #1d4ed8; }
+  button.ghost { background: #fff; color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 9px 17px; font-weight: 600; cursor: pointer; }
+  button.ghost:hover { background: var(--light-blue); }
+  button.sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--line); background: #fff; cursor: pointer; color: #475569; }
+  button.sm:hover { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+  
+  .toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; align-items: center; }
+  input, select { padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13.5px; outline: none; transition: border-color 0.2s; background: #fff; }
+  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+  
+  .bar { height: 22px; background: #e2e8f0; border-radius: 6px; overflow: hidden; display: flex; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+  .agerow { display: grid; grid-template-columns: 140px 1fr 130px 80px; gap: 12px; align-items: center; margin-bottom: 10px; }
+  .agerow .anum { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+  .muted { color: #64748b; font-size: 12px; }
+  .flex { display: flex; gap: 12px; flex-wrap: wrap; }
+  .right { margin-left: auto; }
+  
+  .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  .modal-bg.on { display: flex; }
+  .modal { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 550px; max-height: 90vh; overflow: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+  .modal h3 { color: var(--navy); margin-bottom: 16px; font-weight: 700; font-size: 18px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+  .fg { margin-bottom: 12px; }
+  .fg label { display: block; font-size: 12px; color: #475569; margin-bottom: 4px; font-weight: 600; }
+  .fg input, .fg select { width: 100%; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .note { background: #fef3c7; border-radius: 8px; padding: 12px 16px; font-size: 12.5px; color: #92400e; margin-bottom: 16px; line-height: 1.6; border-left: 4px solid var(--amber); }
+  .note b { color: #b45309; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #64748b; margin-top: 14px; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+  .tab { display: none; }
+  .tab.on { display: block; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 12px; background: #e2e8f0; color: #475569; margin-left: 6px; font-weight: 600; }
+  footer { text-align: center; color: #94a3b8; font-size: 12px; padding: 32px 24px; border-top: 1px solid var(--line); margin-top: 40px; }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 13.5px; opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 999; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); font-weight: 500; pointer-events: none; }
+  #toast.on { opacity: 1; transform: translate(-50%, -8px); }
+</style>
+</head>
+<body>
+
+<!-- ล็อกอินโมดัลแบบครอบทับ (Glassmorphism Modal) -->
+<div class="modal-bg" id="loginModal" style="display:flex; z-index: 9999;">
+  <div class="modal" style="max-width: 400px; padding: 32px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="display: inline-block; padding: 12px; background: var(--light-blue); border-radius: 16px; margin-bottom: 12px;">
+        <span style="font-size: 32px;">🔒</span>
+      </div>
+      <h2 style="color: var(--navy); font-weight: 800; font-size: 22px;">ระบบติดตามหนี้เช่า</h2>
+      <p style="color: #64748b; font-size: 13px; margin-top: 4px;">Lease Receivables Tracker</p>
+    </div>
+    
+    <div class="fg">
+      <label>ชื่อผู้ใช้งาน (Username)</label>
+      <input id="loginUser" placeholder="เช่น admin, billing, cashier, manager" style="padding: 11px;">
+    </div>
+    <div class="fg" style="margin-top: 12px;">
+      <label>รหัสผ่าน (Password)</label>
+      <input id="loginPass" type="password" placeholder="••••••••" style="padding: 11px;" onkeyup="if(event.key==='Enter')submitLogin()">
+    </div>
+    
+    <div id="loginErr" style="color: var(--red); font-size: 12.5px; margin: 12px 0; font-weight: 600; text-align: center; min-height: 18px;"></div>
+    
+    <button class="act" onclick="submitLogin()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 8px;">เข้าสู่ระบบ</button>
+    
+    <div style="margin-top: 24px; padding: 12px; background: var(--grey); border-radius: 8px; border: 1px solid var(--line); font-size: 11.5px; line-height: 1.6; color: #475569;">
+      <b>ข้อมูลผู้ใช้จำลองสำหรับทดสอบ (รหัสผ่าน: password123):</b><br>
+      • <span style="font-weight:600; color:var(--accent);">admin</span> : เข้าใช้งานได้ทุกฟังก์ชัน<br>
+      • <span style="font-weight:600; color:var(--accent);">billing</span> : จัดการสัญญาและออกใบแจ้งหนี้<br>
+      • <span style="font-weight:600; color:var(--accent);">cashier</span> : บันทึกรับเงิน และหักเงินประกัน<br>
+      • <span style="font-weight:600; color:var(--accent);">manager</span> : อนุมัติส่งฟ้อง ตัดหนี้สูญ และปรับสำรอง
+    </div>
+  </div>
+</div>
+
+<header>
+  <div><h1>ระบบติดตามหนี้เช่า <span class="sub">Backend + SQLite</span></h1></div>
+  <div class="flex" style="align-items:center">
+    <div class="db"><span class="dbdot" id="dbdot"></span><span id="dbstat">เชื่อมต่อฐานข้อมูล</span></div>
+    <div class="asof">ณ วันที่ <input type="date" id="asof" onchange="loadAll()"></div>
+    
+    <!-- User Logged-in Info -->
+    <div id="userInfo" style="display: none;">
+      <span>👤 <b id="userFullname"></b> <span class="role-badge" id="userRole"></span></span>
+      <button onclick="logout()" class="sm" style="border: none; background: #be123c; color: #fff; font-weight: 600; padding: 3px 8px; border-radius: 4px; cursor: pointer;">ออกระบบ</button>
+    </div>
+  </div>
+</header>
+
+<nav id="mainNav" style="display: none;">
+  <button class="active" data-tab="dash" onclick="showTab('dash',this)">แดชบอร์ด</button>
+  <button data-tab="contracts" onclick="showTab('contracts',this)">สัญญาเช่า</button>
+  <button data-tab="invoices" onclick="showTab('invoices',this)">ลูกหนี้/ใบแจ้งหนี้</button>
+  <button data-tab="aging" onclick="showTab('aging',this)">Aging &amp; สำรอง</button>
+  <button data-tab="dunning" onclick="showTab('dunning',this)">ทวงถาม/ฟ้อง</button>
+  <button data-tab="audit" onclick="showTab('audit',this)">ประวัติการแก้ไข</button>
+</nav>
+
+<main id="mainContainer" style="display: none;">
+  <section id="dash" class="tab on">
+    <div class="cards" id="kpiCards"></div>
+    <div class="panel"><h2>โครงสร้างอายุหนี้ (AR Aging)</h2><div id="agingBars"></div><div class="legend" id="agingLegend"></div></div>
+    <div class="flex">
+      <div class="panel" style="flex:1;min-width:300px"><h2>ลูกหนี้เสี่ยงสูงสุด</h2><table id="topOverdue"></table></div>
+      <div class="panel" style="flex:1;min-width:300px"><h2>สรุปสำรอง (Provision)</h2><table id="provSummary"></table></div>
+    </div>
+  </section>
+  
+  <section id="contracts" class="tab">
+    <div class="toolbar">
+      <button class="act" id="addContractBtn" onclick="openContract()">+ เพิ่มสัญญา</button>
+      <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ สร้างใบแจ้งหนี้งวดถัดไปทุกสัญญา</button>
+      <input id="cSearch" placeholder="ค้นหา..." oninput="renderContracts()" style="margin-left:auto; width:220px;">
+    </div>
+    <div class="panel"><table id="contractTable"></table></div>
+  </section>
+  
+  <section id="invoices" class="tab">
+    <div class="toolbar">
+      <select id="iFilter" onchange="renderInvoices()">
+        <option value="all">ทั้งหมด</option><option value="open">ค้างชำระ</option>
+        <option value="overdue">เกินกำหนด</option><option value="litig">ส่งฟ้อง</option><option value="wo">ตัดหนี้สูญ</option>
+      </select>
+      <input id="iSearch" placeholder="ค้นหา..." oninput="renderInvoices()" style="width:220px;">
+      <span class="right muted" id="iCount"></span>
+    </div>
+    <div class="panel" style="overflow:auto"><table id="invoiceTable"></table></div>
+  </section>
+  
+  <section id="aging" class="tab">
+    <div class="note"><b>ภาษี:</b> ค่าเผื่อหนี้สงสัยจะสูญนี้เป็นการตั้งตามระบบบัญชี <b>ต้องบวกกลับ</b> ทางภาษี (หักเป็นค่าใช้จ่ายไม่ได้) จะหักได้เมื่อตัดหนี้สูญจริงตามเกณฑ์กฎกระทรวง 186</div>
+    <div class="panel"><h2>ตารางอัตราสำรอง <span class="hint">แก้อัตราแล้วบันทึกลงฐานข้อมูล</span></h2><table id="provMatrix"></table>
+      <button class="act sm" id="saveRatesBtn" style="margin-top:12px; display:none;" onclick="saveRates()">บันทึกอัตราลงฐานข้อมูล</button></div>
+    <div class="panel"><h2>Aging รายสัญญา</h2><table id="agingByContract" style="font-size:12.5px"></table></div>
+  </section>
+  
+  <section id="dunning" class="tab">
+    <div class="note"><b>เกณฑ์กฎกระทรวง 186:</b> &gt;2ล้าน=ฟ้อง+บังคับคดีไม่มีทรัพย์ · 2แสน–2ล้าน=ศาลรับฟ้อง · ≤2แสน=ทวงถาม≥2ครั้ง+บอร์ดอนุมัติ</div>
+    <div class="toolbar"><button class="ghost" id="runJobBtn" style="display:none;" onclick="runJob()">▶ รัน daily job (จำลอง cron)</button><span class="right muted">คำแนะนำดำเนินการทวงหนี้อัตโนมัติตามระยะเวลาค้างชำระ</span></div>
+    <div class="panel" style="overflow:auto"><table id="dunTable"></table></div>
+  </section>
+  
+  <section id="audit" class="tab">
+    <div class="panel"><h2>ประวัติการแก้ไข (Audit Trail) <span class="hint">ธุรกรรมและการกระทำสำคัญที่บันทึกโดยผู้ใช้อย่างถาวร</span></h2><table id="auditTable"></table></div>
+  </section>
+</main>
+
+<!-- โมดัล สัญญา -->
+<div class="modal-bg" id="cModal"><div class="modal">
+  <h3 id="cModalTitle">เพิ่มสัญญาเช่า</h3><input type="hidden" id="c_id">
+  <div class="fg"><label>ชื่อผู้เช่า</label><input id="c_tenant"></div>
+  <div class="grid2"><div class="fg"><label>เลขผู้เสียภาษี</label><input id="c_tax"></div><div class="fg"><label>ยูนิต</label><input id="c_unit"></div></div>
+  <div class="grid2"><div class="fg"><label>ค่าเช่า/เดือน</label><input id="c_rent" type="number"></div><div class="fg"><label>ค่าบริการ/เดือน</label><input id="c_service" type="number"></div></div>
+  <div class="grid2"><div class="fg"><label>วันเริ่ม</label><input id="c_start" type="date"></div><div class="fg"><label>วันสิ้นสุด</label><input id="c_end" type="date"></div></div>
+  <div class="grid2"><div class="fg"><label>ครบกำหนด(วันที่)</label><input id="c_due" type="number" value="5"></div><div class="fg"><label>เงินประกัน</label><input id="c_deposit" type="number"></div></div>
+  <div class="grid2"><div class="fg"><label>ค่าปรับ(%/ด.)</label><input id="c_penalty" type="number" value="1.5"></div><div class="fg"><label>ความเสี่ยง</label><select id="c_risk"><option>ต่ำ</option><option>กลาง</option><option>สูง</option></select></div></div>
+  <div class="flex" style="margin-top:16px">
+    <button class="act" id="cSave" onclick="saveContract()">บันทึก</button>
+    <button class="sm" onclick="closeM('cModal')">ยกเลิก</button>
+    <button class="sm right" id="cDel" onclick="delContract()" style="color:var(--red); border-color:var(--red); display:none;">ลบสัญญา</button>
+  </div>
+</div></div>
+
+<!-- โมดัล การเงิน & อนุมัติ -->
+<div class="modal-bg" id="pModal"><div class="modal"><h3 id="pTitle">จัดการ</h3><div id="pBody"></div></div></div>
+<div id="toast"></div>
+
+<footer>ระบบติดตามหนี้เช่า (Lease Receivables Tracker) · ความปลอดภัยระดับองค์กร JWT + Role-based Access Control</footer>
+
+<script>
+const API = '/api';
+let D = { dash: null, contracts: [], invoices: [], aging: null, prov: null, rates: {} };
+const BK = [['cur','ยังไม่ครบกำหนด','#22c55e'],['b1','1–30 วัน','#3b82f6'],['b2','31–60 วัน','#eab308'],['b3','61–90 วัน','#f97316'],['b4','91–180 วัน','#ef4444'],['b5','181–365 วัน','#b91c1c'],['b6','เกิน 365 วัน','#7f1d1d']];
+const fmt = n => Math.round(n || 0).toLocaleString('en-US');
+const asof = () => document.getElementById('asof').value;
+
+function toast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+// ฟังก์ชันดึงข้อมูล API ที่ผูก JWT Token ใน Header อัตโนมัติ
+async function api(path, opt = {}) {
+  opt.headers = opt.headers || {};
+  const token = localStorage.getItem('token');
+  if (token) {
+    opt.headers['Authorization'] = 'Bearer ' + token;
+  }
+  
+  const r = await fetch(API + path, opt);
+  if (r.status === 401) {
+    // กรณี Token หมดอายุ หรือไม่ได้ล็อกอิน
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    showLoginModal();
+    const errData = await r.json().catch(() => ({}));
+    throw new Error(errData.error || 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  }
+  if (r.status === 403) {
+    // กรณีไม่มีสิทธิ์เข้าถึงฟังก์ชันนั้น
+    const errData = await r.json().catch(() => ({}));
+    throw new Error(errData.error || 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลส่วนนี้');
+  }
+  
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({ error: r.statusText }));
+    throw new Error(e.error || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+  }
+  return r.json();
+}
+
+// แสดงหน้าล็อกอินครอบทับ
+function showLoginModal() {
+  document.getElementById('loginModal').style.display = 'flex';
+  document.getElementById('mainNav').style.display = 'none';
+  document.getElementById('mainContainer').style.display = 'none';
+  document.getElementById('userInfo').style.display = 'none';
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ซ่อนหน้าล็อกอินและเปิดแสดงระบบ
+function hideLoginModal(user) {
+  document.getElementById('loginModal').style.display = 'none';
+  document.getElementById('mainNav').style.display = 'flex';
+  document.getElementById('mainContainer').style.display = 'block';
+  document.getElementById('userInfo').style.display = 'flex';
+  document.getElementById('userFullname').textContent = user.fullname;
+  document.getElementById('userRole').textContent = user.role;
+  applyRolePermissions(user);
+}
+
+// บังคับจำกัดการมองเห็นฟังก์ชันตามระดับสิทธิ์ผู้ใช้
+function applyRolePermissions(user) {
+  const isBilling = (user.role === 'admin' || user.role === 'billing');
+  const isCashier = (user.role === 'admin' || user.role === 'cashier');
+  const isManager = (user.role === 'admin' || user.role === 'manager');
+  
+  // ซ่อนปุ่มเพิ่มสัญญา / สร้างใบแจ้งหนี้
+  document.getElementById('addContractBtn').style.display = isBilling ? '' : 'none';
+  document.getElementById('genInvoicesBtn').style.display = isBilling ? '' : 'none';
+  
+  // ซ่อนปุ่มแก้ไขตารางอัตราสำรองหนี้
+  document.getElementById('saveRatesBtn').style.display = isManager ? '' : 'none';
+  
+  // ซ่อนปุ่มจำลองการทำงานรายวัน (Cron job trigger)
+  document.getElementById('runJobBtn').style.display = isManager ? '' : 'none';
+  
+  // จัดการการแสดงผลปุ่มควบคุมสิทธิ์ในแถบนำทาง (Tabs)
+  const billingTabs = ['dash', 'contracts', 'invoices', 'aging'];
+  const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning'];
+  const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
+  
+  document.querySelectorAll('nav button').forEach(btn => {
+    const tabName = btn.getAttribute('data-tab');
+    if (user.role === 'admin') {
+      btn.style.display = 'block';
+    } else if (user.role === 'billing' && billingTabs.includes(tabName)) {
+      btn.style.display = 'block';
+    } else if (user.role === 'cashier' && cashierTabs.includes(tabName)) {
+      btn.style.display = 'block';
+    } else if (user.role === 'manager' && managerTabs.includes(tabName)) {
+      btn.style.display = 'block';
+    } else {
+      btn.style.display = 'none';
+    }
+  });
+}
+
+// ส่งขอเข้าสู่ระบบผ่าน API
+async function submitLogin() {
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  const errDiv = document.getElementById('loginErr');
+  errDiv.textContent = '';
+  
+  if (!user || !pass) {
+    errDiv.textContent = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';
+    return;
+  }
+  
+  try {
+    const res = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    }
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    hideLoginModal(data.user);
+    loadAll();
+  } catch (e) {
+    errDiv.textContent = e.message;
+  }
+}
+
+// ออกระบบ ล้างค่า Token
+function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  showLoginModal();
+}
+
+async function loadAll() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showLoginModal();
+    return;
+  }
+  
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    hideLoginModal(user);
+    
+    const q = '?asof=' + asof();
+    // โหลดข้อมูลตามสิทธิ์ผู้ใช้งาน (ปัดข้ามหาก API ปลายทางโดนบล็อคสิทธิ์ 403)
+    const promises = [
+      api('/dashboard' + q),
+      api('/contracts')
+    ];
+    
+    // สิทธิ์การเงิน/แอดมิน/เมเนเจอร์ โหลดใบแจ้งหนี้ได้
+    promises.push(api('/invoices' + q));
+    
+    // โหลด Aging ตามสิทธิ์ (admin, manager, billing)
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing') {
+      promises.push(api('/aging' + q));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    // โหลด Provision รายละเอียดตามสิทธิ์ (เฉพาะ admin, manager เท่านั้น)
+    if (user.role === 'admin' || user.role === 'manager') {
+      promises.push(api('/provision' + q));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    // โหลด Provision Rates ตามสิทธิ์ (admin, manager, billing)
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing') {
+      promises.push(api('/provision/rates'));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+    
+    const [dash, contracts, invoices, aging, prov, rates] = await Promise.all(promises);
+    D = { dash, contracts, invoices, aging, prov, rates };
+    
+    document.getElementById('dbdot').style.background = '#22c55e';
+    document.getElementById('dbdot').style.boxShadow = '0 0 8px #22c55e';
+    document.getElementById('dbstat').textContent = 'เชื่อมต่อฐานข้อมูล';
+    
+    renderAll();
+  } catch (e) {
+    console.error(e);
+    if (e.message !== 'กรุณาเข้าสู่ระบบใหม่') {
+      document.getElementById('dbdot').style.background = '#ef4444';
+      document.getElementById('dbdot').style.boxShadow = '0 0 8px #ef4444';
+      document.getElementById('dbstat').textContent = 'โหลดข้อมูลไม่สมบูรณ์';
+    }
+  }
+}
+
+function renderAll() {
+  if (D.dash) renderKPI();
+  if (D.aging) renderBars();
+  if (D.invoices) renderTop();
+  if (D.prov) renderProvSum();
+  if (D.contracts) renderContracts();
+  if (D.invoices) renderInvoices();
+  if (D.prov) renderMatrix();
+  if (D.aging) renderAgingByC();
+  if (D.invoices) renderDun();
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.role === 'admin' || user.role === 'manager') {
+    loadAudit();
+  }
+}
+
+function renderKPI() {
+  const d = D.dash;
+  const c = [
+    ['ลูกหนี้คงค้างรวม', fmt(d.totalAR), d.openCount + ' ใบแจ้งหนี้', ''],
+    ['เกินกำหนดชำระ', fmt(d.overdue), d.overduePct.toFixed(1) + '%', d.overduePct > 25 ? 'red' : 'amber'],
+    ['ค่าเผื่อฯ ที่ควรตั้ง', fmt(d.provision), 'คำนวณตามอายุหนี้', 'amber'],
+    ['อยู่ระหว่างยื่นฟ้อง', fmt(d.litigation), d.litCount + ' รายการคดี', 'red'],
+    ['ตัดหนี้สูญสะสม', fmt(d.writeoff), d.woCount + ' ใบแจ้งหนี้', '']
+  ];
+  document.getElementById('kpiCards').innerHTML = c.map(x => `
+    <div class="card" style="border-left-color: ${x[3] === 'red' ? 'var(--red)' : x[3] === 'amber' ? 'var(--amber)' : 'var(--accent)'}">
+      <div class="lbl">${x[0]}</div>
+      <div class="val ${x[3]}">${x[1]}</div>
+      <div class="foot">${x[2]}</div>
+    </div>
+  `).join('');
+}
+
+function renderBars() {
+  const s = D.aging.sums;
+  const tot = Object.values(s).reduce((a, b) => a + b, 0) || 1;
+  document.getElementById('agingBars').innerHTML = BK.map(([k, l, col]) => {
+    const a = s[k] || 0, p = a / tot * 100;
+    return `
+      <div class="agerow">
+        <div style="font-weight:600;">${l}</div>
+        <div class="bar"><span style="width:${p}%;background:${col};display:block;height:100%"></span></div>
+        <div class="anum">${fmt(a)}</div>
+        <div class="muted r">${p.toFixed(1)}%</div>
+      </div>`;
+  }).join('');
+  document.getElementById('agingLegend').innerHTML = BK.map(([k, l, c]) => `<span><span class="dot" style="background:${c}"></span>${l}</span>`).join('');
+}
+
+function renderTop() {
+  const m = {};
+  D.invoices.forEach(i => {
+    if (!i.written_off && i.outstanding > 0) {
+      m[i.contract_id] = (m[i.contract_id] || { t: i.tenant, unit: i.unit, risk: i.risk_tier, amt: 0, old: 0 });
+    }
+  });
+  D.invoices.forEach(i => {
+    if (!i.written_off && i.outstanding > 0) {
+      m[i.contract_id].amt += i.outstanding;
+      m[i.contract_id].old = Math.max(m[i.contract_id].old, i.days_overdue);
+    }
+  });
+  const rows = Object.values(m).sort((a, b) => b.amt - a.amt).slice(0, 6);
+  let h = '<tr><th>ผู้เช่า / โครงการ</th><th class="r">ค้างรวม (บาท)</th><th class="c">ค้างนานที่สุด</th><th class="c">เกณฑ์ ก.186</th></tr>';
+  rows.forEach(r => {
+    const t = r.amt > 2000000 ? '>2 ล้านบาท' : (r.amt >= 200000 ? '2แสน–2ล้าน' : '≤2แสน');
+    h += `
+      <tr>
+        <td><b>${r.t}</b><div class="muted">พื้นที่: ${r.unit} · ความเสี่ยง: ${r.risk}</div></td>
+        <td class="r num" style="color:var(--red); font-size:14px;">${fmt(r.amt)}</td>
+        <td class="c font-weight:600;">${r.old > 0 ? r.old + ' วัน' : '-'}</td>
+        <td class="c"><span class="badge" style="background:#fee2e2; color:#be123c;">${t}</span></td>
+      </tr>`;
+  });
+  document.getElementById('topOverdue').innerHTML = h;
+}
+
+function renderProvSummary() {
+  if (!D.prov) return;
+  const d = D.prov.detail;
+  let h = '<tr><th>ช่วงอายุหนี้</th><th class="r">ยอดลูกหนี้คงค้าง</th><th class="c">อัตราสำรอง</th><th class="r">ค่าเผื่อที่ตั้ง (บาท)</th></tr>';
+  BK.forEach(([k, l]) => {
+    const x = d[k];
+    if (x.amt > 0) {
+      h += `
+        <tr>
+          <td>${l}</td>
+          <td class="r num">${fmt(x.amt)}</td>
+          <td class="c" style="color:var(--accent); font-weight:600;">${x.rate}%</td>
+          <td class="r num" style="color:var(--amber);">${fmt(x.prov)}</td>
+        </tr>`;
+    }
+  });
+  h += `<tr style="background:var(--grey); font-weight:700;"><td colspan="3"><b>ประมาณการยอดสำรองรวม</b></td><td class="r num" style="color:var(--amber); font-size:14px;"><b>${fmt(D.prov.total)}</b></td></tr>`;
+  document.getElementById('provSummary').innerHTML = h;
+}
+
+function renderContracts() {
+  const q = (document.getElementById('cSearch').value || '').toLowerCase();
+  let h = '<tr><th>รหัสสัญญา</th><th>ผู้เช่า / เลขผู้เสียภาษี</th><th>ยูนิต</th><th class="r">ค่าเช่า/ด.</th><th class="r">บริการ/ด.</th><th class="r">เงินประกันคงเหลือ</th><th class="c">ความเสี่ยง</th><th class="r">ยอดหนี้ค้าง</th><th></th></tr>';
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isBilling = (user.role === 'admin' || user.role === 'billing');
+  
+  D.contracts.filter(c => !q || (c.tenant || '').toLowerCase().includes(q) || (c.unit || '').toLowerCase().includes(q)).forEach(c => {
+    const btnLabel = isBilling ? 'แก้ไข' : 'ดูสัญญา';
+    h += `
+      <tr>
+        <td><b>${c.id}</b></td>
+        <td><b>${c.tenant}</b><div class="muted">${c.tax_id || '-'}</div></td>
+        <td><span class="badge" style="background:var(--light-blue); color:var(--blue); margin:0;">${c.unit || '-'}</span></td>
+        <td class="r num">${fmt(c.rent_monthly)}</td>
+        <td class="r num">${fmt(c.service_monthly)}</td>
+        <td class="r num">${fmt(c.deposit_balance)}</td>
+        <td class="c"><span style="font-weight:600; color:${c.risk_tier==='สูง'?'var(--red)':c.risk_tier==='กลาง'?'var(--amber)':'var(--green)'}">${c.risk_tier}</span></td>
+        <td class="r num" style="color:${c.outstanding > 0 ? 'var(--red)' : '#64748b'}; font-weight:${c.outstanding > 0 ? 'bold' : 'normal'};">${c.outstanding > 0 ? fmt(c.outstanding) : '-'}</td>
+        <td><button class="sm" onclick='openContract(${JSON.stringify(c.id)})'>${btnLabel}</button></td>
+      </tr>`;
+  });
+  document.getElementById('contractTable').innerHTML = h;
+}
+
+function renderInvoices() {
+  const f = document.getElementById('iFilter').value;
+  const q = (document.getElementById('iSearch').value || '').toLowerCase();
+  
+  let list = D.invoices.filter(i => {
+    if (f === 'open') return i.outstanding > 0 && !i.written_off;
+    if (f === 'overdue') return i.days_overdue > 0 && i.outstanding > 0 && !i.written_off;
+    if (f === 'litig') return i.litigation;
+    if (f === 'wo') return i.written_off;
+    return true;
+  }).filter(i => !q || (i.tenant || '').toLowerCase().includes(q) || i.id.toLowerCase().includes(q));
+  
+  let h = '<tr><th>เลขใบแจ้งหนี้</th><th>ผู้เช่า</th><th>งวด</th><th class="c">ครบกำหนด</th><th class="r">ยอดรวม</th><th class="r">ค้างจ่าย</th><th class="c">จำนวนวันค้าง</th><th class="c">ช่วง</th><th class="c">สถานะคดี/ชำระ</th><th></th></tr>';
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const canManage = (user.role === 'admin' || user.role === 'cashier' || user.role === 'manager');
+  
+  list.slice(0, 300).forEach(i => {
+    let sp;
+    if (i.written_off) {
+      sp = '<span class="pill p-wo">ตัดหนี้สูญ</span>';
+    } else if (i.litigation) {
+      sp = '<span class="pill p-lit">ดำเนินคดี</span>';
+    } else if (i.outstanding <= 0) {
+      sp = '<span class="pill p-paid">ชำระแล้ว</span>';
+    } else {
+      sp = `<span class="pill p-${i.bucket || 'b1'}">ค้างชำระ</span>`;
+    }
+    
+    const manageBtn = (canManage && i.outstanding > 0 && !i.written_off)
+      ? `<button class="sm" style="border-color:var(--accent); color:var(--accent);" onclick='openPay(${JSON.stringify(i.id)})'>จัดการสิทธิ์</button>`
+      : '';
+      
+    h += `
+      <tr>
+        <td><b>${i.id}</b></td>
+        <td><b>${i.tenant}</b></td>
+        <td class="c">${i.period}</td>
+        <td class="c">${i.due_date}</td>
+        <td class="r num">${fmt(i.total)}</td>
+        <td class="r num" style="color:${i.outstanding > 0 ? 'var(--red)' : '#64748b'}; font-weight:${i.outstanding > 0 ? '700' : '500'};">${i.outstanding > 0 ? fmt(i.outstanding) : '-'}</td>
+        <td class="c font-weight:600; color:var(--red);">${i.outstanding > 0 && i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
+        <td class="c">${i.bucket ? '<span class="pill p-' + i.bucket + '">' + i.bucket_label + '</span>' : '-'}</td>
+        <td class="c">${sp}</td>
+        <td>${manageBtn}</td>
+      </tr>`;
+  });
+  document.getElementById('invoiceTable').innerHTML = h;
+  document.getElementById('iCount').textContent = list.length + ' รายการ';
+}
+
+function renderMatrix() {
+  if (!D.prov) return;
+  const d = D.prov.detail;
+  let h = '<tr><th>ช่วงอายุหนี้</th><th class="c">อัตราสำรองบัญชี (%)</th><th class="r">ยอดหนี้ลูกหนี้</th><th class="r">จำนวนเงินประมาณการสำรอง</th></tr>';
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isManager = (user.role === 'admin' || user.role === 'manager');
+  
+  BK.forEach(([k, l]) => {
+    const x = d[k];
+    const inputField = isManager
+      ? `<input style="width:70px;text-align:right;" type="number" value="${D.rates[k]}" onchange="D.rates['${k}']=parseFloat(this.value)||0">`
+      : `<span style="font-weight:700;">${D.rates[k]} %</span>`;
+      
+    h += `
+      <tr>
+        <td>${l}</td>
+        <td class="c">${inputField}</td>
+        <td class="r num">${fmt(x.amt)}</td>
+        <td class="r num" style="color:var(--amber);">${fmt(x.prov)}</td>
+      </tr>`;
+  });
+  h += `<tr style="background:var(--light-blue); font-weight:700;"><td colspan="3"><b>รวมประมาณการสะสมที่ต้องตั้งสำรองบัญชี</b></td><td class="r num" style="color:var(--amber); font-size:14px;"><b>${fmt(D.prov.total)}</b></td></tr>`;
+  document.getElementById('provMatrix').innerHTML = h;
+}
+
+function renderAgingByC() {
+  if (!D.aging) return;
+  const bc = D.aging.byContract;
+  let h = '<tr><th>ชื่อผู้เช่า / สัญญา</th>' + BK.map(b => `<th class="r">${b[1]}</th>`).join('') + '<th class="r">ยอดรวมค้าง</th></tr>';
+  Object.values(bc).sort((a, b) => b.tot - a.tot).forEach(v => {
+    h += `<tr><td><b>${v.tenant}</b></td>` + BK.map(b => `<td class="r num">${v[b[0]] ? fmt(v[b[0]]) : '-'}</td>`).join('') + `<td class="r num" style="color:var(--red); font-weight:700;">${fmt(v.tot)}</td></tr>`;
+  });
+  document.getElementById('agingByContract').innerHTML = h;
+}
+
+function renderInvoices() {} // Legacy stub
+
+function renderDun() {
+  let list = D.invoices.filter(i => i.outstanding > 0 && !i.written_off && (i.days_overdue > 0 || i.litigation)).sort((a, b) => b.days_overdue - a.days_overdue);
+  let h = '<tr><th>เลขที่</th><th>ชื่อผู้เช่า / โครงการ</th><th class="c">ครบกำหนด</th><th class="r">ยอดค้างจ่าย</th><th class="c">อายุหนี้</th><th>มาตรการทวงถามที่ระบบแนะนำ</th><th></th></tr>';
+  const clsFor = c => ({ call: 'p-b1', pen: 'p-b1', l1: 'p-b2', l2: 'p-b2', legal: 'p-b3', demand: 'p-b3', sue: 'p-b4', lit: 'p-lit', wo: 'p-wo', ok: 'p-cur' }[c] || 'p-b1');
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const canManage = (user.role === 'admin' || user.role === 'cashier' || user.role === 'manager');
+  
+  list.slice(0, 300).forEach(i => {
+    const actBtn = canManage
+      ? `<button class="sm" onclick='openPay(${JSON.stringify(i.id)})'>จัดการ</button>`
+      : '';
+    h += `
+      <tr>
+        <td><b>${i.id}</b></td>
+        <td><b>${i.tenant}</b></td>
+        <td class="c">${i.due_date}</td>
+        <td class="r num" style="color:var(--red);">${fmt(i.outstanding)}</td>
+        <td class="c" style="color:var(--red); font-weight:600;">${i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
+        <td><span class="pill ${clsFor(i.action.code)}">${i.action.text}</span></td>
+        <td>${actBtn}</td>
+      </tr>`;
+  });
+  document.getElementById('dunTable').innerHTML = h;
+}
+
+async function loadAudit() {
+  try {
+    const a = await api('/audit');
+    let h = '<tr><th>ตราประทับเวลา</th><th>ผู้ดำเนินงาน (Actor)</th><th>การกระทำ (Action)</th><th>ตาราง/ID</th><th>รายละเอียดเพิ่มเติม (Audit Trace)</th></tr>';
+    a.slice(0, 60).forEach(r => {
+      h += `
+        <tr>
+          <td class="muted">${r.ts}</td>
+          <td><span class="badge" style="background:var(--navy); color:#fff; margin:0;">${r.actor}</span></td>
+          <td><b style="color:var(--accent);">${r.action}</b></td>
+          <td><span class="badge">${r.entity}</span> <b>${r.entity_id}</b></td>
+          <td class="muted" style="max-width:350px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.detail || '-'}</td>
+        </tr>`;
+    });
+    document.getElementById('auditTable').innerHTML = h;
+  } catch (e) {
+    console.error('ไม่สามารถเรียกดูระบบประวัติการทำธุรกรรมได้:', e.message);
+  }
+}
+
+// ========== ACTIONS & BUSINESS LOGIC ==========
+function openContract(id) {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isBilling = (user.role === 'admin' || user.role === 'billing');
+  
+  // ซ่อน/แสดงปุ่มในการบันทึกสัญญา
+  document.getElementById('cSave').style.display = isBilling ? '' : 'none';
+  const del = document.getElementById('cDel');
+  
+  if (id) {
+    const c = D.contracts.find(x => x.id === id);
+    document.getElementById('cModalTitle').textContent = (isBilling ? 'แก้ไขสัญญา: ' : 'ดูรายละเอียดสัญญา: ') + id;
+    c_id.value = id;
+    c_tenant.value = c.tenant;
+    c_tax.value = c.tax_id || '';
+    c_unit.value = c.unit || '';
+    c_rent.value = c.rent_monthly;
+    c_service.value = c.service_monthly;
+    c_start.value = c.start_date;
+    c_end.value = c.end_date;
+    c_due.value = c.due_day;
+    c_deposit.value = c.deposit;
+    c_penalty.value = c.penalty_rate;
+    c_risk.value = c.risk_tier;
+    del.style.display = (isBilling && id) ? '' : 'none';
+    
+    // หากไม่มีสิทธิ์แก้ไข ให้ล็อค input ทั้งหมด
+    document.querySelectorAll('#cModal input, #cModal select').forEach(el => {
+      if(el.id !== 'c_id') el.disabled = !isBilling;
+    });
+  } else {
+    document.getElementById('cModalTitle').textContent = 'เพิ่มสัญญาเช่าใหม่';
+    ['c_id','c_tenant','c_tax','c_unit','c_rent','c_service','c_start','c_end','c_deposit'].forEach(k => document.getElementById(k).value = '');
+    c_due.value = 5;
+    c_penalty.value = 1.5;
+    c_risk.value = 'ต่ำ';
+    del.style.display = 'none';
+    
+    document.querySelectorAll('#cModal input, #cModal select').forEach(el => {
+      el.disabled = false;
+    });
+  }
+  document.getElementById('cModal').classList.add('on');
+}
+
+async function saveContract() {
+  const b = {
+    id: c_id.value || undefined,
+    tenant: c_tenant.value,
+    tax_id: c_tax.value,
+    unit: c_unit.value,
+    rent_monthly: c_rent.value,
+    service_monthly: c_service.value,
+    start_date: c_start.value,
+    end_date: c_end.value,
+    due_day: c_due.value,
+    deposit: c_deposit.value,
+    penalty_rate: c_penalty.value,
+    risk_tier: c_risk.value
+  };
+  
+  try {
+    if (c_id.value) {
+      await api('/contracts/' + c_id.value, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+    } else {
+      await api('/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+    }
+    closeM('cModal');
+    toast('บันทึกรายละเอียดสัญญาเรียบร้อย');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function delContract() {
+  if (!confirm('ยืนยันลบสัญญานี้และใบแจ้งหนี้ที่ผูกไว้ทั้งหมดหรือไม่? ประวัตินี้จะไม่สามารถกู้คืนได้!')) return;
+  try {
+    await api('/contracts/' + c_id.value, { method: 'DELETE' });
+    closeM('cModal');
+    toast('ลบสัญญานี้เรียบร้อย');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function genAll() {
+  try {
+    const r = await api('/invoices/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: 'all' }) });
+    toast('สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+function closeM(id) {
+  document.getElementById(id).classList.remove('on');
+}
+
+function openPay(id) {
+  const i = D.invoices.find(x => x.id === id);
+  const t = i.action;
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isCashier = (user.role === 'admin' || user.role === 'cashier');
+  const isManager = (user.role === 'admin' || user.role === 'manager');
+  
+  document.getElementById('pTitle').textContent = 'จัดการใบแจ้งหนี้: ' + i.id + ' · ' + i.tenant;
+  
+  let cashierActions = '';
+  if (isCashier) {
+    cashierActions = `
+      <div class="fg"><label>ยอดบันทึกรับเงินจริง (บาท)</label><input id="payAmt" type="number" value="${Math.round(i.outstanding)}"></div>
+      <div class="grid2">
+        <div class="fg"><label>ภาษีหัก ณ ที่จ่าย (WHT)</label><input id="payWht" type="number" value="0"></div>
+        <div class="fg"><label>วิธีการรับชำระ</label><select id="payMethod"><option value="transfer">โอนเงินเข้าบัญชีธนาคาร</option><option value="cash">รับเป็นเงินสด</option></select></div>
+      </div>
+      <div class="flex" style="margin-top:8px;">
+        <button class="act" onclick="doPay('${id}')" style="flex:1;">บันทึกรับชำระ</button>
+        <button class="ghost" onclick="useDeposit('${id}')" style="flex:1;">หักบัญชีเงินประกัน</button>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+    `;
+  }
+  
+  let managerActions = '';
+  if (isManager) {
+    managerActions = `
+      <div class="flex">
+        ${i.litigation ? '' : `<button class="ghost" onclick="flagLit('${id}')" style="color:var(--navy); border-color:var(--navy); flex:1;">⚖ ยื่นส่งฟ้องดำเนินคดี</button>`}
+        <button class="act" onclick="writeOff('${id}')" style="background:var(--red); flex:1;">✂ อนุมัติตัดหนี้สูญ (ก.186)</button>
+      </div>
+    `;
+  }
+
+  document.getElementById('pBody').innerHTML = `
+    <div style="background:var(--grey); padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid var(--line);">
+      <div class="fg" style="margin:0;"><b>ยอดลูกหนี้คงเหลือค้างชำระ:</b> <span style="color:var(--red); font-size:16px; font-weight:700;">${fmt(i.outstanding)} บาท</span></div>
+      <div class="fg" style="margin:4px 0 0 0;"><b>อายุหนี้ค้างส่งสะสม:</b> <span style="font-weight:600;">${i.days_overdue>0 ? i.days_overdue+' วัน' : 'ยังไม่ครบกำหนด'}</span></div>
+      <div class="fg" style="margin:4px 0 0 0;"><b>มาตรการที่แนะนำ:</b> <span class="pill p-b3" style="font-size:11px;">${t.text}</span></div>
+    </div>
+    ${cashierActions}
+    ${managerActions}
+    <div style="margin-top:16px; text-align:right;"><button class="sm" onclick="closeM('pModal')">ปิดหน้าต่าง</button></div>
+  `;
+  document.getElementById('pModal').classList.add('on');
+}
+
+async function doPay(id) {
+  const amt = +document.getElementById('payAmt').value || 0;
+  const wht = +document.getElementById('payWht').value || 0;
+  const m = document.getElementById('payMethod').value;
+  
+  try {
+    await api('/invoices/' + id + '/payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: amt, wht, method: m }) });
+    closeM('pModal');
+    toast('บันทึกยอดรับชำระเงินเข้าสู่ฐานข้อมูลสำเร็จ');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function useDeposit(id) {
+  if (!confirm('คุณต้องการหักหนี้ยอดนี้ด้วยเงินหลักประกันที่ผู้เช่าวางไว้หรือไม่?')) return;
+  try {
+    const r = await api('/invoices/' + id + '/use-deposit', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    closeM('pModal');
+    toast('หักเงินประกันสัญญาสำเร็จเป็นจำนวนเงิน ' + fmt(r.used) + ' บาท (ยอดประกันคงเหลือ ' + fmt(r.deposit_left) + ' บาท)');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function flagLit(id) {
+  const note = prompt('กรุณาระบุเลขที่คดีหรือข้อมูลบันทึกส่งเรื่องฟ้องดำเนินคดี:');
+  if (note === null) return; // กดยกเลิก
+  try {
+    await api('/invoices/' + id + '/litigation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note }) });
+    closeM('pModal');
+    toast('บันทึกการส่งฟ้องดำเนินคดีลูกหนี้รายนี้สำเร็จ');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function writeOff(id) {
+  const reason = prompt('กรุณาระบุเลขที่คดีศาล เอกสารรับฟ้อง หรือบันทึกรายงานการทวงหนี้และมติกรรมการ เพื่อใช้ประกอบสิทธิ์การหักภาษีตามกฎกระทรวงฉบับที่ 186 (เช่น "คดีหมายเลขดำที่ พ.xxx/2569 ยื่นฟ้องแล้วศาลประทับรับฟ้อง"):');
+  if (!reason) {
+    toast('ปฏิเสธการดำเนินการ: การตัดหนี้สูญต้องระบุรายละเอียดเหตุผลและหลักฐานกฎกระทรวง 186');
+    return;
+  }
+  
+  try {
+    await api('/invoices/' + id + '/writeoff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) });
+    closeM('pModal');
+    toast('อนุมัติตัดหนี้สูญและลดหนี้ลูกหนี้ในระบบสำเร็จ');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function saveRates() {
+  try {
+    await api('/provision/rates', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rates: D.rates }) });
+    toast('บันทึกการปรับปรุงอัตราตั้งค่าเผื่อหนี้สูญ (Provision Matrix) เรียบร้อย');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function runJob() {
+  try {
+    const r = await api('/jobs/daily', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ asof: asof() }) });
+    toast('รันระบบประมวลผลการทวงหนี้ประจำวันจำลอง (Cron) สำเร็จเรียบร้อย');
+    loadAudit();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ตั้งค่าวันที่เริ่มต้น
+document.getElementById('asof').value = '2026-07-14';
+
+// ตรวจสอบเช็ค Token ในเครื่องเมื่อเปิดหน้าเว็บ
+const token = localStorage.getItem('token');
+if (token) {
+  const user = JSON.parse(localStorage.getItem('user'));
+  hideLoginModal(user);
+  loadAll();
+} else {
+  showLoginModal();
+}
+</script>
+</body>
+</html>

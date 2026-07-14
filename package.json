@@ -1,0 +1,19 @@
+{
+  "name": "lease-ar-backend",
+  "version": "1.0.0",
+  "description": "ระบบติดตามหนี้เช่า — Backend + SQLite Database + REST API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "node-cron": "^4.6.0"
+  }
+}
