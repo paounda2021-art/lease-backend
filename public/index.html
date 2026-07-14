@@ -515,7 +515,7 @@ function renderAll() {
   if (D.dash) renderKPI();
   if (D.aging) renderBars();
   if (D.invoices) renderTop();
-  if (D.prov) renderProvSum();
+  if (D.prov) renderProvSummary();
   if (D.contracts) renderContracts();
   if (D.invoices) renderInvoices();
   if (D.prov) renderMatrix();
@@ -722,7 +722,7 @@ function renderAgingByC() {
   document.getElementById('agingByContract').innerHTML = h;
 }
 
-function renderInvoices() {} // Legacy stub
+// Legacy stub removed
 
 function renderDun() {
   let list = D.invoices.filter(i => i.outstanding > 0 && !i.written_off && (i.days_overdue > 0 || i.litigation)).sort((a, b) => b.days_overdue - a.days_overdue);
