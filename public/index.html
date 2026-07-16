@@ -743,12 +743,23 @@ function renderKPI() {
 function renderBars() {
   const s = D.aging.sums;
   const tot = Object.values(s).reduce((a, b) => a + b, 0) || 1;
+  
+  // Calculate unique debtors (tenants) count per bucket from invoices
+  const debtorCounts = {};
+  BK.forEach(([k]) => {
+    const activeInvs = D.invoices.filter(i => !i.written_off && i.outstanding > 0 && i.bucket === k);
+    const uniqueTenants = new Set(activeInvs.map(i => i.tenant));
+    debtorCounts[k] = uniqueTenants.size;
+  });
+
   document.getElementById('agingBars').innerHTML = BK.map(([k, l, col]) => {
     const a = s[k] || 0, p = a / tot * 100;
+    const count = debtorCounts[k] || 0;
+    const tooltipText = `จำนวนลูกหนี้: ${count} ราย`;
     return `
-      <div class="agerow">
+      <div class="agerow" title="${tooltipText}">
         <div style="font-weight:600;">${l}</div>
-        <div class="bar"><span style="width:${p}%;background:${col};display:block;height:100%"></span></div>
+        <div class="bar" title="${tooltipText}"><span style="width:${p}%;background:${col};display:block;height:100%"></span></div>
         <div class="anum">${fmt(a)}</div>
         <div class="muted r">${p.toFixed(1)}%</div>
       </div>`;
