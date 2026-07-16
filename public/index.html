@@ -20,17 +20,80 @@
     --warn: #fee2e2;
     --doubt: #fef9c3;
     --glass: rgba(255, 255, 255, 0.8);
+    
+    /* Theme specific variables - Light Mode Default */
+    --bg-body: #f1f5f9;
+    --text-body: #1e293b;
+    --bg-panel: #ffffff;
+    --bg-card: #ffffff;
+    --bg-nav: #ffffff;
+    --text-nav: #64748b;
+    --bg-th: #f8fafc;
+    --text-th: #475569;
+    --bg-td-hover: #eff6ff;
+    --text-td: #334155;
+    --bg-input: #ffffff;
+    --border-input: #e2e8f0;
+    --text-input: #1e293b;
+    --bg-modal: #ffffff;
+    --bg-modal-backdrop: rgba(15, 23, 42, 0.5);
+    --muted-color: #64748b;
+    --card-text-val: #0f172a;
+    --panel-header-text: #0f172a;
+    --badge-bg: #e2e8f0;
+    --badge-text: #475569;
+    --border-line: #e2e8f0;
+  }
+
+  body.dark {
+    --navy: #f8fafc; /* For dark mode text/headers */
+    --blue: #3b82f6;
+    --accent: #3b82f6;
+    --light-blue: rgba(59, 130, 246, 0.15);
+    --grey: #1e293b;
+    --green: #22c55e;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --line: #334155;
+    --ok: rgba(34, 197, 94, 0.2);
+    --warn: rgba(239, 68, 68, 0.2);
+    --doubt: rgba(245, 158, 11, 0.2);
+    --glass: rgba(30, 41, 59, 0.8);
+    
+    /* Theme specific variables - Dark Mode */
+    --bg-body: #0f172a;
+    --text-body: #cbd5e1;
+    --bg-panel: #1e293b;
+    --bg-card: #1e293b;
+    --bg-nav: #1e293b;
+    --text-nav: #94a3b8;
+    --bg-th: #0f172a;
+    --text-th: #94a3b8;
+    --bg-td-hover: rgba(59, 130, 246, 0.1);
+    --text-td: #cbd5e1;
+    --bg-input: #0f172a;
+    --border-input: #334155;
+    --text-input: #f8fafc;
+    --bg-modal: #1e293b;
+    --bg-modal-backdrop: rgba(0, 0, 0, 0.7);
+    --muted-color: #94a3b8;
+    --card-text-val: #f8fafc;
+    --panel-header-text: #f8fafc;
+    --badge-bg: #334155;
+    --badge-text: #94a3b8;
+    --border-line: #334155;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
     font-family: 'Inter', 'Sarabun', sans-serif; 
-    background: #f1f5f9; 
-    color: #1e293b; 
+    background: var(--bg-body); 
+    color: var(--text-body); 
     font-size: 14px;
     -webkit-font-smoothing: antialiased;
+    transition: background 0.3s, color 0.3s;
   }
   header { 
-    background: linear-gradient(135deg, var(--navy), var(--blue)); 
+    background: linear-gradient(135deg, #0f172a, #1e3a8a); 
     color: #fff; 
     padding: 16px 24px; 
     display: flex; 
@@ -77,42 +140,43 @@
     text-transform: uppercase;
   }
   
-  nav { background: #fff; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; padding: 0 24px; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-  nav button { background: none; border: none; padding: 16px 20px; font-size: 14px; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; font-family: inherit; font-weight: 500; transition: all 0.2s; }
+  nav { background: var(--bg-nav); border-bottom: 1px solid var(--border-line); display: flex; flex-wrap: wrap; padding: 0 24px; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.02); transition: background 0.3s, border-color 0.3s; }
+  nav button { background: none; border: none; padding: 16px 20px; font-size: 14px; cursor: pointer; color: var(--text-nav); border-bottom: 3px solid transparent; font-family: inherit; font-weight: 500; transition: all 0.2s; }
   nav button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
-  nav button:hover { background: var(--grey); color: #0f172a; }
+  nav button:hover { background: var(--bg-td-hover); color: var(--text-body); }
   
   main { padding: 24px; max-width: 1400px; margin: 0 auto; }
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
   .card { 
-    background: #fff; 
+    background: var(--bg-card); 
     border-radius: 12px; 
     padding: 18px 20px; 
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); 
     border-left: 5px solid var(--accent);
-    transition: transform 0.2s;
+    transition: transform 0.2s, background-color 0.3s;
   }
   .card:hover { transform: translateY(-2px); }
-  .card .lbl { font-size: 12px; color: #64748b; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-  .card .val { font-size: 26px; font-weight: 700; color: var(--navy); }
+  .card .lbl { font-size: 12px; color: var(--muted-color); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card .val { font-size: 26px; font-weight: 700; color: var(--card-text-val); }
   .card .val.red { color: var(--red); }
   .card .val.amber { color: var(--amber); }
-  .card .foot { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+  .card .foot { font-size: 11px; color: var(--muted-color); margin-top: 6px; }
   
   .panel { 
-    background: #fff; 
+    background: var(--bg-panel); 
     border-radius: 12px; 
     padding: 20px 24px; 
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); 
     margin-bottom: 24px; 
+    transition: background-color 0.3s;
   }
-  .panel h2 { font-size: 18px; color: var(--navy); margin-bottom: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
-  .panel h2 .hint { font-size: 12px; font-weight: 400; color: #64748b; }
+  .panel h2 { font-size: 18px; color: var(--panel-header-text); margin-bottom: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+  .panel h2 .hint { font-size: 12px; font-weight: 400; color: var(--muted-color); }
   
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  th { background: #f8fafc; color: #475569; text-align: left; padding: 12px 14px; font-weight: 600; border-bottom: 2px solid var(--line); }
-  td { padding: 10px 14px; border-bottom: 1px solid var(--line); color: #334155; }
-  tr:hover td { background: var(--light-blue); }
+  th { background: var(--bg-th); color: var(--text-th); text-align: left; padding: 12px 14px; font-weight: 600; border-bottom: 2px solid var(--border-line); transition: background-color 0.3s; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border-line); color: var(--text-td); }
+  tr:hover td { background: var(--bg-td-hover); }
   .r { text-align: right; }
   .c { text-align: center; }
   .num { font-variant-numeric: tabular-nums; font-weight: 500; }
@@ -141,39 +205,39 @@
     font-weight: 600; 
   }
   button.act:hover { background: #1d4ed8; }
-  button.ghost { background: #fff; color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 9px 17px; font-weight: 600; cursor: pointer; }
-  button.ghost:hover { background: var(--light-blue); }
-  button.sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--line); background: #fff; cursor: pointer; color: #475569; }
-  button.sm:hover { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+  button.ghost { background: var(--bg-panel); color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 9px 17px; font-weight: 600; cursor: pointer; }
+  button.ghost:hover { background: var(--bg-td-hover); }
+  button.sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-panel); cursor: pointer; color: var(--text-td); transition: background-color 0.2s, border-color 0.2s; }
+  button.sm:hover { background: var(--bg-td-hover); color: var(--text-body); border-color: var(--border-input); }
   
   .toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; align-items: center; }
-  input, select { padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 13.5px; outline: none; transition: border-color 0.2s; background: #fff; }
+  input, select { padding: 9px 12px; border: 1px solid var(--border-input); border-radius: 8px; font-size: 13.5px; outline: none; transition: border-color 0.2s, background-color 0.2s, color 0.2s; background: var(--bg-input); color: var(--text-input); }
   input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
   
-  .bar { height: 22px; background: #e2e8f0; border-radius: 6px; overflow: hidden; display: flex; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+  .bar { height: 22px; background: var(--border-line); border-radius: 6px; overflow: hidden; display: flex; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
   .agerow { display: grid; grid-template-columns: 140px 1fr 130px 80px; gap: 12px; align-items: center; margin-bottom: 10px; }
   .agerow .anum { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
-  .muted { color: #64748b; font-size: 12px; }
+  .muted { color: var(--muted-color); font-size: 12px; }
   .flex { display: flex; gap: 12px; flex-wrap: wrap; }
   .right { margin-left: auto; }
   
-  .modal-bg { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  .modal-bg { position: fixed; inset: 0; background: var(--bg-modal-backdrop); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; transition: background-color 0.3s; }
   .modal-bg.on { display: flex; }
-  .modal { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 550px; max-height: 90vh; overflow: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
-  .modal h3 { color: var(--navy); margin-bottom: 16px; font-weight: 700; font-size: 18px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+  .modal { background: var(--bg-modal); color: var(--text-body); border-radius: 16px; padding: 24px; width: 100%; max-width: 550px; max-height: 90vh; overflow: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); transition: background-color 0.3s, color 0.3s; }
+  .modal h3 { color: var(--panel-header-text); margin-bottom: 16px; font-weight: 700; font-size: 18px; border-bottom: 1px solid var(--border-line); padding-bottom: 10px; }
   .fg { margin-bottom: 12px; }
-  .fg label { display: block; font-size: 12px; color: #475569; margin-bottom: 4px; font-weight: 600; }
+  .fg label { display: block; font-size: 12px; color: var(--text-th); margin-bottom: 4px; font-weight: 600; }
   .fg input, .fg select { width: 100%; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .note { background: #fef3c7; border-radius: 8px; padding: 12px 16px; font-size: 12.5px; color: #92400e; margin-bottom: 16px; line-height: 1.6; border-left: 4px solid var(--amber); }
   .note b { color: #b45309; }
-  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: #64748b; margin-top: 14px; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted-color); margin-top: 14px; }
   .legend span { display: flex; align-items: center; gap: 6px; }
   .dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
   .tab { display: none; }
   .tab.on { display: block; }
-  .badge { font-size: 10px; padding: 2px 8px; border-radius: 12px; background: #e2e8f0; color: #475569; margin-left: 6px; font-weight: 600; }
-  footer { text-align: center; color: #94a3b8; font-size: 12px; padding: 32px 24px; border-top: 1px solid var(--line); margin-top: 40px; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 12px; background: var(--badge-bg); color: var(--badge-text); }
+  footer { text-align: center; color: var(--muted-color); padding: 32px 24px; border-top: 1px solid var(--border-line); margin-top: 40px; }
   #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 13.5px; opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 999; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); font-weight: 500; pointer-events: none; }
   #toast.on { opacity: 1; transform: translate(-50%, -8px); }
 </style>
@@ -188,7 +252,7 @@
         <span style="font-size: 32px;">🔒</span>
       </div>
       <h2 style="color: var(--navy); font-weight: 800; font-size: 22px;">ระบบติดตามหนี้เช่า</h2>
-      <p style="color: #64748b; font-size: 13px; margin-top: 4px;">Lease Receivables Tracker</p>
+      <p style="color: var(--muted-color); font-size: 13px; margin-top: 4px;">Lease Receivables Tracker</p>
     </div>
     
     <div class="fg">
@@ -204,7 +268,7 @@
     
     <button class="act" onclick="submitLogin()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 8px;">เข้าสู่ระบบ</button>
     
-    <div style="margin-top: 24px; padding: 12px; background: var(--grey); border-radius: 8px; border: 1px solid var(--line); font-size: 11.5px; line-height: 1.6; color: #475569;">
+    <div style="margin-top: 24px; padding: 12px; background: var(--grey); border-radius: 8px; border: 1px solid var(--border-line); font-size: 11.5px; line-height: 1.6; color: var(--muted-color);">
       <b>ข้อมูลผู้ใช้จำลองสำหรับทดสอบ (รหัสผ่าน: password123):</b><br>
       • <span style="font-weight:600; color:var(--accent);">admin</span> : เข้าใช้งานได้ทุกฟังก์ชัน<br>
       • <span style="font-weight:600; color:var(--accent);">billing</span> : จัดการสัญญาและออกใบแจ้งหนี้<br>
@@ -217,13 +281,17 @@
 <header>
   <div><h1>ระบบติดตามหนี้เช่า <span class="sub">Backend + SQLite</span></h1></div>
   <div class="flex" style="align-items:center">
+    <!-- Theme Toggle Switcher -->
+    <button id="themeToggleBtn" onclick="toggleTheme()" class="sm" style="border: none; background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
+      <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">โหมดมืด</span>
+    </button>
     <div class="db"><span class="dbdot" id="dbdot"></span><span id="dbstat">เชื่อมต่อฐานข้อมูล</span></div>
     <div class="asof">ณ วันที่ <input type="date" id="asof" onchange="loadAll()"></div>
     
     <!-- User Logged-in Info -->
     <div id="userInfo" style="display: none;">
       <span>👤 <b id="userFullname"></b> <span class="role-badge" id="userRole"></span></span>
-      <button onclick="logout()" class="sm" style="border: none; background: #be123c; color: #fff; font-weight: 600; padding: 3px 8px; border-radius: 4px; cursor: pointer;">ออกระบบ</button>
+      <button onclick="logout()" class="sm" style="border: none; background: #be123c; color: #fff; font-weight: 600; padding: 5px 12px; border-radius: 8px; cursor: pointer;">ออกระบบ</button>
     </div>
   </div>
 </header>
@@ -1006,6 +1074,34 @@ function showTab(id, btn) {
 
 // ตั้งค่าวันที่เริ่มต้น
 document.getElementById('asof').value = '2026-07-14';
+
+// ฟังก์ชันสลับโหมดมืด/สว่าง
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  updateThemeUI(isDark);
+}
+
+function updateThemeUI(isDark) {
+  const icon = document.getElementById('themeToggleIcon');
+  const text = document.getElementById('themeToggleText');
+  if (isDark) {
+    icon.textContent = '☀️';
+    text.textContent = 'โหมดสว่าง';
+  } else {
+    icon.textContent = '🌙';
+    text.textContent = 'โหมดมืด';
+  }
+}
+
+// โหลดธีมที่บันทึกไว้เมื่อเปิดเว็บ
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+  document.body.classList.add('dark');
+  updateThemeUI(true);
+} else {
+  updateThemeUI(false);
+}
 
 // ตรวจสอบเช็ค Token ในเครื่องเมื่อเปิดหน้าเว็บ
 const token = localStorage.getItem('token');
