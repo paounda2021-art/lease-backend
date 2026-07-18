@@ -21,7 +21,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 // ---------- helpers ----------
 function invWithContract() {
   return db.prepare(`
-    SELECT i.*, c.customer_id, c.deposit_balance, c.risk_tier, cu.name AS tenant, c.unit
+    SELECT i.*, c.customer_id, c.deposit_balance, c.risk_tier, cu.name AS tenant, cu.address, cu.tax_id, c.unit
     FROM invoices i
     JOIN contracts c ON c.id = i.contract_id
     JOIN customers cu ON cu.id = c.customer_id`).all();
@@ -474,10 +474,19 @@ app.post('/api/jobs/daily', authenticateToken, requireRole('manager'), (req, res
   }
 });
 
-// ========== AUDIT ==========
 app.get('/api/audit', authenticateToken, requireRole('manager'), (req, res) => {
   try {
     res.json(db.prepare('SELECT * FROM audit_log ORDER BY id DESC LIMIT 200').all());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/audit', authenticateToken, (req, res) => {
+  try {
+    const { action, entity, entity_id, detail } = req.body;
+    audit(req.user.username, action, entity, entity_id, detail);
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

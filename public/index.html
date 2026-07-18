@@ -363,6 +363,133 @@
       text-align: left !important;
     }
   }
+
+  /* Print Stylesheet for Dunning Letters */
+  @media print {
+    body {
+      background: #fff !important;
+      color: #000 !important;
+      font-family: "Sarabun", "TH Sarabun PSK", sans-serif !important;
+      font-size: 15px !important;
+      line-height: 1.6 !important;
+    }
+    /* Hide everything on screen except the print letter area */
+    #loginModal, header, nav, main, footer, .modal-bg, #toast, .no-print {
+      display: none !important;
+    }
+    #printLetterContainer {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+  }
+
+  /* Preview styles for the letter container when visible on screen inside modal */
+  .letter-preview-wrapper {
+    display: flex;
+    gap: 20px;
+    height: calc(90vh - 100px);
+    overflow: hidden;
+  }
+  .letter-control-panel {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-line);
+    border-radius: 12px;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .letter-paper-preview {
+    flex-grow: 1;
+    background: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 2.5cm 2cm; /* standard letter margins on screen */
+    overflow-y: auto;
+    font-family: "Sarabun", "TH Sarabun PSK", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    position: relative;
+  }
+  .dark .letter-paper-preview {
+    background: #fff; /* Keep paper white even in dark mode! */
+    color: #000;
+  }
+  
+  /* Official Thai Letter layout classes */
+  .official-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .official-emblem {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .official-emblem svg {
+    width: 80px;
+    height: 80px;
+  }
+  .official-meta-left {
+    position: absolute;
+    left: 0;
+    top: 60px;
+  }
+  .official-meta-right {
+    position: absolute;
+    right: 0;
+    top: 60px;
+    text-align: right;
+    max-width: 320px;
+    font-size: 13px;
+  }
+  .official-date {
+    text-align: center;
+    margin-top: 90px;
+    margin-bottom: 24px;
+  }
+  .official-detail {
+    margin-bottom: 20px;
+  }
+  .official-detail div {
+    margin-bottom: 6px;
+  }
+  .official-body {
+    text-indent: 2.5cm;
+    margin-bottom: 16px;
+    text-align: justify;
+  }
+  .official-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  .official-table th {
+    background: #f1f5f9 !important;
+    color: #000 !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 8px 12px;
+    font-weight: 600;
+  }
+  .official-table td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 8px 12px;
+    color: #000 !important;
+  }
+  .official-signoff {
+    margin-top: 40px;
+    margin-left: 50%;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -495,6 +622,80 @@
 
 <!-- โมดัล การเงิน & อนุมัติ -->
 <div class="modal-bg" id="pModal"><div class="modal"><h3 id="pTitle">จัดการ</h3><div id="pBody"></div></div></div>
+
+<!-- โมดัล พิมพ์หนังสือทวงถามหนี้ (Preview & Configuration) -->
+<div class="modal-bg" id="letterModal" style="z-index: 1000;">
+  <div class="modal" style="max-width: 1100px; width: 95%; padding: 20px; border-radius: 16px;">
+    <h3 class="no-print" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+      <span>📄 พิมพ์หนังสือทวงถามหนี้ (Dunning Preview)</span>
+      <button class="sm" onclick="closeLetterModal()" style="border: none; background: transparent; font-size: 20px; cursor: pointer; color: var(--text-td);">&times;</button>
+    </h3>
+    
+    <div class="letter-preview-wrapper no-print">
+      <!-- ส่วนควบคุมด้านซ้าย -->
+      <div class="letter-control-panel">
+        <h4 style="margin-top:0; margin-bottom:12px; color:var(--panel-header-text);">ปรับแต่งจดหมาย</h4>
+        
+        <div class="fg">
+          <label>ประเภทจดหมาย</label>
+          <select id="letterType" onchange="changeLetterTemplate()">
+            <option value="1">หนังสือทวงถามครั้งที่ 1 (ระดับ 1)</option>
+            <option value="2">หนังสือทวงถามครั้งที่ 2 + เตือนเลิกสัญญา (ระดับ 2)</option>
+            <option value="3">หนังสือทวงก่อนฟ้องโดยทนายความ (ระดับ 3)</option>
+          </select>
+        </div>
+        
+        <div class="fg">
+          <label>เลขที่หนังสือ (ที่)</label>
+          <input id="letterRef" placeholder="เช่น อสป. 100/2569" oninput="updateLetterPreview()">
+        </div>
+        
+        <div class="fg">
+          <label>ผู้ลงนาม / ทนายความ</label>
+          <input id="letterSigner" placeholder="ชื่อผู้ลงนาม" oninput="updateLetterPreview()">
+        </div>
+        
+        <div class="fg">
+          <label>ตำแหน่งผู้ลงนาม</label>
+          <input id="letterSignerPos" placeholder="เช่น ผู้อำนวยการ อสป." oninput="updateLetterPreview()">
+        </div>
+
+        <div class="fg" id="letterRefDateGroup" style="display:none;">
+          <label>วันที่หนังสือฉบับแรก (อ้างถึง)</label>
+          <input id="letterRefDate" type="date" onchange="updateLetterPreview()">
+        </div>
+
+        <div class="fg" id="letterLawFirmGroup" style="display:none;">
+          <label>ชื่อสำนักงานกฎหมาย</label>
+          <input id="letterLawFirm" placeholder="เช่น สนง. กฎหมาย อสป." oninput="updateLetterPreview()">
+        </div>
+
+        <div class="fg">
+          <label>ช่องทางการชำระเงิน</label>
+          <input id="letterPayment" placeholder="เช่น บัญชีธนาคารกรุงไทย..." oninput="updateLetterPreview()">
+        </div>
+
+        <div class="fg">
+          <label>ผู้ประสานงาน / เบอร์โทร</label>
+          <input id="letterContact" placeholder="ชื่อและเบอร์โทรติดต่อ" oninput="updateLetterPreview()">
+        </div>
+        
+        <button class="act" onclick="triggerPrintLetter()" style="width: 100%; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>🖨️ สั่งพิมพ์ / บันทึก PDF</span>
+        </button>
+      </div>
+      
+      <!-- ส่วนแสดงตัวอย่างกระดาษ A4 ด้านขวา -->
+      <div class="letter-paper-preview" id="letterPaperPreview">
+        <!-- เนื้อหาจดหมายจะถูกเรนเดอร์ตรงนี้ -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- คอนเทนเนอร์จริงสำหรับสั่งพิมพ์ (พิมพ์ซ่อนอยู่ในหน้าเว็บ) -->
+<div id="printLetterContainer" style="display: none;"></div>
+
 <div id="toast"></div>
 
 <footer>
@@ -941,6 +1142,9 @@ function renderDun() {
     const actBtn = canManage
       ? `<button class="sm" onclick='openPay(${JSON.stringify(i.id)})'>จัดการ</button>`
       : '';
+    const printBtn = i.days_overdue > 0
+      ? `<button class="sm ghost" onclick='openPrintLetter(${JSON.stringify(i.id)})' style="margin-left:6px;">📄 ออกหนังสือทวง</button>`
+      : '';
     h += `
       <tr>
         <td><b>${i.id}</b></td>
@@ -949,7 +1153,7 @@ function renderDun() {
         <td class="r num" style="color:var(--red);">${fmt(i.outstanding)}</td>
         <td class="c" style="color:var(--red); font-weight:600;">${i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
         <td><span class="pill ${clsFor(i.action.code)}">${i.action.text}</span></td>
-        <td>${actBtn}</td>
+        <td>${actBtn}${printBtn}</td>
       </tr>`;
   });
   document.getElementById('dunTable').innerHTML = h;
@@ -1072,8 +1276,395 @@ async function genAll() {
   }
 }
 
-function closeM(id) {
-  document.getElementById(id).classList.remove('on');
+let currentLetterInvoice = null;
+
+function openPrintLetter(invId) {
+  const inv = D.invoices.find(i => i.id === invId);
+  if (!inv) return;
+  currentLetterInvoice = inv;
+  
+  // Set default type based on recommended action
+  let type = "1";
+  if (inv.action.code === "l2" || inv.action.code === "legal") {
+    type = "2";
+  } else if (inv.action.code === "demand" || inv.action.code === "sue") {
+    type = "3";
+  }
+  
+  document.getElementById("letterType").value = type;
+  
+  // Fill default inputs
+  const currentYearBE = new Date().getFullYear() + 543;
+  document.getElementById("letterRef").value = `อสป. ${inv.contract_id}/${currentYearBE}`;
+  
+  if (type === "3") {
+    document.getElementById("letterSigner").value = "สมศักดิ์ รักยุติธรรม";
+    document.getElementById("letterSignerPos").value = "ทนายความผู้รับมอบอำนาจ";
+    document.getElementById("letterLawFirm").value = "สำนักงานกฎหมายสะพานปลาและการบัญชี";
+  } else {
+    document.getElementById("letterSigner").value = "ผู้จัดการองค์การสะพานปลา";
+    document.getElementById("letterSignerPos").value = "ผู้อำนวยการองค์การสะพานปลา";
+  }
+  
+  // Default values for bank details and contacts
+  document.getElementById("letterPayment").value = "บัญชีธนาคารกรุงไทย เลขที่บัญชี 000-0-00000-0";
+  document.getElementById("letterContact").value = "ฝ่ายการเงินและบัญชี โทร. 02-211-5800 ต่อ 123";
+  
+  // 30 days ago default for first letter date (in Level 2 context)
+  const d30 = new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  const d30Str = `${d30.getFullYear()}-${pad(d30.getMonth() + 1)}-${pad(d30.getDate())}`;
+  document.getElementById("letterRefDate").value = d30Str;
+  
+  toggleControlFields(type);
+  updateLetterPreview();
+  
+  document.getElementById("letterModal").classList.add('on');
+}
+
+function closeLetterModal() {
+  document.getElementById("letterModal").classList.remove('on');
+}
+
+function toggleControlFields(type) {
+  document.getElementById("letterRefDateGroup").style.display = type === "2" ? "block" : "none";
+  document.getElementById("letterLawFirmGroup").style.display = type === "3" ? "block" : "none";
+}
+
+function changeLetterTemplate() {
+  const type = document.getElementById("letterType").value;
+  toggleControlFields(type);
+  
+  // Adjust defaults for signer based on type
+  if (type === "3") {
+    document.getElementById("letterSigner").value = "สมศักดิ์ รักยุติธรรม";
+    document.getElementById("letterSignerPos").value = "ทนายความผู้รับมอบอำนาจ";
+    document.getElementById("letterLawFirm").value = "สำนักงานกฎหมายสะพานปลาและการบัญชี";
+  } else {
+    document.getElementById("letterSigner").value = "ผู้จัดการองค์การสะพานปลา";
+    document.getElementById("letterSignerPos").value = "ผู้อำนวยการองค์การสะพานปลา";
+  }
+  
+  updateLetterPreview();
+}
+
+function updateLetterPreview() {
+  if (!currentLetterInvoice) return;
+  const type = document.getElementById("letterType").value;
+  
+  const config = {
+    ref: document.getElementById("letterRef").value || "...",
+    signer: document.getElementById("letterSigner").value || "...",
+    signerPos: document.getElementById("letterSignerPos").value || "...",
+    payment: document.getElementById("letterPayment").value || "...",
+    contact: document.getElementById("letterContact").value || "...",
+    refDate: document.getElementById("letterRefDate").value,
+    lawFirm: document.getElementById("letterLawFirm").value || "..."
+  };
+  
+  const html = generateLetterHTML(type, currentLetterInvoice, config);
+  document.getElementById("letterPaperPreview").innerHTML = html;
+  document.getElementById("printLetterContainer").innerHTML = html;
+}
+
+async function triggerPrintLetter() {
+  if (!currentLetterInvoice) return;
+  const type = document.getElementById("letterType").value;
+  const ref = document.getElementById("letterRef").value || "---";
+  
+  // Log printing action to Backend Audit trail
+  try {
+    await api('/audit', 'POST', {
+      action: 'print-letter',
+      entity: 'invoices',
+      entity_id: currentLetterInvoice.id,
+      detail: `Printed dunning letter Level ${type} (Ref: ${ref}) for tenant: ${currentLetterInvoice.tenant}`
+    });
+    // Reload audit logs to show immediate progress
+    loadAudit();
+  } catch (err) {
+    console.error('Failed to log audit trail:', err);
+  }
+  
+  // Trigger Browser Print Dialog
+  window.print();
+}
+
+function generateLetterHTML(type, inv, config) {
+  const thaiMonths = [
+    "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+    "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+  ];
+  const now = new Date();
+  const dateStr = `${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`;
+  
+  // Format dates to Thai format
+  const fmtThaiDate = (dateIso) => {
+    if (!dateIso) return "...";
+    const d = new Date(dateIso);
+    if (isNaN(d.getTime())) return dateIso;
+    return `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
+  };
+
+  const refDateStr = fmtThaiDate(config.refDate);
+  const totalDebtText = fmt(inv.outstanding);
+  const penaltyRate = inv.penalty_rate || 1.5;
+  const addressText = inv.address || "ตามทะเบียนราษฎร์/ที่อยู่ผู้เช่าตามสัญญาเช่า";
+  const taxIdText = inv.tax_id ? `เลขประจำตัวผู้เสียภาษี/เลขบัตรประชาชน: ${inv.tax_id}` : '';
+
+  // Garuda Emblem SVG
+  const garudaSVG = `
+    <svg viewBox="0 0 100 110" style="width: 75px; height: 80px; fill: #000; margin: 0 auto 12px auto; display: block;">
+      <path d="M50 0 C49 10 46 20 38 28 C34 32 30 35 25 35 C20 35 15 30 15 25 C15 15 25 10 35 5 C30 15 20 20 15 35 C15 45 25 50 35 45 C42 42 47 35 50 30 C53 35 58 42 65 45 C75 50 85 45 85 35 C80 20 70 15 65 5 C75 10 85 15 85 25 C85 30 80 35 75 35 C70 35 66 32 62 28 C54 20 51 10 50 0 Z" />
+      <path d="M50 30 C45 42 35 55 20 62 C15 64 12 68 12 72 C12 78 18 82 25 82 C35 82 45 75 50 68 C55 75 65 82 75 82 C82 82 88 78 88 72 C88 68 85 64 80 62 C65 55 55 42 50 30 Z" opacity="0.9" />
+      <path d="M12 72 C10 85 20 95 30 100 C32 101 35 98 35 95 C35 88 25 80 12 72 Z" />
+      <path d="M88 72 C90 85 80 95 70 100 C68 101 65 98 65 95 C65 88 75 80 88 72 Z" />
+      <path d="M50 68 C48 78 40 88 30 92 C28 93 28 96 30 96 C40 96 48 88 50 78 C52 88 60 96 70 96 C72 96 72 93 70 93 C60 88 52 78 50 68 Z" />
+    </svg>
+  `;
+
+  let headerHTML = "";
+  let subjectHTML = "";
+  let bodyHTML = "";
+  let signoffHTML = "";
+
+  if (type === "1") {
+    headerHTML = `
+      <div class="official-header">
+        <div class="official-emblem">${garudaSVG}</div>
+        <div class="official-meta-left">
+          <strong>ที่:</strong> ${config.ref}<br>
+        </div>
+        <div class="official-meta-right">
+          <strong>องค์การสะพานปลา (อสป.)</strong><br>
+          เลขที่ 211 ซอยเจริญกรุง 58 แขวงวัดพระยาไกร<br>
+          เขตบางคอแหลม กรุงเทพมหานคร 10120<br>
+          โทรศัพท์: 02-211-5800
+        </div>
+      </div>
+      <div class="official-date">
+        ${dateStr}
+      </div>
+    `;
+    
+    subjectHTML = `
+      <div class="official-detail">
+        <div><strong>เรื่อง:</strong> ขอให้ชำระเงินค่าเช่าและค่าบริการค้างชำระ (เตือนครั้งที่ 1)</div>
+        <div><strong>เรียน:</strong> คุณ ${inv.tenant}</div>
+        <div><strong>อ้างถึง:</strong> สัญญาเช่าพื้นที่ ยูนิต/พื้นที่ ${inv.unit} เลขที่สัญญา ${inv.contract_id}</div>
+      </div>
+    `;
+
+    bodyHTML = `
+      <p class="official-body">
+        ตามที่ท่านได้ทำสัญญาเช่าพื้นที่กับองค์การสะพานปลา ("ผู้ให้เช่า") ตามสัญญาที่อ้างถึงข้างต้นนั้น 
+        ปรากฏว่า ณ ปัจจุบันท่านมีหนี้ค้างชำระค่าเช่าและค่าบริการสำหรับงวดประจำงวด <strong>${inv.period}</strong> 
+        ซึ่งเกินกำหนดระยะเวลาชำระเงินมาแล้วเป็นเวลา <strong>${inv.days_overdue} วัน</strong> ดังรายละเอียดปรากฏตามตารางต่อไปนี้:
+      </p>
+      
+      <table class="official-table">
+        <thead>
+          <tr>
+            <th>รายการค้างชำระ</th>
+            <th style="text-align: center; width: 150px;">งวด/เดือน</th>
+            <th style="text-align: right; width: 180px;">จำนวนเงินคงค้าง (บาท)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ค่าเช่าและค่าบริการ (พื้นที่ยูนิต ${inv.unit})</td>
+            <td style="text-align: center;">${inv.period}</td>
+            <td style="text-align: right;">${fmt(inv.total)}</td>
+          </tr>
+          <tr>
+            <td>หัก: ยอดเงินที่ชำระเข้ามาแล้วบางส่วน</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: right; color: green;">-${fmt(inv.paid)}</td>
+          </tr>
+          <tr style="background:#f8fafc; font-weight:bold;">
+            <td>ยอดค้างชำระสุทธิ (ไม่รวมเบี้ยปรับผิดนัด)</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: right; color: #b91c1c;">${totalDebtText}</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <p class="official-body">
+        ดังนั้น องค์การสะพานปลาจึงขอแจ้งมายังท่านเพื่อโปรดชำระเงินจำนวนค้างชำระสุทธิข้างต้น 
+        พร้อมทั้งเบี้ยปรับค้างชำระในอัตราดอกเบี้ยผิดนัดร้อยละ ${penaltyRate}% ต่อเดือน (หรือตามที่ระบุในสัญญาเช่า) 
+        โดยขอให้ท่านดำเนินการชำระเงินภายในวันที่ <strong>${fmtThaiDate(new Date(now.getTime() + 15 * 86400000).toISOString().split('T')[0])} (ภายใน 15 วัน นับจากวันที่ได้รับหนังสือฉบับนี้)</strong>
+        โดยทำการโอนชำระผ่านช่องทาง: <strong>${config.payment}</strong>
+      </p>
+      
+      <p class="official-body">
+        หากท่านได้ชำระเงินจำนวนดังกล่าวเป็นที่เรียบร้อยแล้ว โปรดละเว้นหนังสือฉบับนี้และแจ้งหลักฐานการโอนเงินให้ทางผู้ให้เช่าทราบ 
+        หากท่านมีข้อสงสัยหรือต้องการประนีประนอมยอดหนี้กรุณาติดต่อ <strong>${config.contact}</strong>
+      </p>
+      
+      <p class="official-body">
+        จึงเรียนมาเพื่อโปรดดำเนินการชำระหนี้โดยด่วน
+      </p>
+    `;
+
+    signoffHTML = `
+      <div class="official-signoff">
+        ขอแสดงความนับถือ<br><br><br>
+        (....................................................)<br>
+        <strong>${config.signer}</strong><br>
+        ${config.signerPos}
+      </div>
+    `;
+  } else if (type === "2") {
+    headerHTML = `
+      <div class="official-header">
+        <div class="official-emblem">${garudaSVG}</div>
+        <div class="official-meta-left">
+          <strong>ที่:</strong> ${config.ref}<br>
+        </div>
+        <div class="official-meta-right">
+          <strong>องค์การสะพานปลา (อสป.)</strong><br>
+          เลขที่ 211 ซอยเจริญกรุง 58 แขวงวัดพระยาไกร<br>
+          เขตบางคอแหลม กรุงเทพมหานคร 10120<br>
+          โทรศัพท์: 02-211-5800
+        </div>
+      </div>
+      <div class="official-date">
+        ${dateStr}
+      </div>
+    `;
+
+    subjectHTML = `
+      <div class="official-detail">
+        <div><strong>เรื่อง:</strong> ทวงถามครั้งสุดท้ายและแจ้งเตือนบอกเลิกสัญญาเช่า (เตือนครั้งที่ 2)</div>
+        <div><strong>เรียน:</strong> คุณ ${inv.tenant}</div>
+        <div><strong>อ้างถึง:</strong> 1) สัญญาเช่าพื้นที่ ยูนิต/พื้นที่ ${inv.unit} เลขที่สัญญา ${inv.contract_id}<br>
+        2) หนังสือทวงถามครั้งที่ 1 อ้างอิงลงวันที่ ${refDateStr}</div>
+      </div>
+    `;
+
+    bodyHTML = `
+      <p class="official-body">
+        ตามที่องค์การสะพานปลา ("ผู้ให้เช่า") ได้จัดส่งหนังสือทวงถามเพื่อขอให้ท่านชำระหนี้ค้างชำระค่าเช่าและค่าบริการมายังท่านแล้ว 
+        ตามหนังสือที่อ้างถึง (2) ปรากฏว่าจนถึงปัจจุบัน ท่านยังเพิกเฉยมิได้ดำเนินการชำระหนี้ค้างหรือเข้ามาเจรจาประนีประนอมยอดหนี้แต่อย่างใด 
+        ณ ปัจจุบัน ท่านมียอดคงค้างชำระเป็นเวลา <strong>${inv.days_overdue} วัน</strong> รายละเอียดดังนี้:
+      </p>
+      
+      <table class="official-table">
+        <thead>
+          <tr>
+            <th>รายการค้างชำระ</th>
+            <th style="text-align: center; width: 150px;">งวด/เดือน</th>
+            <th style="text-align: right; width: 180px;">จำนวนเงินคงค้าง (บาท)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ค่าเช่าและค่าบริการ (พื้นที่ยูนิต ${inv.unit})</td>
+            <td style="text-align: center;">${inv.period}</td>
+            <td style="text-align: right;">${fmt(inv.total)}</td>
+          </tr>
+          <tr>
+            <td>หัก: ยอดเงินที่ชำระเข้ามาแล้วบางส่วน</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: right; color: green;">-${fmt(inv.paid)}</td>
+          </tr>
+          <tr style="background:#f8fafc; font-weight:bold;">
+            <td>ยอดค้างชำระสุทธิ (ไม่รวมเบี้ยปรับผิดนัด)</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: right; color: #b91c1c;">${totalDebtText}</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <p class="official-body">
+        องค์การสะพานปลา จึงขอทวงถามท่านเป็นครั้งสุดท้าย ให้ดำเนินการชำระเงินสุทธิจำนวนดังกล่าวพร้อมเบี้ยปรับ 
+        ภายในกำหนด <strong>7 วัน นับแต่วันที่ได้รับหนังสือฉบับนี้</strong> โดยโอนผ่านช่องทาง <strong>${config.payment}</strong>
+      </p>
+      
+      <p class="official-body" style="font-weight: 500; color: #b91c1c;">
+        หากพ้นกำหนดเวลาดังกล่าวแล้ว ท่านยังคงเพิกเฉยไม่ดำเนินการชำระหนี้ทั้งหมด องค์การสะพานปลาขอแจ้งว่าหนังสือฉบับนี้ถือเป็นคำแจ้ง 
+        <strong>"บอกเลิกสัญญาเช่าโดยทันที"</strong> และองค์การสะพานปลาขอสงวนสิทธิ์ในการดำเนินคดีแพ่งทางศาล ดำเนินการยึดพื้นที่คืน ริบวงเงินประกันสัญญาเช่าจำนวน <strong>${fmt(inv.deposit_balance)} บาท</strong> และเรียกร้องสิทธิ์เบี้ยปรับและค่าทนายความทั้งหมดจากท่านต่อไป
+      </p>
+      
+      <p class="official-body">
+        หวังเป็นอย่างยิ่งว่าท่านจะชำระหนี้ภายในกำหนด เพื่อมิให้ต้องดำเนินคดีทางกฎหมายอันจะก่อให้เกิดความเสียหายต่อทั้งสองฝ่าย
+      </p>
+    `;
+
+    signoffHTML = `
+      <div class="official-signoff">
+        ขอแสดงความนับถือ<br><br><br>
+        (....................................................)<br>
+        <strong>${config.signer}</strong><br>
+        ${config.signerPos}
+      </div>
+    `;
+  } else if (type === "3") {
+    headerHTML = `
+      <div class="official-header">
+        <div class="official-emblem" style="text-align:left; margin-bottom:8px;">
+          <strong style="font-size:17px; text-decoration: underline;">${config.lawFirm}</strong><br>
+          <span style="font-size:12px; color:#555;">ที่อยู่/ช่องทางประสานงาน: ${config.payment}</span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+        <div><strong>ที่:</strong> ${config.ref}</div>
+        <div><strong>วันที่:</strong> ${dateStr}</div>
+      </div>
+    `;
+
+    subjectHTML = `
+      <div class="official-detail">
+        <div><strong>เรื่อง:</strong> หนังสือทวงถามให้ชำระหนี้และแจ้งบอกเลิกสัญญาเช่า (ครั้งสุดท้ายก่อนยื่นฟ้องดำเนินคดีศาลแพ่ง)</div>
+        <div><strong>เรียน:</strong> คุณ ${inv.tenant}</div>
+        <div><strong>ที่อยู่ผู้รับจดหมาย:</strong> ${addressText}</div>
+        <div style="font-size: 13.5px; margin-top:2px;"><strong>อ้างอิง:</strong> ${taxIdText}</div>
+        <div style="margin-top:4px;"><strong>อ้างถึง:</strong> สัญญาเช่าพื้นที่ ยูนิต/พื้นที่ ${inv.unit} เลขที่สัญญา ${inv.contract_id} ระหว่างท่านกับองค์การสะพานปลา</div>
+      </div>
+    `;
+
+    bodyHTML = `
+      <p class="official-body">
+        ข้าพเจ้า <strong>${config.signer}</strong> ทนายความผู้ได้รับมอบอำนาจโดยชอบด้วยกฎหมายจาก <strong>องค์การสะพานปลา ("ผู้ให้เช่า")</strong> 
+        ขอแจ้งมายังท่านว่า ตามสัญญาเช่าที่อ้างถึงข้างต้น ท่านได้ตกลงชำระเงินค่าเช่าและค่าบริการให้กับผู้ให้เช่าเป็นรายเดือนอย่างถูกต้อง 
+        ทว่าปรากฏหลักฐานชัดเจนว่า ท่านได้ละเลยและผิดนัดไม่ชำระค่าเช่าตามกำหนด โดยมียอดค้างชำระสุทธิคิดเป็นจำนวนเงินต้น 
+        <strong>${totalDebtText} บาท</strong> ซึ่งมีอายุหนี้คงค้างเกินกำหนดรวมเป็นระยะเวลากว่า <strong>${inv.days_overdue} วัน</strong> แล้วนั้น
+      </p>
+      
+      <p class="official-body">
+        อาศัยอำนาจตามหนังสือมอบอำนาจ ข้าพเจ้าในฐานะทนายความผู้รับมอบอำนาจ จึงขอทวงถามให้ท่านนำเงินจำนวนยอดค้างชำระทั้งหมดพร้อมเบี้ยปรับ 
+        ไปชำระให้แก่ผู้ให้เช่าให้เสร็จสิ้นภายในกำหนด <strong>15 วัน นับแต่วันที่ได้รับหนังสือฉบับนี้</strong>
+      </p>
+      
+      <p class="official-body" style="font-weight: 500; color: #b91c1c;">
+        หากท่านยังเพิกเฉยละเลยไม่ชำระหนี้ตามระยะเวลาที่กำหนด ข้าพเจ้ามีความจำเป็นอย่างยิ่งที่จะต้องดำเนินคดีแพ่งทางศาลจนถึงที่สุด 
+        เพื่อฟ้องร้องขอให้ศาลมีคำพิพากษาบังคับคดีให้ท่านชำระเงินต้นค้างชำระ เบี้ยปรับผิดนัด อนุมัติการบอกเลิกสัญญาและขับไล่ท่านออกจากพื้นที่เช่า 
+        รวมถึงเรียกร้องให้ท่านชำระค่าธรรมเนียมฤชาศาลและค่าทนายความทั้งหมดที่เกิดขึ้นในการฟ้องร้องดำเนินคดีตามสิทธิ์อันชอบธรรมของผู้ให้เช่าต่อไป
+      </p>
+      
+      <p class="official-body">
+        จึงเรียนมาเพื่อทราบและโปรดดำเนินการชำระหนี้ภายในกำหนดอย่างเคร่งครัด
+      </p>
+    `;
+
+    signoffHTML = `
+      <div class="official-signoff">
+        ขอแสดงความนับถือ<br><br><br>
+        (....................................................)<br>
+        <strong>${config.signer}</strong><br>
+        ${config.signerPos}
+      </div>
+    `;
+  }
+
+  return `
+    <div style="font-family:'Sarabun', sans-serif; color:#000; padding:10px;">
+      ${headerHTML}
+      ${subjectHTML}
+      ${bodyHTML}
+      ${signoffHTML}
+    </div>
+  `;
 }
 
 function openPay(id) {
