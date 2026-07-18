@@ -429,40 +429,40 @@
   
   /* Official Thai Letter layout classes */
   .official-header {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 120px 1fr;
+    align-items: end;
     margin-bottom: 24px;
-    position: relative;
-    height: 120px;
   }
   .official-emblem {
     text-align: center;
-    width: 100%;
-    margin-bottom: 12px;
   }
   .official-emblem img {
     width: 100px;
     height: 100px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
   }
   .official-meta-left {
-    position: absolute;
-    left: 0;
-    top: 50px;
+    text-align: left;
+    font-size: 15px;
+    padding-bottom: 8px;
   }
   .official-meta-right {
-    position: absolute;
-    left: 50%;
-    top: 50px;
     text-align: left;
     max-width: 320px;
     font-size: 14px;
     line-height: 1.4;
+    padding-left: 15px;
+    padding-bottom: 8px;
   }
   .official-date {
     margin-left: 50%;
     text-align: left;
-    margin-top: 24px;
+    margin-top: 16px;
     margin-bottom: 24px;
+    font-size: 15px;
   }
   .official-detail {
     margin-bottom: 20px;
