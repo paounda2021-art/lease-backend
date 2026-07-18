@@ -1671,6 +1671,10 @@ function generateLetterHTML(type, inv, config) {
   `;
 }
 
+function closeM(id) {
+  document.getElementById(id).classList.remove('on');
+}
+
 function openPay(id) {
   const i = D.invoices.find(x => x.id === id);
   const t = i.action;
