@@ -429,31 +429,39 @@
   
   /* Official Thai Letter layout classes */
   .official-header {
-    display: grid;
-    grid-template-columns: 1fr 120px 1fr;
-    align-items: center;
+    position: relative;
+    height: 110px;
     margin-bottom: 24px;
   }
   .official-emblem {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    width: 100px;
+    height: 100px;
     text-align: center;
   }
   .official-emblem img {
-    width: 100px;
-    height: 100px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    display: block;
-    margin: 0 auto;
   }
   .official-meta-left {
-    text-align: left;
+    position: absolute;
+    left: 0;
+    top: 40px;
     font-size: 15px;
   }
   .official-meta-right {
+    position: absolute;
+    left: 50%;
+    margin-left: 65px; /* Safely offsets the address block to the right of the logo */
+    top: 30px;
     text-align: left;
     max-width: 320px;
     font-size: 14px;
     line-height: 1.4;
-    padding-left: 15px;
   }
   .official-date {
     text-align: center;
