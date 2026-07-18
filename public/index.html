@@ -431,7 +431,7 @@
   .official-header {
     display: grid;
     grid-template-columns: 1fr 120px 1fr;
-    align-items: end;
+    align-items: center;
     margin-bottom: 24px;
   }
   .official-emblem {
@@ -447,7 +447,6 @@
   .official-meta-left {
     text-align: left;
     font-size: 15px;
-    padding-bottom: 8px;
   }
   .official-meta-right {
     text-align: left;
@@ -455,12 +454,10 @@
     font-size: 14px;
     line-height: 1.4;
     padding-left: 15px;
-    padding-bottom: 8px;
   }
   .official-date {
-    margin-left: 50%;
-    text-align: left;
-    margin-top: 16px;
+    text-align: center;
+    margin-top: 24px;
     margin-bottom: 24px;
     font-size: 15px;
   }
@@ -1665,8 +1662,13 @@ function generateLetterHTML(type, inv, config) {
     `;
   }
 
+  const templateLabel = (type === "1" || type === "2")
+    ? `<div style="position: absolute; right: 0; top: 0; font-size: 13px; font-weight: bold; font-family: 'Sarabun', sans-serif;">บต.๑</div>`
+    : '';
+
   return `
-    <div style="font-family:'Sarabun', sans-serif; color:#000; padding:10px;">
+    <div style="font-family:'Sarabun', sans-serif; color:#000; padding:10px; position:relative;">
+      ${templateLabel}
       ${headerHTML}
       ${subjectHTML}
       ${bodyHTML}
