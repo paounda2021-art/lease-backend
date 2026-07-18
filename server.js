@@ -4,6 +4,7 @@
 // ===========================================================
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const cron = require('node-cron');
 const { db, audit } = require('./db');
@@ -511,5 +512,62 @@ cron.schedule('0 8 * * *', () => {
     console.error('[Scheduler] เกิดข้อผิดพลาดในการประมวลผลงานประจำวัน:', err);
   }
 });
+
+// ฟังก์ชันสำรองข้อมูลฐานข้อมูลอัตโนมัติ (SQLite Daily Backup)
+function backupDatabase() {
+  const backupsDir = path.join(__dirname, 'backups');
+  try {
+    // 1. สร้างโฟลเดอร์ backups หากยังไม่มี
+    if (!fs.existsSync(backupsDir)) {
+      fs.mkdirSync(backupsDir, { recursive: true });
+    }
+    
+    // 2. ตั้งชื่อไฟล์สำรองข้อมูลด้วย Timestamp (เช่น lease_backup_20260718_093000.db)
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const backupFile = path.join(backupsDir, `lease_backup_${timestamp}.db`);
+    
+    // 3. คัดลอกไฟล์ฐานข้อมูลหลักไปยังโฟลเดอร์สำรองข้อมูล
+    const mainDbPath = path.join(__dirname, 'lease.db');
+    if (fs.existsSync(mainDbPath)) {
+      fs.copyFileSync(mainDbPath, backupFile);
+      console.log(`[Backup] สำรองข้อมูลฐานข้อมูลสำเร็จ: ${backupFile}`);
+      audit('system-backup', 'create-backup', 'database', timestamp, `Backup file: lease_backup_${timestamp}.db`);
+    }
+
+    // 4. ลบไฟล์สำรองข้อมูลเก่าที่เกิน 30 วัน (Pruning) เพื่อประหยัดพื้นที่ดิสก์
+    const files = fs.readdirSync(backupsDir);
+    const backupFiles = files
+      .filter(f => f.startsWith('lease_backup_') && f.endsWith('.db'))
+      .map(f => ({
+        name: f,
+        path: path.join(backupsDir, f),
+        time: fs.statSync(path.join(backupsDir, f)).mtime.getTime()
+      }))
+      .sort((a, b) => b.time - a.time); // เรียงจากใหม่ไปเก่า
+
+    // เก็บไว้เฉพาะ 30 ไฟล์ล่าสุด ลบไฟล์ที่เหลือทั้งหมด
+    if (backupFiles.length > 30) {
+      const filesToDelete = backupFiles.slice(30);
+      filesToDelete.forEach(f => {
+        fs.unlinkSync(f.path);
+        console.log(`[Backup] ลบไฟล์สำรองข้อมูลเก่าตกรุ่น: ${f.name}`);
+      });
+    }
+  } catch (err) {
+    console.error('[Backup] เกิดข้อผิดพลาดในการสำรองข้อมูลฐานข้อมูล:', err);
+    audit('system-backup', 'error-backup', 'database', 'error', err.message);
+  }
+}
+
+// ตั้งเวลารันระบบสำรองข้อมูลฐานข้อมูลรายวันอัตโนมัติ ทุกวันเวลา 02:00 น. (ช่วงตีสองที่ไม่มีผู้ใช้งานเข้าระบบ)
+cron.schedule('0 2 * * *', () => {
+  console.log('[Scheduler] กำลังประมวลผลงานสำรองข้อมูลฐานข้อมูลประจำวัน (02:00 น.)...');
+  backupDatabase();
+});
+
+// รันการสำรองข้อมูลทันทีเมื่อสตาร์ทอัปเซิร์ฟเวอร์ เพื่อความปลอดภัย
+backupDatabase();
 
 app.listen(PORT, () => console.log(`Lease AR API running → http://localhost:${PORT}`));
