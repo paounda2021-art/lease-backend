@@ -366,6 +366,10 @@
 
   /* Print Stylesheet for Dunning Letters */
   @media print {
+    @page {
+      size: A4;
+      margin: 1.5cm 2cm 2.5cm 3cm; /* Top 1.5cm, Right 2cm, Bottom 2.5cm, Left 3cm */
+    }
     body {
       background: #fff !important;
       color: #000 !important;
@@ -411,7 +415,7 @@
     border: 1px solid #ccc;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     border-radius: 4px;
-    padding: 2.5cm 2cm; /* standard letter margins on screen */
+    padding: 1.5cm 2cm 2.5cm 3cm; /* top right bottom left */
     overflow-y: auto;
     font-family: "Sarabun", "TH Sarabun PSK", sans-serif;
     font-size: 15px;
@@ -419,7 +423,7 @@
     position: relative;
   }
   .dark .letter-paper-preview {
-    background: #fff; /* Keep paper white even in dark mode! */
+    background: #fff;
     color: #000;
   }
   
@@ -429,32 +433,35 @@
     justify-content: space-between;
     margin-bottom: 24px;
     position: relative;
+    height: 120px;
   }
   .official-emblem {
     text-align: center;
     width: 100%;
     margin-bottom: 12px;
   }
-  .official-emblem svg {
-    width: 80px;
-    height: 80px;
+  .official-emblem img {
+    width: 100px;
+    height: 100px;
   }
   .official-meta-left {
     position: absolute;
     left: 0;
-    top: 60px;
+    top: 50px;
   }
   .official-meta-right {
     position: absolute;
-    right: 0;
-    top: 60px;
-    text-align: right;
+    left: 50%;
+    top: 50px;
+    text-align: left;
     max-width: 320px;
-    font-size: 13px;
+    font-size: 14px;
+    line-height: 1.4;
   }
   .official-date {
-    text-align: center;
-    margin-top: 90px;
+    margin-left: 50%;
+    text-align: left;
+    margin-top: 24px;
     margin-bottom: 24px;
   }
   .official-detail {
@@ -1443,7 +1450,7 @@ function generateLetterHTML(type, inv, config) {
           กรุงเทพฯ ๑๐๑๒๐
         </div>
       </div>
-      <div class="official-date" style="margin-top: 100px;">
+      <div class="official-date">
         <strong>วันที่:</strong> ${dateStr}
       </div>
     `;
@@ -1529,7 +1536,7 @@ function generateLetterHTML(type, inv, config) {
           กรุงเทพฯ ๑๐๑๒๐
         </div>
       </div>
-      <div class="official-date" style="margin-top: 100px;">
+      <div class="official-date">
         <strong>วันที่:</strong> ${dateStr}
       </div>
     `;
