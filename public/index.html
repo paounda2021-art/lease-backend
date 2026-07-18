@@ -1374,11 +1374,15 @@ async function triggerPrintLetter() {
   
   // Log printing action to Backend Audit trail
   try {
-    await api('/audit', 'POST', {
-      action: 'print-letter',
-      entity: 'invoices',
-      entity_id: currentLetterInvoice.id,
-      detail: `Printed dunning letter Level ${type} (Ref: ${ref}) for tenant: ${currentLetterInvoice.tenant}`
+    await api('/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'print-letter',
+        entity: 'invoices',
+        entity_id: currentLetterInvoice.id,
+        detail: `Printed dunning letter Level ${type} (Ref: ${ref}) for tenant: ${currentLetterInvoice.tenant}`
+      })
     });
     // Reload audit logs to show immediate progress
     loadAudit();
