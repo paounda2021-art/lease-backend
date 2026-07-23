@@ -8,17 +8,17 @@ const db = new DatabaseSync(DB_PATH);
 db.exec('PRAGMA journal_mode = WAL;');
 db.exec('PRAGMA foreign_keys = ON;');
 
-// สร้างตารางจาก schema.sql
-const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-db.exec(schema);
-
-// Migration: ตรวจสอบคอลัมน์ branch_id ใน contracts
+// Migration: ตรวจสอบคอลัมน์ branch_id ใน contracts ก่อนรัน schema
 try {
   const cols = db.prepare('PRAGMA table_info(contracts)').all();
   if (cols.length > 0 && !cols.some(c => c.name === 'branch_id')) {
     db.exec('ALTER TABLE contracts ADD COLUMN branch_id TEXT;');
   }
 } catch (e) {}
+
+// สร้างตารางจาก schema.sql
+const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+db.exec(schema);
 
 // อัตราสำรองเริ่มต้น (ถ้ายังว่าง)
 const cnt = db.prepare('SELECT COUNT(*) c FROM provision_rates').get().c;
