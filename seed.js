@@ -35,9 +35,9 @@ branches.forEach(b => bins.run(...b));
 // 2. ข้อมูลผู้ใช้งานระบบ
 const mockUsers = [
   ['U-001', 'admin', bcrypt.hashSync('password123', 10), 'admin', 'ผู้ดูแลระบบ (Admin)', null],
-  ['U-002', 'viewer1', bcrypt.hashSync('password123', 10), 'viewer', 'ผู้ดูข้อมูลระบบ 1 (Read-Only ทั้งหมด)', null],
-  ['U-003', 'viewer2', bcrypt.hashSync('password123', 10), 'viewer', 'ผู้ดูข้อมูลระบบ 2 (Read-Only ทั้งหมด)', null],
-  ['U-004', 'viewer3', bcrypt.hashSync('password123', 10), 'viewer', 'ผู้ดูข้อมูลระบบ 3 (Read-Only ทั้งหมด)', null],
+  ['U-002', 'preeda.y@fishmarket.co.th', bcrypt.hashSync('password123', 10), 'viewer', 'นายปรีดา ยังสุขสถาพร (ผอ.)', null],
+  ['U-003', 'supbhachart.c@fishmarket.co.th', bcrypt.hashSync('07170184', 10), 'viewer', 'นายศุภชาติ ชาสมบัติ (รองผู้อำนวยการด้านบริหาร รผอ.บร.)', null],
+  ['U-004', 'thanachai.c@fishmarket.co.th', bcrypt.hashSync('07170078', 10), 'viewer', 'นายธนชัย ฉายศรี (เจ้าหน้าที่ตรวจสอบภายใน ฝตน.)', null],
   ['U-005', 'billing', bcrypt.hashSync('password123', 10), 'billing', 'เจ้าหน้าที่ฝ่ายวางบิลและสัญญา', null],
   ['U-006', 'cashier', bcrypt.hashSync('password123', 10), 'cashier', 'เจ้าหน้าที่ฝ่ายการเงินและรับชำระ', null],
   ['U-007', 'manager', bcrypt.hashSync('password123', 10), 'manager', 'ผู้จัดการฝ่ายการเงินและอนุมัติ', null]
