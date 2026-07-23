@@ -290,10 +290,16 @@ app.get('/api/invoices', authenticateToken, (req, res) => {
 app.post('/api/invoices/generate', authenticateToken, requireRole('billing'), (req, res) => {
   try {
     const target = req.body.contract_id;
+    const targets = req.body.contract_ids;
     const branchId = req.body.branch_id;
-    let contracts;
-    if (target && target !== 'all') {
-      contracts = [db.prepare('SELECT * FROM contracts WHERE id=?').get(target)];
+    let contracts = [];
+
+    if (Array.isArray(targets) && targets.length > 0) {
+      const placeholders = targets.map(() => '?').join(',');
+      contracts = db.prepare(`SELECT * FROM contracts WHERE id IN (${placeholders})`).all(...targets);
+    } else if (target && target !== 'all') {
+      const row = db.prepare('SELECT * FROM contracts WHERE id=?').get(target);
+      if (row) contracts = [row];
     } else if (branchId && branchId !== 'all') {
       contracts = db.prepare("SELECT * FROM contracts WHERE status='active' AND branch_id=?").all(branchId);
     } else {

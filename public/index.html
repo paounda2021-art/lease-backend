@@ -557,14 +557,6 @@
     <div id="loginErr" style="color: var(--red); font-size: 12.5px; margin: 12px 0; font-weight: 600; text-align: center; min-height: 18px;"></div>
     
     <button class="act" onclick="submitLogin()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 8px;">เข้าสู่ระบบ</button>
-    
-    <div style="margin-top: 24px; padding: 12px; background: var(--grey); border-radius: 8px; border: 1px solid var(--border-line); font-size: 11.5px; line-height: 1.6; color: var(--muted-color);">
-      <b>ข้อมูลผู้ใช้จำลองสำหรับทดสอบ (รหัสผ่าน: password123):</b><br>
-      • <span style="font-weight:600; color:var(--accent);">admin</span> : เข้าใช้งานได้ทุกฟังก์ชัน<br>
-      • <span style="font-weight:600; color:var(--accent);">billing</span> : จัดการสัญญาและออกใบแจ้งหนี้<br>
-      • <span style="font-weight:600; color:var(--accent);">cashier</span> : บันทึกรับเงิน และหักเงินประกัน<br>
-      • <span style="font-weight:600; color:var(--accent);">manager</span> : อนุมัติส่งฟ้อง ตัดหนี้สูญ และปรับสำรอง
-    </div>
   </div>
 </div>
 
@@ -647,7 +639,7 @@
   <section id="contracts" class="tab">
     <div class="toolbar">
       <button class="act" id="addContractBtn" onclick="openContract()">+ เพิ่มสัญญา</button>
-      <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ สร้างใบแจ้งหนี้งวดถัดไปทุกสัญญา</button>
+      <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ ออกใบแจ้งหนี้งวดถัดไป <span id="selectedContractsCount" style="color:var(--accent); font-weight:700;"></span></button>
       <input id="cSearch" placeholder="ค้นหาผู้เช่า/ยูนิต..." oninput="renderContracts()" style="margin-left:auto; width:220px;">
     </div>
     <div class="panel"><table id="contractTable"></table></div>
@@ -703,6 +695,18 @@
 
 <!-- โมดัล การเงิน & อนุมัติ -->
 <div class="modal-bg" id="pModal"><div class="modal"><h3 id="pTitle">จัดการ</h3><div id="pBody"></div></div></div>
+
+<!-- โมดัล ยืนยันออกใบแจ้งหนี้งวดถัดไป -->
+<div class="modal-bg" id="genInvoiceModal">
+  <div class="modal" style="max-width: 480px;">
+    <h3 style="margin-bottom:12px;">⚙ ยืนยันออกใบแจ้งหนี้งวดถัดไป</h3>
+    <div id="genInvoiceModalBody" style="line-height:1.6; margin:16px 0; color:var(--text-body);"></div>
+    <div class="flex" style="justify-content: flex-end; gap:10px; margin-top:20px;">
+      <button class="act" id="genInvoiceConfirmBtn" onclick="confirmGenInvoices()">ยืนยันสร้างใบแจ้งหนี้</button>
+      <button class="sm" onclick="closeM('genInvoiceModal')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
 
 <!-- โมดัล พิมพ์หนังสือทวงถามหนี้ (Preview & Configuration) -->
 <div class="modal-bg" id="letterModal" style="z-index: 1000;">
@@ -1255,17 +1259,36 @@ function renderProvSummary() {
   document.getElementById('provSummary').innerHTML = h;
 }
 
+function toggleSelectAllContracts(master) {
+  document.querySelectorAll('.c-select').forEach(cb => {
+    cb.checked = master.checked;
+  });
+  updateSelectedContractsCount();
+}
+
+function updateSelectedContractsCount() {
+  const selected = document.querySelectorAll('.c-select:checked');
+  const countSpan = document.getElementById('selectedContractsCount');
+  if (countSpan) {
+    countSpan.textContent = selected.length > 0 ? `(เลือก ${selected.length} รายการ)` : '';
+  }
+}
+
 function renderContracts() {
   const q = (document.getElementById('cSearch').value || '').toLowerCase();
-  let h = '<tr><th>รหัสสัญญา</th><th>ผู้เช่า / เลขผู้เสียภาษี</th><th>ยูนิต</th><th class="r">ค่าเช่า/ด.</th><th class="r">บริการ/ด.</th><th class="r">เงินประกันคงเหลือ</th><th class="c">ความเสี่ยง</th><th class="r">ยอดหนี้ค้าง</th><th></th></tr>';
-  
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isBilling = (user.role === 'admin' || user.role === 'billing');
+
+  let h = `<tr>
+    ${isBilling ? '<th class="c" style="width:36px;"><input type="checkbox" id="selectAllContracts" onchange="toggleSelectAllContracts(this)"></th>' : ''}
+    <th>รหัสสัญญา</th><th>ผู้เช่า / เลขผู้เสียภาษี</th><th>ยูนิต</th><th class="r">ค่าเช่า/ด.</th><th class="r">บริการ/ด.</th><th class="r">เงินประกันคงเหลือ</th><th class="c">ความเสี่ยง</th><th class="r">ยอดหนี้ค้าง</th><th></th>
+  </tr>`;
   
   D.contracts.filter(c => !q || (c.tenant || '').toLowerCase().includes(q) || (c.unit || '').toLowerCase().includes(q) || (c.branch_name || '').toLowerCase().includes(q)).forEach(c => {
     const btnLabel = isBilling ? 'แก้ไข' : 'ดูสัญญา';
     h += `
       <tr>
+        ${isBilling ? `<td class="c"><input type="checkbox" class="c-select" value="${c.id}" onchange="updateSelectedContractsCount()"></td>` : ''}
         <td><b>${c.id}</b></td>
         <td><b>${c.tenant}</b><div class="muted">${c.tax_id || '-'}</div></td>
         <td><span class="badge" style="background:var(--light-blue); color:var(--blue); margin:0;">${c.unit || '-'}</span></td>
@@ -1278,6 +1301,7 @@ function renderContracts() {
       </tr>`;
   });
   document.getElementById('contractTable').innerHTML = h;
+  updateSelectedContractsCount();
 }
 
 function renderInvoices() {
@@ -1550,11 +1574,52 @@ async function delContract() {
   }
 }
 
-async function genAll() {
-  if (!confirm('⚠️ ยืนยันสร้างใบแจ้งหนี้งวดถัดไปสำหรับสัญญาเช่าทั้งหมดหรือไม่? (ระบบจะออกใบแจ้งหนี้งวดใหม่เพิ่มทุกสัญญา)')) return;
+let pendingGenMode = 'all';
+let pendingSelectedIds = [];
+
+function genAll() {
+  const selected = Array.from(document.querySelectorAll('.c-select:checked')).map(cb => cb.value);
+  const modalBody = document.getElementById('genInvoiceModalBody');
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+  
+  if (selected.length > 0) {
+    pendingGenMode = 'selected';
+    pendingSelectedIds = selected;
+    modalBody.innerHTML = `
+      <div class="note" style="margin-bottom:12px;"><b>การสร้างใบแจ้งหนี้แบบระบุสัญญา:</b> คุณได้เลือกสัญญาเช่าจำนวน <b style="color:var(--accent); font-size:15px;">${selected.length} รายการ</b></div>
+      คุณต้องการออกใบแจ้งหนี้ประจำเดือนงวดถัดไปสำหรับ <b>${selected.length} สัญญาที่เลือก</b> นี้หรือไม่?
+    `;
+  } else {
+    pendingGenMode = 'all';
+    pendingSelectedIds = [];
+    const branchText = selectedBranch === 'all' ? 'ทุกส่วนงาน (17 หน่วยงาน)' : ('ส่วนงาน ' + selectedBranch);
+    modalBody.innerHTML = `
+      <div class="note" style="margin-bottom:12px;"><b>คำเตือน (ออกทุกสัญญา):</b> คุณยังไม่ได้เลือกสัญญาแบบระบุรายตัว</div>
+      คุณต้องการออกใบแจ้งหนี้ประจำเดือนงวดถัดไปสำหรับ <b>สัญญาเช่าทั้งหมดใน ${branchText}</b> หรือไม่?
+    `;
+  }
+  
+  document.getElementById('genInvoiceModal').classList.add('on');
+}
+
+async function confirmGenInvoices() {
+  closeM('genInvoiceModal');
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
   try {
-    const r = await api('/invoices/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: 'all' }) });
-    toast('สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
+    let payload = {};
+    if (pendingGenMode === 'selected' && pendingSelectedIds.length > 0) {
+      payload = { contract_ids: pendingSelectedIds };
+    } else {
+      payload = { contract_id: 'all', branch_id: selectedBranch };
+    }
+    
+    const r = await api('/invoices/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    toast('🎉 สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
     loadAll();
   } catch (e) {
     toast(e.message);
