@@ -1551,6 +1551,7 @@ async function delContract() {
 }
 
 async function genAll() {
+  if (!confirm('⚠️ ยืนยันสร้างใบแจ้งหนี้งวดถัดไปสำหรับสัญญาเช่าทั้งหมดหรือไม่? (ระบบจะออกใบแจ้งหนี้งวดใหม่เพิ่มทุกสัญญา)')) return;
   try {
     const r = await api('/invoices/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: 'all' }) });
     toast('สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
