@@ -19,19 +19,37 @@ const PORT = process.env.PORT || 3000;
 const today = () => new Date().toISOString().slice(0, 10);
 
 // ---------- helpers ----------
-function invWithContract() {
-  return db.prepare(`
-    SELECT i.*, c.customer_id, c.deposit_balance, c.risk_tier, cu.name AS tenant, cu.address, cu.tax_id, c.unit
+function invWithContract(branchId) {
+  let sql = `
+    SELECT i.*, c.customer_id, c.branch_id, c.deposit_balance, c.risk_tier, 
+           cu.name AS tenant, cu.address, cu.tax_id, c.unit, b.name AS branch_name
     FROM invoices i
     JOIN contracts c ON c.id = i.contract_id
-    JOIN customers cu ON cu.id = c.customer_id`).all();
+    JOIN customers cu ON cu.id = c.customer_id
+    LEFT JOIN branches b ON b.id = c.branch_id`;
+  
+  if (branchId && branchId !== 'all') {
+    sql += ` WHERE c.branch_id = ?`;
+    return db.prepare(sql).all(branchId);
+  }
+  return db.prepare(sql).all();
 }
 
-function debtorTotals() {
-  const rows = db.prepare(`
-    SELECT contract_id, SUM(total - paid) AS debt
-    FROM invoices WHERE written_off = 0 AND (total - paid) > 0
-    GROUP BY contract_id`).all();
+function debtorTotals(branchId) {
+  let sql = `
+    SELECT i.contract_id, SUM(i.total - i.paid) AS debt
+    FROM invoices i
+    JOIN contracts c ON c.id = i.contract_id
+    WHERE i.written_off = 0 AND (i.total - i.paid) > 0`;
+  
+  let rows;
+  if (branchId && branchId !== 'all') {
+    sql += ` AND c.branch_id = ? GROUP BY i.contract_id`;
+    rows = db.prepare(sql).all(branchId);
+  } else {
+    sql += ` GROUP BY i.contract_id`;
+    rows = db.prepare(sql).all();
+  }
   const m = {};
   rows.forEach(r => m[r.contract_id] = r.debt);
   return m;
@@ -42,6 +60,70 @@ function rateMap() {
   db.prepare('SELECT * FROM provision_rates').all().forEach(r => m[r.bucket_key] = r.rate_pct);
   return m;
 }
+
+// ========== BRANCHES (17 หน่วยงาน) ==========
+app.get('/api/branches', authenticateToken, (req, res) => {
+  try {
+    const asOf = req.query.asof || today();
+    const rates = rateMap();
+    const branches = db.prepare('SELECT * FROM branches ORDER BY id').all();
+    const invs = invWithContract();
+
+    const branchMap = {};
+    branches.forEach(b => {
+      branchMap[b.id] = {
+        ...b,
+        contractCount: 0,
+        totalAR: 0,
+        overdue: 0,
+        overduePct: 0,
+        provision: 0,
+        riskLevel: 'ปกติ'
+      };
+    });
+
+    // นับจำนวนสัญญาต่อส่วนงาน
+    const contractCounts = db.prepare("SELECT branch_id, COUNT(*) AS c FROM contracts WHERE status='active' GROUP BY branch_id").all();
+    contractCounts.forEach(r => {
+      if (r.branch_id && branchMap[r.branch_id]) {
+        branchMap[r.branch_id].contractCount = r.c;
+      }
+    });
+
+    // คำนวณ AR และ Overdue รายส่วนงาน
+    invs.forEach(i => {
+      if (!i.branch_id || !branchMap[i.branch_id]) return;
+      const out = A.outstanding(i);
+      if (i.written_off) return;
+      if (out > 0) {
+        branchMap[i.branch_id].totalAR += out;
+        const b = A.bucketOf(i.due_date, asOf);
+        if (b) {
+          if (b.key !== 'cur') {
+            branchMap[i.branch_id].overdue += out;
+          }
+          branchMap[i.branch_id].provision += out * (rates[b.key] || 0) / 100;
+        }
+      }
+    });
+
+    const result = Object.values(branchMap).map(b => {
+      const pct = b.totalAR > 0 ? (b.overdue / b.totalAR) * 100 : 0;
+      let riskLevel = 'ปกติ';
+      if (pct > 50 || b.overdue > 200000) riskLevel = 'เสี่ยงสูง';
+      else if (pct > 20 || b.overdue > 50000) riskLevel = 'เฝ้าระวัง';
+      return {
+        ...b,
+        overduePct: Math.round(pct * 10) / 10,
+        riskLevel
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ========== AUTHENTICATION ==========
 app.post('/api/auth/login', (req, res) => {
@@ -69,7 +151,8 @@ app.post('/api/auth/login', (req, res) => {
         id: user.id,
         username: user.username,
         role: user.role,
-        fullname: user.fullname
+        fullname: user.fullname,
+        branch_id: user.branch_id
       }
     });
   } catch (err) {
@@ -84,11 +167,22 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
 // ========== CONTRACTS ==========
 app.get('/api/contracts', authenticateToken, (req, res) => {
   try {
-    const rows = db.prepare(`
-      SELECT c.*, cu.name AS tenant, cu.tax_id
-      FROM contracts c JOIN customers cu ON cu.id = c.customer_id
-      ORDER BY c.id`).all();
-    const debt = debtorTotals();
+    const branchId = req.query.branch_id;
+    let sql = `
+      SELECT c.*, cu.name AS tenant, cu.tax_id, b.name AS branch_name
+      FROM contracts c
+      JOIN customers cu ON cu.id = c.customer_id
+      LEFT JOIN branches b ON b.id = c.branch_id`;
+    
+    let rows;
+    if (branchId && branchId !== 'all') {
+      sql += ` WHERE c.branch_id = ? ORDER BY c.id`;
+      rows = db.prepare(sql).all(branchId);
+    } else {
+      sql += ` ORDER BY c.id`;
+      rows = db.prepare(sql).all();
+    }
+    const debt = debtorTotals(branchId);
     res.json(rows.map(r => ({ ...r, outstanding: debt[r.id] || 0 })));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -101,7 +195,6 @@ app.post('/api/contracts', authenticateToken, requireRole('billing'), (req, res)
     const id = b.id || ('C-' + String(Date.now()).slice(-6));
     const custId = 'CU-' + id.replace(/^C-/, '');
     
-    // เริ่มบันทึก/ปรับปรุงข้อมูลผู้เช่า
     const tx = db.prepare('SELECT id FROM customers WHERE id=?').get(custId);
     if (!tx) {
       db.prepare('INSERT INTO customers(id,name,tax_id,address,authorized_person) VALUES(?,?,?,?,?)')
@@ -111,9 +204,9 @@ app.post('/api/contracts', authenticateToken, requireRole('billing'), (req, res)
     }
     
     db.prepare(`INSERT INTO contracts
-      (id,customer_id,unit,rent_monthly,service_monthly,start_date,end_date,due_day,deposit,deposit_balance,penalty_rate,risk_tier,stamp_duty_paid)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-      .run(id, custId, b.unit || '', +b.rent_monthly || 0, +b.service_monthly || 0, b.start_date, b.end_date,
+      (id,branch_id,customer_id,unit,rent_monthly,service_monthly,start_date,end_date,due_day,deposit,deposit_balance,penalty_rate,risk_tier,stamp_duty_paid)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+      .run(id, b.branch_id || 'BR-001', custId, b.unit || '', +b.rent_monthly || 0, +b.service_monthly || 0, b.start_date, b.end_date,
            +b.due_day || 5, +b.deposit || 0, +b.deposit || 0, +b.penalty_rate || 1.5, b.risk_tier || 'ต่ำ', b.stamp_duty_paid ? 1 : 0);
     
     audit(req.user.username, 'create', 'contract', id, JSON.stringify(b));
@@ -129,9 +222,9 @@ app.put('/api/contracts/:id', authenticateToken, requireRole('billing'), (req, r
     const c = db.prepare('SELECT * FROM contracts WHERE id=?').get(id);
     if (!c) return res.status(404).json({ error: 'ไม่พบสัญญาเช่าที่ระบุ' });
     
-    db.prepare(`UPDATE contracts SET unit=?,rent_monthly=?,service_monthly=?,start_date=?,end_date=?,
+    db.prepare(`UPDATE contracts SET branch_id=?,unit=?,rent_monthly=?,service_monthly=?,start_date=?,end_date=?,
       due_day=?,deposit=?,penalty_rate=?,risk_tier=?,stamp_duty_paid=? WHERE id=?`)
-      .run(b.unit, +b.rent_monthly || 0, +b.service_monthly || 0, b.start_date, b.end_date,
+      .run(b.branch_id || c.branch_id, b.unit, +b.rent_monthly || 0, +b.service_monthly || 0, b.start_date, b.end_date,
            +b.due_day || 5, +b.deposit || 0, +b.penalty_rate || 1.5, b.risk_tier, b.stamp_duty_paid ? 1 : 0, id);
     
     if (b.tenant) {
@@ -162,8 +255,9 @@ app.delete('/api/contracts/:id', authenticateToken, requireRole('billing'), (req
 app.get('/api/invoices', authenticateToken, (req, res) => {
   try {
     const asOf = req.query.asof || today();
-    const debt = debtorTotals();
-    let rows = invWithContract();
+    const branchId = req.query.branch_id;
+    const debt = debtorTotals(branchId);
+    let rows = invWithContract(branchId);
     
     rows = rows.map(i => {
       const b = A.bucketOf(i.due_date, asOf);
@@ -195,9 +289,15 @@ app.get('/api/invoices', authenticateToken, (req, res) => {
 app.post('/api/invoices/generate', authenticateToken, requireRole('billing'), (req, res) => {
   try {
     const target = req.body.contract_id;
-    const contracts = target && target !== 'all'
-      ? [db.prepare('SELECT * FROM contracts WHERE id=?').get(target)]
-      : db.prepare("SELECT * FROM contracts WHERE status='active'").all();
+    const branchId = req.body.branch_id;
+    let contracts;
+    if (target && target !== 'all') {
+      contracts = [db.prepare('SELECT * FROM contracts WHERE id=?').get(target)];
+    } else if (branchId && branchId !== 'all') {
+      contracts = db.prepare("SELECT * FROM contracts WHERE status='active' AND branch_id=?").all(branchId);
+    } else {
+      contracts = db.prepare("SELECT * FROM contracts WHERE status='active'").all();
+    }
     
     let made = 0;
     const insert = db.prepare(`INSERT INTO invoices
@@ -331,7 +431,8 @@ app.get('/api/dunning/:contract_id', authenticateToken, (req, res) => {
 app.get('/api/aging', authenticateToken, requireRole(['manager', 'billing']), (req, res) => {
   try {
     const asOf = req.query.asof || today();
-    const invs = invWithContract().filter(i => !i.written_off && A.outstanding(i) > 0);
+    const branchId = req.query.branch_id;
+    const invs = invWithContract(branchId).filter(i => !i.written_off && A.outstanding(i) > 0);
     const sums = {}; 
     A.BUCKETS.forEach(b => sums[b.key] = 0);
     
@@ -341,7 +442,7 @@ app.get('/api/aging', authenticateToken, requireRole(['manager', 'billing']), (r
       if (!b) return;
       const out = A.outstanding(i);
       sums[b.key] += out;
-      byContract[i.contract_id] = byContract[i.contract_id] || { tenant: i.tenant, tot: 0 };
+      byContract[i.contract_id] = byContract[i.contract_id] || { tenant: i.tenant, branch_name: i.branch_name, tot: 0 };
       byContract[i.contract_id][b.key] = (byContract[i.contract_id][b.key] || 0) + out;
       byContract[i.contract_id].tot += out;
     });
@@ -355,8 +456,9 @@ app.get('/api/aging', authenticateToken, requireRole(['manager', 'billing']), (r
 app.get('/api/provision', authenticateToken, requireRole('manager'), (req, res) => {
   try {
     const asOf = req.query.asof || today();
+    const branchId = req.query.branch_id;
     const rates = rateMap();
-    const invs = invWithContract().filter(i => !i.written_off && A.outstanding(i) > 0);
+    const invs = invWithContract(branchId).filter(i => !i.written_off && A.outstanding(i) > 0);
     const detail = {}; 
     A.BUCKETS.forEach(b => detail[b.key] = { label: b.label, amt: 0, rate: rates[b.key] || 0, prov: 0 });
     
@@ -401,8 +503,9 @@ app.get('/api/provision/rates', authenticateToken, requireRole(['manager', 'bill
 app.get('/api/dashboard', authenticateToken, (req, res) => {
   try {
     const asOf = req.query.asof || today();
+    const branchId = req.query.branch_id;
     const rates = rateMap();
-    const invs = invWithContract();
+    const invs = invWithContract(branchId);
     
     let totalAR = 0, overdue = 0, litig = 0, woTotal = 0, openCount = 0, litCount = 0, woCount = 0;
     const provDetail = {}; 
@@ -435,6 +538,7 @@ app.get('/api/dashboard', authenticateToken, (req, res) => {
     
     res.json({ 
       asOf, 
+      branchId: branchId || 'all',
       totalAR, 
       overdue, 
       overduePct: totalAR ? overdue / totalAR * 100 : 0,
@@ -494,89 +598,28 @@ app.post('/api/audit', authenticateToken, (req, res) => {
 
 app.get('/api/health', (req, res) => res.json({ ok: true, db: 'connected' }));
 
-// ========== CRON SCHEDULER (ทำงานอัตโนมัติเบื้องหลัง) ==========
-// ตั้งเวลารันระบบทวงถามหนี้และบันทึกประวัติรายงานสรุปการทวงถามรายวันอัตโนมัติ ทุกวันเวลา 08:00 น.
-cron.schedule('0 8 * * *', () => {
-  console.log('[Scheduler] กำลังประมวลผลระบบทวงหนี้และคำนวณอายุหนี้ประจำวัน (08:00 น.)...');
-  try {
-    const asOf = today();
-    const debt = debtorTotals();
-    const invs = invWithContract().filter(i => !i.written_off && A.outstanding(i) > 0);
-    const actions = {};
-    
-    invs.forEach(i => {
-      const a = A.recommendedAction(i, asOf, debt[i.contract_id] || 0);
-      actions[a.code] = (actions[a.code] || 0) + 1;
-      
-      // ตัวอย่างจำลอง: ยิง SMS ทวงหนี้หากเป็นวันแรกที่เกินกำหนดชำระ (เช่น เกินกำหนด 1-7 วัน และยังไม่มีการทวงระดับ call)
-      const days = A.daysOverdue(i.due_date, asOf);
-      if (days === 1) {
-        console.log(`[Mock Notification] ยิง SMS แจ้งเตือนยอดค้างชำระอัตโนมัติไปยังผู้เช่า: ${i.tenant} (ยูนิต ${i.unit}) - ยอดค้าง ${i.total - i.paid} บาท`);
-      }
-    });
-    
-    audit('system-cron', 'daily-job', 'system', asOf, JSON.stringify(actions));
-    console.log('[Scheduler] ประมวลผลและออกบันทึกจำลองเสร็จสิ้น:', actions);
-  } catch (err) {
-    console.error('[Scheduler] เกิดข้อผิดพลาดในการประมวลผลงานประจำวัน:', err);
-  }
-});
-
-// ฟังก์ชันสำรองข้อมูลฐานข้อมูลอัตโนมัติ (SQLite Daily Backup)
+// Backup function
 function backupDatabase() {
   const backupsDir = path.join(__dirname, 'backups');
   try {
-    // 1. สร้างโฟลเดอร์ backups หากยังไม่มี
     if (!fs.existsSync(backupsDir)) {
       fs.mkdirSync(backupsDir, { recursive: true });
     }
-    
-    // 2. ตั้งชื่อไฟล์สำรองข้อมูลด้วย Timestamp (เช่น lease_backup_20260718_093000.db)
     const now = new Date();
     const pad = n => String(n).padStart(2, '0');
     const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
     const backupFile = path.join(backupsDir, `lease_backup_${timestamp}.db`);
-    
-    // 3. คัดลอกไฟล์ฐานข้อมูลหลักไปยังโฟลเดอร์สำรองข้อมูล
     const mainDbPath = path.join(__dirname, 'lease.db');
     if (fs.existsSync(mainDbPath)) {
       fs.copyFileSync(mainDbPath, backupFile);
       console.log(`[Backup] สำรองข้อมูลฐานข้อมูลสำเร็จ: ${backupFile}`);
       audit('system-backup', 'create-backup', 'database', timestamp, `Backup file: lease_backup_${timestamp}.db`);
     }
-
-    // 4. ลบไฟล์สำรองข้อมูลเก่าที่เกิน 30 วัน (Pruning) เพื่อประหยัดพื้นที่ดิสก์
-    const files = fs.readdirSync(backupsDir);
-    const backupFiles = files
-      .filter(f => f.startsWith('lease_backup_') && f.endsWith('.db'))
-      .map(f => ({
-        name: f,
-        path: path.join(backupsDir, f),
-        time: fs.statSync(path.join(backupsDir, f)).mtime.getTime()
-      }))
-      .sort((a, b) => b.time - a.time); // เรียงจากใหม่ไปเก่า
-
-    // เก็บไว้เฉพาะ 30 ไฟล์ล่าสุด ลบไฟล์ที่เหลือทั้งหมด
-    if (backupFiles.length > 30) {
-      const filesToDelete = backupFiles.slice(30);
-      filesToDelete.forEach(f => {
-        fs.unlinkSync(f.path);
-        console.log(`[Backup] ลบไฟล์สำรองข้อมูลเก่าตกรุ่น: ${f.name}`);
-      });
-    }
   } catch (err) {
     console.error('[Backup] เกิดข้อผิดพลาดในการสำรองข้อมูลฐานข้อมูล:', err);
-    audit('system-backup', 'error-backup', 'database', 'error', err.message);
   }
 }
 
-// ตั้งเวลารันระบบสำรองข้อมูลฐานข้อมูลรายวันอัตโนมัติ ทุกวันเวลา 02:00 น. (ช่วงตีสองที่ไม่มีผู้ใช้งานเข้าระบบ)
-cron.schedule('0 2 * * *', () => {
-  console.log('[Scheduler] กำลังประมวลผลงานสำรองข้อมูลฐานข้อมูลประจำวัน (02:00 น.)...');
-  backupDatabase();
-});
-
-// รันการสำรองข้อมูลทันทีเมื่อสตาร์ทอัปเซิร์ฟเวอร์ เพื่อความปลอดภัย
 backupDatabase();
 
 app.listen(PORT, () => console.log(`Lease AR API running → http://localhost:${PORT}`));

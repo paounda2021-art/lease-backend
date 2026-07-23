@@ -1,45 +1,100 @@
-// สร้างข้อมูลตัวอย่าง (รันครั้งเดียว: node seed.js)
+// สร้างข้อมูลตัวอย่าง 17 หน่วยงาน (รันด้วย: node seed.js)
 const { db, audit } = require('./db');
 const bcrypt = require('bcryptjs');
 
-const ASOF = process.env.SEED_ASOF || '2026-07-14';
+const ASOF = process.env.SEED_ASOF || '2026-07-23';
 
 // ล้างข้อมูลเดิม
-['users','payments','dunning_log','invoices','contracts','customers','audit_log'].forEach(t => db.exec(`DELETE FROM ${t}`));
+['users','payments','dunning_log','invoices','contracts','customers','branches','audit_log'].forEach(t => {
+  try { db.exec(`DELETE FROM ${t}`); } catch(e){}
+});
 
-// สร้างข้อมูลผู้ใช้จำลอง (รหัสผ่านเริ่มต้นคือ password123 สำหรับทุกบัญชี)
-const mockUsers = [
-  ['U-001', 'admin', bcrypt.hashSync('password123', 10), 'admin', 'สมชาย แอดมิน'],
-  ['U-002', 'billing', bcrypt.hashSync('password123', 10), 'billing', 'วรรณา ฝ่ายวางบิล'],
-  ['U-003', 'cashier', bcrypt.hashSync('password123', 10), 'cashier', 'สมศรี ฝ่ายการเงิน'],
-  ['U-004', 'manager', bcrypt.hashSync('password123', 10), 'manager', 'เดชา ผู้จัดการฝ่ายการเงิน']
+// 1. เพิ่มข้อมูล 17 หน่วยงาน (องค์การสะพานปลา & ท่าเทียบเรือประมง) ตรงตามไฟล์ รายชื่อหน่วยงาน.txt
+const branches = [
+  ['C-02', 'สป.กท.', 'สำนักงานสะพานปลากรุงเทพ (สป.กท.)', 'สป.ทร. 1'],
+  ['C-03', 'สป.สป.', 'สำนักงานสะพานปลาสมุทรปราการ (สป.สป.)', 'สป.ทร. 1'],
+  ['C-04', 'สป.สค.', 'สำนักงานสะพานปลาสมุทรสาคร (สป.สค.)', 'สป.ทร. 1'],
+  ['C-12', 'ทร.ชพ.', 'สำนักงานท่าเทียบเรือประมงชุมพร (ทร.ชพ.)', 'สป.ทร. 1'],
+  ['C-13', 'ทร.ลส.', 'สำนักงานท่าเทียบเรือประมงหลังสวน (ทร.ลส.)', 'สป.ทร. 1'],
+  ['C-14', 'ทร.สฎ', 'สำนักงานท่าเทียบเรือประมงสุราษฎร์ธานี (ทร.สฎ)', 'สป.ทร. 1'],
+  ['C-10', 'ทร.หห.', 'สำนักงานท่าเทียบเรือประมงหัวหิน (ทร.หห.)', 'สป.ทร. 1'],
+  ['C-07', 'ทร.ตร.', 'สำนักงานท่าเทียบเรือประมงตราด (ทร.ตร.)', 'สป.ทร. 1'],
+  ['C-08', 'ทร.อศ', 'สำนักงานท่าเทียบเรือประมงอ่างศิลา (ทร.อศ)', 'สป.ทร. 1'],
+  ['C-15', 'สป.นศ.', 'สำนักงานสะพานปลานครศรีธรรมราช (สป.นศ.)', 'สป.ทร. 2'],
+  ['C-17', 'ทร.ปน.', 'สำนักงานท่าเทียบเรือประมงปัตตานี (ทร.ปน.)', 'สป.ทร. 2'],
+  ['C-20', 'ทร.ภก.', 'สำนักงานท่าเทียบเรือประมงภูเก็ต (ทร.ภก.)', 'สป.ทร. 2'],
+  ['C-22', 'ทร.สข.2', 'สำนักงานท่าเทียบเรือประมงสงขลา 2 (ท่าสะอ้าน) (ทร.สข.)', 'สป.ทร. 2'],
+  ['C-16', 'ทร.สข.1', 'สำนักงานท่าเทียบเรือประมงสงขลา 1 (ทร.สข.)', 'สป.ทร. 2'],
+  ['C-19', 'ทร.รน.', 'สำนักงานท่าเทียบเรือประมงระนอง (ทร.รน.)', 'สป.ทร. 2'],
+  ['C-21', 'ทร.สต.', 'สำนักงานท่าเทียบเรือประมงสตูล (ทร.สต.)', 'สป.ทร. 2'],
+  ['C-18', 'ทร.นธ.', 'สำนักงานท่าเทียบเรือประมงนราธิวาส (ทร.นธ.)', 'สป.ทร. 2']
 ];
-const uins = db.prepare('INSERT INTO users(id,username,password,role,fullname) VALUES(?,?,?,?,?)');
+const bins = db.prepare('INSERT INTO branches(id,code,name,region) VALUES(?,?,?,?)');
+branches.forEach(b => bins.run(...b));
+
+// 2. ข้อมูลผู้ใช้จำลอง
+const mockUsers = [
+  ['U-001', 'admin', bcrypt.hashSync('password123', 10), 'admin', 'สมชาย แอดมิน', null],
+  ['U-002', 'billing', bcrypt.hashSync('password123', 10), 'billing', 'วรรณา ฝ่ายวางบิล', 'C-02'],
+  ['U-003', 'cashier', bcrypt.hashSync('password123', 10), 'cashier', 'สมศรี ฝ่ายการเงิน', 'C-02'],
+  ['U-004', 'manager', bcrypt.hashSync('password123', 10), 'manager', 'เดชา ผู้จัดการฝ่ายการเงิน', null]
+];
+const uins = db.prepare('INSERT INTO users(id,username,password,role,fullname,branch_id) VALUES(?,?,?,?,?,?)');
 mockUsers.forEach(u => uins.run(...u));
 
+// 3. ข้อมูลผู้เช่า / ลูกหนี้
 const customers = [
   ['CU-001','บจก. สยาม เทรดดิ้ง','0105551234567','123 ถ.สุขุมวิท กทม.'],
   ['CU-002','บจก. โฟกัส ลอจิสติกส์','0105557654321','88 ถ.บางนา กทม.'],
-  ['CU-003','ร้าน มณีจันทร์','1103700111222','45 ตลาดสด จ.นนทบุรี'],
+  ['CU-003','ร้าน มณีจันทร์ แพปลา','1103700111222','45 ตลาดสด จ.นนทบุรี'],
   ['CU-004','บจก. เอเวอร์กรีน ฟู้ดส์','0105548889990','9 นิคมอุตสาหกรรม จ.ชลบุรี'],
-  ['CU-005','หจก. บ้านสวนค้าไม้','0993000445566','77 ถ.รังสิต จ.ปทุมธานี'],
+  ['CU-005','หจก. บ้านสวนแปรรูปสัตว์น้ำ','0993000445566','77 ถ.รังสิต จ.ปทุมธานี'],
   ['CU-006','บจก. ทีเค อิเล็กทรอนิกส์','0105560223344','12 ถ.พหลโยธิน กทม.'],
+  ['CU-007','แพปลา นครเจริญการคลัง','0105561122334','102 สะพานปลาสมุทรสาคร'],
+  ['CU-008','บจก. ทะเลไทยอุตสาหกรรม','0105565544332','55 ท่าเทียบเรือภูเก็ต'],
+  ['CU-009','ร้าน พะเยาซีฟู้ดส์','2109900887766','12 ท่าเทียบเรือสงขลา'],
+  ['CU-010','บจก. อันดามันฟิชเชอรี่','0105567788990','88 ท่าเทียบเรือระนอง'],
+  ['CU-011','หจก. ปัตตานีแพปลาส่งออก','0993000112233','44 ท่าเทียบเรือปัตตานี'],
+  ['CU-012','บจก. หัวหินปลาสด','0105568899001','99 ท่าเทียบเรือหัวหิน'],
+  ['CU-013','ร้าน อ่าวไทยการค้า','3104500667788','15 ท่าเทียบเรือตราด'],
+  ['CU-014','บจก. ชุมพรการประมง','0105569900112','33 ท่าเทียบเรือชุมพร'],
+  ['CU-015','ร้าน สุราษฎร์แพปลา','4108800223344','77 ท่าเทียบเรือสุราษฎร์ธานี'],
+  ['CU-016','หจก. นครศรีซีฟู้ดส์','0993000556677','22 ท่าเทียบเรือนครศรีธรรมราช'],
+  ['CU-017','ร้าน กระบี่ประมงไทย','5107700334455','66 ท่าเทียบเรือกระบี่'],
+  ['CU-018','บจก. พังงาฟิชเชอรี่','0105561199887','88 ท่าเทียบเรือพังงา'],
+  ['CU-019','ร้าน สตูลแพปลาทอง','6102200445566','11 ท่าเทียบเรือสตูล'],
+  ['CU-020','หจก. นราธิวาสการประมง','0993000889900','55 ท่าเทียบเรือนราธิวาส']
 ];
 const cins = db.prepare('INSERT INTO customers(id,name,tax_id,address) VALUES(?,?,?,?)');
 customers.forEach(c => cins.run(...c));
 
-// [id, cust, unit, rent, service, start, end, dueDay, deposit, penalty, risk, stoppedMonthsAgo]
+// 4. สัญญาเช่ากระจายตาม 17 หน่วยงาน
+// [id, branch_id, cust_id, unit, rent, service, start, end, dueDay, deposit, penalty, risk, stoppedMonthsAgo]
 const contracts = [
-  ['C-001','CU-001','A-101',100000,30000,'2024-01-01','2026-12-31',5,300000,1.5,'ต่ำ',0],
-  ['C-002','CU-002','B-205',75000,15000,'2024-06-01','2027-05-31',5,180000,1.5,'กลาง',2],
-  ['C-003','CU-003','G-12',45000,8000,'2023-03-01','2026-02-28',10,106000,2,'สูง',5],
-  ['C-004','CU-004','A-210',220000,60000,'2022-01-01','2026-12-31',1,560000,1.5,'สูง',8],
-  ['C-005','CU-005','W-03',30000,5000,'2024-09-01','2027-08-31',15,70000,2,'กลาง',1],
-  ['C-006','CU-006','B-110',60000,12000,'2023-07-01','2026-06-30',5,144000,1.5,'ต่ำ',0],
+  ['C-001','C-02','CU-001','HQ-A1',120000,35000,'2024-01-01','2026-12-31',5,360000,1.5,'ต่ำ',0],
+  ['C-002','C-03','CU-002','BKK-101',85000,20000,'2024-06-01','2027-05-31',5,210000,1.5,'กลาง',2],
+  ['C-003','C-03','CU-003','BKK-G12',50000,10000,'2023-03-01','2026-02-28',10,120000,2.0,'สูง',5],
+  ['C-004','C-04','CU-004','SPK-A2',180000,45000,'2022-01-01','2026-12-31',1,450000,1.5,'สูง',7],
+  ['C-005','C-12','CU-007','SKN-W1',210000,55000,'2023-05-01','2026-12-31',5,530000,1.5,'สูง',8],
+  ['C-006','C-13','CU-012','HH-01',40000,8000,'2024-01-01','2026-12-31',10,96000,1.5,'ต่ำ',0],
+  ['C-007','C-14','CU-013','TRT-03',35000,7000,'2024-03-01','2026-12-31',5,84000,1.5,'กลาง',1],
+  ['C-008','C-10','CU-010','RNG-A5',150000,30000,'2023-01-01','2026-12-31',5,360000,2.0,'สูง',6],
+  ['C-009','C-07','CU-008','PKT-101',250000,60000,'2023-08-01','2027-07-31',5,620000,1.5,'กลาง',3],
+  ['C-010','C-08','CU-009','SKA-G08',65000,15000,'2024-02-01','2026-12-31',15,160000,1.5,'ต่ำ',0],
+  ['C-011','C-15','CU-011','PTN-01',90000,20000,'2023-10-01','2026-09-30',5,220000,2.0,'สูง',9],
+  ['C-012','C-17','CU-020','NWT-02',30000,5000,'2024-05-01','2026-12-31',10,70000,1.5,'กลาง',2],
+  ['C-013','C-20','CU-014','CPM-01',75000,15000,'2024-01-01','2026-12-31',5,180000,1.5,'ต่ำ',0],
+  ['C-014','C-22','CU-015','SK1-A1',110000,25000,'2023-04-01','2026-12-31',5,270000,1.5,'กลาง',1],
+  ['C-015','C-16','CU-016','NSI-02',48000,10000,'2024-01-01','2026-12-31',10,116000,1.5,'ต่ำ',0],
+  ['C-016','C-19','CU-017','KBI-01',55000,12000,'2023-11-01','2026-12-31',5,134000,2.0,'สูง',4],
+  ['C-017','C-21','CU-019','SK2-B2',68000,14000,'2024-01-01','2026-12-31',5,160000,1.5,'กลาง',2],
+  ['C-018','C-18','CU-018','PGA-03',42000,8000,'2024-04-01','2026-12-31',15,100000,1.5,'ต่ำ',0]
 ];
+
 const coins = db.prepare(`INSERT INTO contracts
-  (id,customer_id,unit,rent_monthly,service_monthly,start_date,end_date,due_day,deposit,deposit_balance,penalty_rate,risk_tier,stamp_duty_paid)
-  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,1)`);
+  (id,branch_id,customer_id,unit,rent_monthly,service_monthly,start_date,end_date,due_day,deposit,deposit_balance,penalty_rate,risk_tier,stamp_duty_paid)
+  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,1)`);
+
 const iins = db.prepare(`INSERT INTO invoices
   (id,contract_id,period,issue_date,due_date,rent_amt,service_amt,vat_amt,total,paid,status)
   VALUES(?,?,?,?,?,?,?,?,?,?,?)`);
@@ -49,8 +104,8 @@ function monthsBack(due) { return (asof.getFullYear() - due.getFullYear()) * 12 
 
 let totalInv = 0;
 contracts.forEach(c => {
-  const [id,cust,unit,rent,service,start,end,dueDay,deposit,penalty,risk,stopped] = c;
-  coins.run(id,cust,unit,rent,service,start,end,dueDay,deposit,deposit,penalty,risk);
+  const [id,branch,cust,unit,rent,service,start,end,dueDay,deposit,penalty,risk,stopped] = c;
+  coins.run(id,branch,cust,unit,rent,service,start,end,dueDay,deposit,deposit,penalty,risk);
   let d = new Date(start + 'T00:00:00'); let seq = 0;
   while (d <= asof) {
     seq++;
@@ -59,7 +114,6 @@ contracts.forEach(c => {
     const issue = new Date(d.getFullYear(), d.getMonth() - 1, 25).toISOString().slice(0, 10);
     const vat = service * 0.07; const total = rent + service + vat;
     const ov = monthsBack(due);
-    // หยุดจ่าย stopped เดือนก่อน → งวดล่าสุด (ov < stopped) ค้าง, งวดเก่าจ่ายแล้ว
     const unpaid = ov < stopped;
     const paid = unpaid ? 0 : total;
     const status = unpaid ? 'open' : 'paid';
@@ -69,5 +123,6 @@ contracts.forEach(c => {
     d = new Date(d.getFullYear(), d.getMonth() + 1, 1);
   }
 });
-audit('seed', 'seed', 'system', ASOF, `${customers.length} customers, ${contracts.length} contracts, ${totalInv} invoices`);
-console.log(`Seeded: ${customers.length} customers, ${contracts.length} contracts, ${totalInv} invoices (as of ${ASOF})`);
+
+audit('seed', 'seed', 'system', ASOF, `${branches.length} branches, ${customers.length} customers, ${contracts.length} contracts, ${totalInv} invoices`);
+console.log(`Seeded: ${branches.length} branches, ${customers.length} customers, ${contracts.length} contracts, ${totalInv} invoices (as of ${ASOF})`);

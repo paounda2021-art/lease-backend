@@ -561,22 +561,58 @@
   </div>
 </header>
 
-<nav id="mainNav" style="display: none;">
-  <button class="active" data-tab="dash" onclick="showTab('dash',this)">แดชบอร์ด</button>
-  <button data-tab="contracts" onclick="showTab('contracts',this)">สัญญาเช่า</button>
-  <button data-tab="invoices" onclick="showTab('invoices',this)">ลูกหนี้/ใบแจ้งหนี้</button>
-  <button data-tab="aging" onclick="showTab('aging',this)">Aging &amp; สำรอง</button>
-  <button data-tab="dunning" onclick="showTab('dunning',this)">ทวงถาม/ฟ้อง</button>
-  <button data-tab="audit" onclick="showTab('audit',this)">ประวัติการแก้ไข</button>
+<nav id="mainNav" style="display: none; align-items: center; justify-content: space-between; padding: 0 24px;">
+  <div style="display: flex; align-items: center; flex-wrap: wrap;">
+    <button class="active" data-tab="dash" onclick="showTab('dash',this)">แดชบอร์ด</button>
+    <button data-tab="contracts" onclick="showTab('contracts',this)">สัญญาเช่า</button>
+    <button data-tab="invoices" onclick="showTab('invoices',this)">ลูกหนี้/ใบแจ้งหนี้</button>
+    <button data-tab="aging" onclick="showTab('aging',this)">Aging &amp; สำรอง</button>
+    <button data-tab="dunning" onclick="showTab('dunning',this)">ทวงถาม/ฟ้อง</button>
+    <button data-tab="audit" onclick="showTab('audit',this)">ประวัติการแก้ไข</button>
+  </div>
+  <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; padding: 6px 0;">
+    <span style="font-size: 13px; font-weight: 600; color: var(--text-nav);">🏢 ส่วนงาน:</span>
+    <select id="branchSelect" onchange="onBranchChange()" style="border: 1px solid var(--border-line); border-radius: 8px; padding: 6px 12px; font-size: 13px; outline: none; background: var(--bg-card); color: var(--text-body); font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08); min-width: 240px;">
+      <option value="all">🏢 ภาพรวมทั้งหมด 17 หน่วยงาน</option>
+    </select>
+  </div>
 </nav>
 
 <main id="mainContainer" style="display: none;">
   <section id="dash" class="tab on">
+    <!-- Single Branch Banner -->
+    <div id="singleBranchBanner" style="display:none; background:var(--light-blue); padding:12px 18px; border-radius:10px; margin-bottom:16px; justify-content:space-between; align-items:center; border:1px solid var(--accent);">
+      <div style="font-size:14px;">📌 <b>กำลังแสดงหน้ารวมเฉพาะส่วนงาน:</b> <span id="singleBranchTitle" style="color:var(--accent); font-weight:700; font-size:16px; margin-left:6px;"></span></div>
+      <button class="sm ghost" onclick="selectBranch('all')" style="border-color:var(--accent); color:var(--accent); font-weight:700;">🏢 กลับสู่ภาพรวม 17 หน่วยงาน</button>
+    </div>
+
+    <!-- Summary KPI Cards -->
     <div class="cards" id="kpiCards"></div>
-    <div class="panel"><h2>โครงสร้างอายุหนี้ (AR Aging)</h2><div id="agingBars"></div><div class="legend" id="agingLegend"></div></div>
-    <div class="flex">
-      <div class="panel" style="flex:1;min-width:300px"><h2>ลูกหนี้เสี่ยงสูงสุด</h2><table id="topOverdue"></table></div>
-      <div class="panel" style="flex:1;min-width:300px"><h2>สรุปสำรอง (Provision)</h2><table id="provSummary"></table></div>
+
+    <!-- Multi-Branch Cards Grid (17 Branches) -->
+    <div class="panel" id="multiBranchGridPanel" style="display:none; margin-top:20px;">
+      <div class="flex" style="align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h2 style="margin:0;">🏢 สถานะบริหารลูกหนี้ 17 หน่วยงาน (สะพานปลา &amp; ท่าเทียบเรือประมง)</h2>
+        <span class="muted" style="font-size:12px;">💡 คลิกที่หน่วยงานเพื่อดูหน้ารวมรายละเอียดและจัดการลูกหนี้</span>
+      </div>
+      <div id="branchCardsGrid" style="display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap:12px;"></div>
+    </div>
+
+    <!-- Multi-Branch Comparison Table -->
+    <div class="panel" id="multiBranchTablePanel" style="display:none; margin-top:16px;">
+      <h2>📊 ตารางเปรียบเทียบการบริหารหนี้รายหน่วยงาน (17 ส่วนงาน)</h2>
+      <div style="overflow-x:auto;">
+        <table id="branchCompareTable"></table>
+      </div>
+    </div>
+
+    <!-- Single Branch Detailed Dashboard Views -->
+    <div id="singleBranchDetailsPanel">
+      <div class="panel"><h2>โครงสร้างอายุหนี้ (AR Aging)</h2><div id="agingBars"></div><div class="legend" id="agingLegend"></div></div>
+      <div class="flex">
+        <div class="panel" style="flex:1;min-width:300px"><h2>ลูกหนี้เสี่ยงสูงสุด</h2><table id="topOverdue"></table></div>
+        <div class="panel" style="flex:1;min-width:300px"><h2>สรุปสำรอง (Provision)</h2><table id="provSummary"></table></div>
+      </div>
     </div>
   </section>
   
@@ -584,7 +620,7 @@
     <div class="toolbar">
       <button class="act" id="addContractBtn" onclick="openContract()">+ เพิ่มสัญญา</button>
       <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ สร้างใบแจ้งหนี้งวดถัดไปทุกสัญญา</button>
-      <input id="cSearch" placeholder="ค้นหา..." oninput="renderContracts()" style="margin-left:auto; width:220px;">
+      <input id="cSearch" placeholder="ค้นหาผู้เช่า/ยูนิต..." oninput="renderContracts()" style="margin-left:auto; width:220px;">
     </div>
     <div class="panel"><table id="contractTable"></table></div>
   </section>
@@ -609,8 +645,8 @@
   </section>
   
   <section id="dunning" class="tab">
-    <div class="note"><b>เกณฑ์กฎกระทรวง 186:</b> &gt;2ล้าน=ฟ้อง+บังคับคดีไม่มีทรัพย์ · 2แสน–2ล้าน=ศาลรับฟ้อง · ≤2แสน=ทวงถาม≥2ครั้ง+บอร์ดอนุมัติ</div>
     <div class="toolbar"><button class="ghost" id="runJobBtn" style="display:none;" onclick="runJob()">▶ รัน daily job (จำลอง cron)</button><span class="right muted">คำแนะนำดำเนินการทวงหนี้อัตโนมัติตามระยะเวลาค้างชำระ</span></div>
+    <div class="note"><b>เกณฑ์กฎกระทรวง 186:</b> &gt;2ล้าน=ฟ้อง+บังคับคดีไม่มีทรัพย์ · 2แสน–2ล้าน=ศาลรับฟ้อง · ≤2แสน=ทวงถาม≥2ครั้ง+บอร์ดอนุมัติ</div>
     <div class="panel" style="overflow:auto"><table id="dunTable"></table></div>
   </section>
   
@@ -621,7 +657,9 @@
 
 <!-- โมดัล สัญญา -->
 <div class="modal-bg" id="cModal"><div class="modal">
-  <h3 id="cModalTitle">เพิ่มสัญญาเช่า</h3><input type="hidden" id="c_id">
+  <h3 id="cModalTitle">เพิ่มสัญญาเช่า</h3>
+  <input type="hidden" id="c_branch">
+  <div class="fg"><label>รหัสสัญญา (ระบบรันให้อัตโนมัติ)</label><input id="c_id" style="font-weight:700; color:var(--accent);"></div>
   <div class="fg"><label>ชื่อผู้เช่า</label><input id="c_tenant"></div>
   <div class="grid2"><div class="fg"><label>เลขผู้เสียภาษี</label><input id="c_tax"></div><div class="fg"><label>ยูนิต</label><input id="c_unit"></div></div>
   <div class="grid2"><div class="fg"><label>ค่าเช่า/เดือน</label><input id="c_rent" type="number"></div><div class="fg"><label>ค่าบริการ/เดือน</label><input id="c_service" type="number"></div></div>
@@ -720,7 +758,7 @@
 
 <script>
 const API = '/api';
-let D = { dash: null, contracts: [], invoices: [], aging: null, prov: null, rates: {} };
+let D = { dash: null, contracts: [], invoices: [], aging: null, prov: null, rates: {}, branches: [] };
 const BK = [['cur','ยังไม่ครบกำหนด','#22c55e'],['b1','1–30 วัน','#3b82f6'],['b2','31–60 วัน','#eab308'],['b3','61–90 วัน','#f97316'],['b4','91–180 วัน','#ef4444'],['b5','181–365 วัน','#b91c1c'],['b6','เกิน 365 วัน','#7f1d1d']];
 const fmt = n => Math.round(n || 0).toLocaleString('en-US');
 const asof = () => document.getElementById('asof').value;
@@ -730,6 +768,81 @@ function toast(m) {
   t.textContent = m;
   t.classList.add('on');
   setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+function onBranchChange() {
+  showTab('dash');
+  loadAll();
+}
+
+function selectBranch(bId) {
+  const sel = document.getElementById('branchSelect');
+  if (sel) sel.value = bId;
+  showTab('dash');
+  loadAll();
+}
+
+async function loadBranches() {
+  try {
+    const list = await api('/branches?asof=' + asof());
+    D.branches = list || [];
+    
+    const sel = document.getElementById('branchSelect');
+    if (sel) {
+      const curr = sel.value || 'all';
+      let optHtml = '<option value="all">🏢 ภาพรวมทั้งหมด 17 หน่วยงาน</option>';
+      (D.branches || []).forEach(b => {
+        optHtml += `<option value="${b.id}">${b.name} (${b.region})</option>`;
+      });
+      sel.innerHTML = optHtml;
+      sel.value = curr;
+    }
+
+    const cb = document.getElementById('c_branch');
+    if (cb) {
+      cb.innerHTML = (D.branches || []).map(b => `<option value="${b.id}">${b.name} (${b.region})</option>`).join('');
+    }
+  } catch(e) {
+    console.error('Failed to load branches:', e);
+  }
+}
+
+function renderAll() {
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+  const banner = document.getElementById('singleBranchBanner');
+  const multiGrid = document.getElementById('multiBranchGridPanel');
+  const multiTable = document.getElementById('multiBranchTablePanel');
+
+  if (selectedBranch === 'all') {
+    if (banner) banner.style.display = 'none';
+    if (multiGrid) multiGrid.style.display = 'block';
+    if (multiTable) multiTable.style.display = 'block';
+    renderMultiBranchGrid();
+    renderMultiBranchTable();
+  } else {
+    if (banner) banner.style.display = 'flex';
+    const brInfo = (D.branches || []).find(b => b.id === selectedBranch);
+    const brTitle = brInfo ? `${brInfo.name} (${brInfo.region})` : selectedBranch;
+    const titleEl = document.getElementById('singleBranchTitle');
+    if (titleEl) titleEl.textContent = brTitle;
+    if (multiGrid) multiGrid.style.display = 'none';
+    if (multiTable) multiTable.style.display = 'none';
+  }
+
+  if (D.dash) renderKPI();
+  if (D.aging) renderBars();
+  if (D.invoices) renderTop();
+  if (D.prov) renderProvSummary();
+  if (D.contracts) renderContracts();
+  if (D.invoices) renderInvoices();
+  if (D.prov) renderMatrix();
+  if (D.aging) renderAgingByC();
+  if (D.invoices) renderDun();
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.role === 'admin' || user.role === 'manager') {
+    loadAudit();
+  }
 }
 
 // ฟังก์ชันดึงข้อมูล API ที่ผูก JWT Token ใน Header อัตโนมัติ
@@ -742,7 +855,6 @@ async function api(path, opt = {}) {
   
   const r = await fetch(API + path, opt);
   if (r.status === 401) {
-    // กรณี Token หมดอายุ หรือไม่ได้ล็อกอิน
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     showLoginModal();
@@ -750,7 +862,6 @@ async function api(path, opt = {}) {
     throw new Error(errData.error || 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
   }
   if (r.status === 403) {
-    // กรณีไม่มีสิทธิ์เข้าถึงฟังก์ชันนั้น
     const errData = await r.json().catch(() => ({}));
     throw new Error(errData.error || 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลส่วนนี้');
   }
@@ -762,7 +873,6 @@ async function api(path, opt = {}) {
   return r.json();
 }
 
-// แสดงหน้าล็อกอินครอบทับ
 function showLoginModal() {
   document.getElementById('loginModal').style.display = 'flex';
   document.getElementById('mainNav').style.display = 'none';
@@ -773,34 +883,26 @@ function showLoginModal() {
   document.getElementById('loginPass').value = '';
 }
 
-// ซ่อนหน้าล็อกอินและเปิดแสดงระบบ
 function hideLoginModal(user) {
   document.getElementById('loginModal').style.display = 'none';
   document.getElementById('mainNav').style.display = 'flex';
   document.getElementById('mainContainer').style.display = 'block';
   document.getElementById('userInfo').style.display = 'flex';
-  document.getElementById('userFullname').textContent = user.fullname;
-  document.getElementById('userRole').textContent = user.role;
-  applyRolePermissions(user);
+  document.getElementById('userFullname').textContent = user ? user.fullname : 'ผู้ใช้งาน';
+  document.getElementById('userRole').textContent = user ? user.role : '';
+  applyRolePermissions(user || {});
 }
 
-// บังคับจำกัดการมองเห็นฟังก์ชันตามระดับสิทธิ์ผู้ใช้
 function applyRolePermissions(user) {
   const isBilling = (user.role === 'admin' || user.role === 'billing');
   const isCashier = (user.role === 'admin' || user.role === 'cashier');
   const isManager = (user.role === 'admin' || user.role === 'manager');
   
-  // ซ่อนปุ่มเพิ่มสัญญา / สร้างใบแจ้งหนี้
   document.getElementById('addContractBtn').style.display = isBilling ? '' : 'none';
   document.getElementById('genInvoicesBtn').style.display = isBilling ? '' : 'none';
-  
-  // ซ่อนปุ่มแก้ไขตารางอัตราสำรองหนี้
   document.getElementById('saveRatesBtn').style.display = isManager ? '' : 'none';
-  
-  // ซ่อนปุ่มจำลองการทำงานรายวัน (Cron job trigger)
   document.getElementById('runJobBtn').style.display = isManager ? '' : 'none';
   
-  // จัดการการแสดงผลปุ่มควบคุมสิทธิ์ในแถบนำทาง (Tabs)
   const billingTabs = ['dash', 'contracts', 'invoices', 'aging'];
   const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning'];
   const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
@@ -821,7 +923,6 @@ function applyRolePermissions(user) {
   });
 }
 
-// ส่งขอเข้าสู่ระบบผ่าน API
 async function submitLogin() {
   const user = document.getElementById('loginUser').value;
   const pass = document.getElementById('loginPass').value;
@@ -854,7 +955,6 @@ async function submitLogin() {
   }
 }
 
-// ออกระบบ ล้างค่า Token
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
@@ -872,31 +972,31 @@ async function loadAll() {
     const user = JSON.parse(localStorage.getItem('user'));
     hideLoginModal(user);
     
-    const q = '?asof=' + asof();
-    // โหลดข้อมูลตามสิทธิ์ผู้ใช้งาน (ปัดข้ามหาก API ปลายทางโดนบล็อคสิทธิ์ 403)
+    // โหลดข้อมูล 17 หน่วยงานเสมอ
+    await loadBranches();
+
+    const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+    const q = '?asof=' + asof() + (selectedBranch !== 'all' ? '&branch_id=' + selectedBranch : '');
+    const cQuery = selectedBranch !== 'all' ? '?branch_id=' + selectedBranch : '';
+
     const promises = [
       api('/dashboard' + q),
-      api('/contracts')
+      api('/contracts' + cQuery),
+      api('/invoices' + q)
     ];
     
-    // สิทธิ์การเงิน/แอดมิน/เมเนเจอร์ โหลดใบแจ้งหนี้ได้
-    promises.push(api('/invoices' + q));
-    
-    // โหลด Aging ตามสิทธิ์ (admin, manager, billing)
     if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing') {
       promises.push(api('/aging' + q));
     } else {
       promises.push(Promise.resolve(null));
     }
 
-    // โหลด Provision รายละเอียดตามสิทธิ์ (เฉพาะ admin, manager เท่านั้น)
     if (user.role === 'admin' || user.role === 'manager') {
       promises.push(api('/provision' + q));
     } else {
       promises.push(Promise.resolve(null));
     }
 
-    // โหลด Provision Rates ตามสิทธิ์ (admin, manager, billing)
     if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing') {
       promises.push(api('/provision/rates'));
     } else {
@@ -904,7 +1004,7 @@ async function loadAll() {
     }
     
     const [dash, contracts, invoices, aging, prov, rates] = await Promise.all(promises);
-    D = { dash, contracts, invoices, aging, prov, rates };
+    D = { ...D, dash, contracts, invoices, aging, prov, rates };
     
     document.getElementById('dbdot').style.background = '#22c55e';
     document.getElementById('dbdot').style.boxShadow = '0 0 8px #22c55e';
@@ -922,6 +1022,25 @@ async function loadAll() {
 }
 
 function renderAll() {
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+  const banner = document.getElementById('singleBranchBanner');
+  const multiGrid = document.getElementById('multiBranchGridPanel');
+  const multiTable = document.getElementById('multiBranchTablePanel');
+
+  if (selectedBranch === 'all') {
+    banner.style.display = 'none';
+    multiGrid.style.display = 'block';
+    multiTable.style.display = 'block';
+    renderMultiBranchGrid();
+    renderMultiBranchTable();
+  } else {
+    banner.style.display = 'flex';
+    const brInfo = (D.branches || []).find(b => b.id === selectedBranch);
+    document.getElementById('singleBranchTitle').textContent = brInfo ? `${brInfo.name} (${brInfo.region})` : selectedBranch;
+    multiGrid.style.display = 'none';
+    multiTable.style.display = 'none';
+  }
+
   if (D.dash) renderKPI();
   if (D.aging) renderBars();
   if (D.invoices) renderTop();
@@ -936,6 +1055,83 @@ function renderAll() {
   if (user.role === 'admin' || user.role === 'manager') {
     loadAudit();
   }
+}
+
+function renderMultiBranchGrid() {
+  if (!D.branches || !D.branches.length) return;
+  const grid = document.getElementById('branchCardsGrid');
+  grid.innerHTML = D.branches.map(b => {
+    // 🟢 ปกติ (Normal Risk - Soft pastel green)
+    let cardBg = '#f0fdf4', cardBorder = '#bbf7d0', leftBorder = '#22c55e', badgeBg = '#dcfce7', badgeCol = '#15803d', titleColor = '#065f46';
+    
+    // 🟡 เฝ้าระวัง (Watch Risk - Soft pastel yellow/amber)
+    if (b.riskLevel === 'เฝ้าระวัง') { 
+      cardBg = '#fffbeb'; 
+      cardBorder = '#fde68a'; 
+      leftBorder = '#f59e0b';
+      badgeBg = '#fef3c7'; 
+      badgeCol = '#b45309'; 
+      titleColor = '#92400e';
+    }
+    
+    // 🔴 เสี่ยงสูง (High Risk - Soft pastel red/rose)
+    if (b.riskLevel === 'เสี่ยงสูง') { 
+      cardBg = '#fff1f2'; 
+      cardBorder = '#fecdd3'; 
+      leftBorder = '#e11d48';
+      badgeBg = '#ffe4e6'; 
+      badgeCol = '#be123c'; 
+      titleColor = '#9f1239';
+    }
+
+    return `
+      <div class="card" style="position:relative; cursor:pointer; background:${cardBg}; border:1px solid ${cardBorder}; border-left:5px solid ${leftBorder}; border-radius:12px; padding:12px 14px; transition:all 0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.03);" onclick="selectBranch('${b.id}')" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.08)'" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.03)'">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+          <div>
+            <div style="font-size:10.5px; color:#64748b; font-weight:700;">${b.id} · ${b.region}</div>
+            <div style="font-weight:800; font-size:13px; color:${titleColor}; line-height:1.3; margin-top:2px;">${b.name}</div>
+          </div>
+          <span class="badge" style="background:${badgeBg}; color:${badgeCol}; font-weight:700; margin:0; padding:2px 7px; font-size:10.5px; border-radius:12px;">${b.riskLevel}</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:8px 0; background:rgba(255,255,255,0.75); padding:6px 8px; border-radius:8px; border:1px solid rgba(0,0,0,0.05);">
+          <div><span style="font-size:10px; color:#64748b; font-weight:600;">AR รวม</span><div style="font-weight:800; font-size:12.5px; color:#1e293b;">${fmt(b.totalAR)}</div></div>
+          <div><span style="font-size:10px; color:#64748b; font-weight:600;">เกินกำหนด</span><div style="font-weight:800; font-size:12.5px; color:#be123c;">${fmt(b.overdue)} (${b.overduePct}%)</div></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:10.5px;">
+          <span style="color:#64748b;">สัญญา: <b style="color:#0f172a;">${b.contractCount}</b> ราย</span>
+          <button class="sm act" style="padding:2px 6px; font-size:10px; font-weight:700;" onclick="event.stopPropagation(); selectBranch('${b.id}')">📊 หน้ารวมส่วนงาน</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMultiBranchTable() {
+  if (!D.branches || !D.branches.length) return;
+  const tbl = document.getElementById('branchCompareTable');
+  let h = '<tr><th style="white-space:nowrap; min-width:80px;">รหัส</th><th>ชื่อหน่วยงาน / สะพานปลา / ท่าเทียบเรือ</th><th style="white-space:nowrap;">ภาค</th><th class="c" style="white-space:nowrap;">สัญญา Active</th><th class="r" style="white-space:nowrap;">ยอด AR รวม</th><th class="r" style="white-space:nowrap;">ค้างชำระ (Overdue)</th><th class="c" style="white-space:nowrap;">% ค้างชำระ</th><th class="r" style="white-space:nowrap;">ค่าเผื่อสำรอง (Provision)</th><th class="c" style="white-space:nowrap;">ระดับความเสี่ยง</th><th></th></tr>';
+
+  D.branches.forEach(b => {
+    let badgeBg = '#dcfce7', badgeCol = '#15803d';
+    if (b.riskLevel === 'เฝ้าระวัง') { badgeBg = '#fef3c7'; badgeCol = '#b45309'; }
+    if (b.riskLevel === 'เสี่ยงสูง') { badgeBg = '#fee2e2'; badgeCol = '#be123c'; }
+
+    h += `
+      <tr>
+        <td style="white-space:nowrap;"><b>${b.id}</b></td>
+        <td><b>${b.name}</b></td>
+        <td style="white-space:nowrap;"><span class="badge" style="white-space:nowrap;">${b.region}</span></td>
+        <td class="c">${b.contractCount}</td>
+        <td class="r num">${fmt(b.totalAR)}</td>
+        <td class="r num" style="color:${b.overdue > 0 ? 'var(--red)' : '#64748b'}; font-weight:700;">${fmt(b.overdue)}</td>
+        <td class="c font-weight:600; color:${b.overduePct > 20 ? 'var(--red)' : 'var(--navy)'};">${b.overduePct}%</td>
+        <td class="r num" style="color:var(--amber);">${fmt(b.provision)}</td>
+        <td class="c"><span class="badge" style="background:${badgeBg}; color:${badgeCol}; font-weight:700; white-space:nowrap;">${b.riskLevel}</span></td>
+        <td class="c"><button class="sm act" style="padding:3px 10px; white-space:nowrap;" onclick="selectBranch('${b.id}')">ดูหน้ารวม</button></td>
+      </tr>
+    `;
+  });
+  tbl.innerHTML = h;
 }
 
 function renderKPI() {
@@ -1038,7 +1234,7 @@ function renderContracts() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isBilling = (user.role === 'admin' || user.role === 'billing');
   
-  D.contracts.filter(c => !q || (c.tenant || '').toLowerCase().includes(q) || (c.unit || '').toLowerCase().includes(q)).forEach(c => {
+  D.contracts.filter(c => !q || (c.tenant || '').toLowerCase().includes(q) || (c.unit || '').toLowerCase().includes(q) || (c.branch_name || '').toLowerCase().includes(q)).forEach(c => {
     const btnLabel = isBilling ? 'แก้ไข' : 'ดูสัญญา';
     h += `
       <tr>
@@ -1066,9 +1262,9 @@ function renderInvoices() {
     if (f === 'litig') return i.litigation;
     if (f === 'wo') return i.written_off;
     return true;
-  }).filter(i => !q || (i.tenant || '').toLowerCase().includes(q) || i.id.toLowerCase().includes(q));
+  }).filter(i => !q || (i.tenant || '').toLowerCase().includes(q) || i.id.toLowerCase().includes(q) || (i.branch_name || '').toLowerCase().includes(q));
   
-  let h = '<tr><th>เลขใบแจ้งหนี้</th><th>ผู้เช่า</th><th>งวด</th><th class="c">ครบกำหนด</th><th class="r">ยอดรวม</th><th class="r">ค้างจ่าย</th><th class="c">จำนวนวันค้าง</th><th class="c">ช่วง</th><th class="c">สถานะคดี/ชำระ</th><th></th></tr>';
+  let h = '<tr><th>เลขใบแจ้งหนี้</th><th class="l">ผู้เช่า / โครงการ</th><th class="c">งวด</th><th class="c">ครบกำหนด</th><th class="r">ยอดรวม (บาท)</th><th class="r">ค้างจ่าย (บาท)</th><th class="c">จำนวนวันค้าง</th><th class="c">ช่วงอายุหนี้</th><th class="c">สถานะ</th><th class="c">การดำเนินการ</th></tr>';
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const canManage = (user.role === 'admin' || user.role === 'cashier' || user.role === 'manager');
@@ -1097,10 +1293,10 @@ function renderInvoices() {
         <td class="c">${i.due_date}</td>
         <td class="r num">${fmt(i.total)}</td>
         <td class="r num" style="color:${i.outstanding > 0 ? 'var(--red)' : '#64748b'}; font-weight:${i.outstanding > 0 ? '700' : '500'};">${i.outstanding > 0 ? fmt(i.outstanding) : '-'}</td>
-        <td class="c font-weight:600; color:var(--red);">${i.outstanding > 0 && i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
+        <td class="c font-weight:600; color:${i.days_overdue > 0 ? 'var(--red)' : '#64748b'};">${i.outstanding > 0 && i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
         <td class="c">${i.bucket ? '<span class="pill p-' + i.bucket + '">' + i.bucket_label + '</span>' : '-'}</td>
         <td class="c">${sp}</td>
-        <td>${manageBtn}</td>
+        <td class="c">${manageBtn}</td>
       </tr>`;
   });
   document.getElementById('invoiceTable').innerHTML = h;
@@ -1136,9 +1332,9 @@ function renderMatrix() {
 function renderAgingByC() {
   if (!D.aging) return;
   const bc = D.aging.byContract;
-  let h = '<tr><th>ชื่อผู้เช่า / สัญญา</th>' + BK.map(b => `<th class="r">${b[1]}</th>`).join('') + '<th class="r">ยอดรวมค้าง</th></tr>';
+  let h = '<tr><th>ชื่อผู้เช่า / สัญญา</th><th>หน่วยงาน</th>' + BK.map(b => `<th class="r">${b[1]}</th>`).join('') + '<th class="r">ยอดรวมค้าง</th></tr>';
   Object.values(bc).sort((a, b) => b.tot - a.tot).forEach(v => {
-    h += `<tr><td><b>${v.tenant}</b></td>` + BK.map(b => `<td class="r num">${v[b[0]] ? fmt(v[b[0]]) : '-'}</td>`).join('') + `<td class="r num" style="color:var(--red); font-weight:700;">${fmt(v.tot)}</td></tr>`;
+    h += `<tr><td><b>${v.tenant}</b></td><td><span class="badge">${v.branch_name || '-'}</span></td>` + BK.map(b => `<td class="r num">${v[b[0]] ? fmt(v[b[0]]) : '-'}</td>`).join('') + `<td class="r num" style="color:var(--red); font-weight:700;">${fmt(v.tot)}</td></tr>`;
   });
   document.getElementById('agingByContract').innerHTML = h;
 }
@@ -1195,17 +1391,56 @@ async function loadAudit() {
 }
 
 // ========== ACTIONS & BUSINESS LOGIC ==========
+function generateNextContractId(branchId) {
+  const topBranch = document.getElementById('branchSelect')?.value || 'all';
+  const brTarget = (branchId && branchId !== 'all') ? branchId : (topBranch !== 'all' ? topBranch : 'C-02');
+
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const beYear = String(d.getFullYear() + 543).slice(-2);
+
+  const branchContracts = (D.contracts || []).filter(c => c.branch_id === brTarget);
+  let maxSeq = branchContracts.length;
+
+  branchContracts.forEach(c => {
+    const match = (c.id || '').match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && num > maxSeq) {
+        maxSeq = num;
+      }
+    }
+  });
+
+  const nextSeq = String(maxSeq + 1).padStart(4, '0');
+  return `${brTarget}-${mm}${beYear}-${nextSeq}`;
+}
+
+function updateModalContractId() {
+  const title = document.getElementById('cModalTitle')?.textContent || '';
+  const isEdit = title.includes('แก้ไข') || title.includes('ดูรายละเอียด');
+  if (!isEdit) {
+    const selBranch = document.getElementById('c_branch')?.value || 'C-02';
+    document.getElementById('c_id').value = generateNextContractId(selBranch);
+  }
+}
+
 function openContract(id) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isBilling = (user.role === 'admin' || user.role === 'billing');
   
-  // ซ่อน/แสดงปุ่มในการบันทึกสัญญา
   document.getElementById('cSave').style.display = isBilling ? '' : 'none';
   const del = document.getElementById('cDel');
   
+  const cb = document.getElementById('c_branch');
+  const topBranch = document.getElementById('branchSelect')?.value || 'all';
+  const curBranch = (topBranch !== 'all') ? topBranch : ((D.branches && D.branches[0]) ? D.branches[0].id : 'C-02');
+  if (cb) cb.value = curBranch;
+
   if (id) {
     const c = D.contracts.find(x => x.id === id);
     document.getElementById('cModalTitle').textContent = (isBilling ? 'แก้ไขสัญญา: ' : 'ดูรายละเอียดสัญญา: ') + id;
+    if (cb && c.branch_id) cb.value = c.branch_id;
     c_id.value = id;
     c_tenant.value = c.tenant;
     c_tax.value = c.tax_id || '';
@@ -1220,13 +1455,14 @@ function openContract(id) {
     c_risk.value = c.risk_tier;
     del.style.display = (isBilling && id) ? '' : 'none';
     
-    // หากไม่มีสิทธิ์แก้ไข ให้ล็อค input ทั้งหมด
     document.querySelectorAll('#cModal input, #cModal select').forEach(el => {
-      if(el.id !== 'c_id') el.disabled = !isBilling;
+      el.disabled = !isBilling;
     });
+    c_id.disabled = true;
   } else {
     document.getElementById('cModalTitle').textContent = 'เพิ่มสัญญาเช่าใหม่';
-    ['c_id','c_tenant','c_tax','c_unit','c_rent','c_service','c_start','c_end','c_deposit'].forEach(k => document.getElementById(k).value = '');
+    c_id.value = generateNextContractId(curBranch);
+    ['c_tenant','c_tax','c_unit','c_rent','c_service','c_start','c_end','c_deposit'].forEach(k => document.getElementById(k).value = '');
     c_due.value = 5;
     c_penalty.value = 1.5;
     c_risk.value = 'ต่ำ';
@@ -1235,13 +1471,18 @@ function openContract(id) {
     document.querySelectorAll('#cModal input, #cModal select').forEach(el => {
       el.disabled = false;
     });
+    c_id.disabled = false;
   }
   document.getElementById('cModal').classList.add('on');
 }
 
 async function saveContract() {
+  const topBranch = document.getElementById('branchSelect')?.value || 'all';
+  const curBranch = (c_branch.value && c_branch.value !== 'all') ? c_branch.value : (topBranch !== 'all' ? topBranch : 'C-02');
+  
   const b = {
     id: c_id.value || undefined,
+    branch_id: curBranch,
     tenant: c_tenant.value,
     tax_id: c_tax.value,
     unit: c_unit.value,
@@ -1817,13 +2058,23 @@ async function runJob() {
 
 function showTab(id, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
+  const el = document.getElementById(id);
+  if (el) el.classList.add('on');
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const targetBtn = document.querySelector(`nav button[data-tab="${id}"]`);
+    if (targetBtn) targetBtn.classList.add('active');
+  }
 }
 
-// ตั้งค่าวันที่เริ่มต้น
-document.getElementById('asof').value = '2026-07-14';
+// ตั้งค่าวันที่เริ่มต้น (วันที่ปัจจุบัน)
+const _today = new Date();
+const _yyyy = _today.getFullYear();
+const _mm = String(_today.getMonth() + 1).padStart(2, '0');
+const _dd = String(_today.getDate()).padStart(2, '0');
+document.getElementById('asof').value = `${_yyyy}-${_mm}-${_dd}`;
 
 // ฟังก์ชันสลับโหมดมืด/สว่าง
 function toggleTheme() {

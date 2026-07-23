@@ -5,6 +5,10 @@ node_modules/
 lease.db
 lease.db-journal
 lease.db-wal
+lease.db-shm
+
+# Temporary office files
+~$*
 
 # Environment variables
 .env

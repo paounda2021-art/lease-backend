@@ -5,6 +5,15 @@
 
 PRAGMA foreign_keys = ON;
 
+-- หน่วยงาน / สะพานปลา / ท่าเทียบเรือ (17 แห่ง)
+CREATE TABLE IF NOT EXISTS branches (
+  id          TEXT PRIMARY KEY,
+  code        TEXT NOT NULL UNIQUE,
+  name        TEXT NOT NULL,
+  region      TEXT,                 -- ภาคกลาง / ภาคใต้ / ภาคตะวันออก ฯลฯ
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+
 -- บัญชีผู้ใช้งานระบบ (Authentication & Role-Based Access Control)
 CREATE TABLE IF NOT EXISTS users (
   id          TEXT PRIMARY KEY,
@@ -12,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
   password    TEXT NOT NULL,                  -- รหัสผ่านที่ถูกแฮชแล้ว (bcrypt)
   role        TEXT NOT NULL,                  -- admin / billing / cashier / manager
   fullname    TEXT NOT NULL,
+  branch_id   TEXT REFERENCES branches(id),
   created_at  TEXT DEFAULT (datetime('now'))
 );
 
@@ -30,6 +40,7 @@ CREATE TABLE IF NOT EXISTS customers (
 CREATE TABLE IF NOT EXISTS contracts (
   id              TEXT PRIMARY KEY,
   customer_id     TEXT NOT NULL REFERENCES customers(id),
+  branch_id       TEXT REFERENCES branches(id), -- หน่วยงานสังกัด (1 ใน 17 แห่ง)
   unit            TEXT,                   -- ยูนิต/พื้นที่
   rent_monthly    REAL NOT NULL DEFAULT 0,-- ค่าเช่า/เดือน (ยกเว้น VAT)
   service_monthly REAL NOT NULL DEFAULT 0,-- ค่าบริการ/เดือน (VAT 7%)
@@ -44,6 +55,7 @@ CREATE TABLE IF NOT EXISTS contracts (
   status          TEXT DEFAULT 'active',  -- active/terminated
   created_at      TEXT DEFAULT (datetime('now'))
 );
+CREATE INDEX IF NOT EXISTS idx_contracts_branch ON contracts(branch_id);
 
 -- ใบแจ้งหนี้ / ลูกหนี้รายใบ
 CREATE TABLE IF NOT EXISTS invoices (
