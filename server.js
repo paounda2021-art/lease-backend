@@ -507,7 +507,7 @@ app.put('/api/provision/rates', authenticateToken, requireRole('manager'), (req,
   }
 });
 
-app.get('/api/provision/rates', authenticateToken, requireRole(['manager', 'billing']), (req, res) => {
+app.get('/api/provision/rates', authenticateToken, requireRole(['manager', 'billing', 'viewer']), (req, res) => {
   try {
     res.json(rateMap());
   } catch (err) {
