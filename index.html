@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบติดตามหนี้เช่า · Lease Receivables Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f172a;
+    --blue: #1e3a8a;
+    --accent: #2563eb;
+    --light-blue: #eff6ff;
+    --grey: #f8fafc;
+    --green: #16a34a;
+    --amber: #d97706;
+    --red: #dc2626;
+    --line: #e2e8f0;
+    --ok: #dcfce7;
+    --warn: #fee2e2;
+    --doubt: #fef9c3;
+    --glass: rgba(255, 255, 255, 0.8);
+    
+    /* Theme specific variables - Light Mode Default */
+    --bg-body: #f1f5f9;
+    --text-body: #1e293b;
+    --bg-panel: #ffffff;
+    --bg-card: #ffffff;
+    --bg-nav: #ffffff;
+    --text-nav: #64748b;
+    --bg-th: #f8fafc;
+    --text-th: #475569;
+    --bg-td-hover: #eff6ff;
+    --text-td: #334155;
+    --bg-input: #ffffff;
+    --border-input: #e2e8f0;
+    --text-input: #1e293b;
+    --bg-modal: #ffffff;
+    --bg-modal-backdrop: rgba(15, 23, 42, 0.5);
+    --muted-color: #64748b;
+    --card-text-val: #0f172a;
+    --panel-header-text: #0f172a;
+    --badge-bg: #e2e8f0;
+    --badge-text: #475569;
+    --border-line: #e2e8f0;
+  }
+
+  body.dark {
+    --navy: #f8fafc; /* For dark mode text/headers */
+    --blue: #3b82f6;
+    --accent: #3b82f6;
+    --light-blue: rgba(59, 130, 246, 0.15);
+    --grey: #1e293b;
+    --green: #22c55e;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --line: #334155;
+    --ok: rgba(34, 197, 94, 0.2);
+    --warn: rgba(239, 68, 68, 0.2);
+    --doubt: rgba(245, 158, 11, 0.2);
+    --glass: rgba(30, 41, 59, 0.8);
+    
+    /* Theme specific variables - Dark Mode */
+    --bg-body: #0f172a;
+    --text-body: #cbd5e1;
+    --bg-panel: #1e293b;
+    --bg-card: #1e293b;
+    --bg-nav: #1e293b;
+    --text-nav: #94a3b8;
+    --bg-th: #0f172a;
+    --text-th: #94a3b8;
+    --bg-td-hover: rgba(59, 130, 246, 0.1);
+    --text-td: #cbd5e1;
+    --bg-input: #0f172a;
+    --border-input: #334155;
+    --text-input: #f8fafc;
+    --bg-modal: #1e293b;
+    --bg-modal-backdrop: rgba(0, 0, 0, 0.7);
+    --muted-color: #94a3b8;
+    --card-text-val: #f8fafc;
+    --panel-header-text: #f8fafc;
+    --badge-bg: #334155;
+    --badge-text: #94a3b8;
+    --border-line: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: 'Inter', 'Sarabun', sans-serif; 
+    background: var(--bg-body); 
+    color: var(--text-body); 
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.3s, color 0.3s;
+  }
+  header { 
+    background: linear-gradient(135deg, #0f172a, #1e3a8a); 
+    color: #fff; 
+    padding: 16px 24px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    flex-wrap: wrap; 
+    gap: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  header .sub { font-size: 12px; opacity: .85; font-weight: 400; background: rgba(255, 255, 255, 0.1); padding: 2px 8px; border-radius: 4px; }
+  header .db { 
+    font-size: 11px; 
+    background: rgba(255,255,255,.1); 
+    padding: 6px 12px; 
+    border-radius: 8px; 
+    display: flex; 
+    gap: 8px; 
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .dbdot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+  header .asof { font-size: 12px; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.1); padding: 5px 12px; border-radius: 8px; }
+  header .asof input { border: none; border-radius: 6px; padding: 4px 8px; font-size: 12px; outline: none; background: #fff; color: #1e293b; font-weight: 600; }
+  
+  /* User Profile UI */
+  #userInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+  }
+  .role-badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  
+  nav { background: var(--bg-nav); border-bottom: 1px solid var(--border-line); display: flex; flex-wrap: wrap; padding: 0 24px; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.02); transition: background 0.3s, border-color 0.3s; }
+  nav button { background: none; border: none; padding: 16px 20px; font-size: 14px; cursor: pointer; color: var(--text-nav); border-bottom: 3px solid transparent; font-family: inherit; font-weight: 500; transition: all 0.2s; }
+  nav button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+  nav button:hover { background: var(--bg-td-hover); color: var(--text-body); }
+  
+  main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { 
+    background: var(--bg-card); 
+    border-radius: 12px; 
+    padding: 18px 20px; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); 
+    border-left: 5px solid var(--accent);
+    transition: transform 0.2s, background-color 0.3s;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card .lbl { font-size: 12px; color: var(--muted-color); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card .val { font-size: 26px; font-weight: 700; color: var(--card-text-val); }
+  .card .val.red { color: var(--red); }
+  .card .val.amber { color: var(--amber); }
+  .card .foot { font-size: 11px; color: var(--muted-color); margin-top: 6px; }
+  
+  .panel { 
+    background: var(--bg-panel); 
+    border-radius: 12px; 
+    padding: 20px 24px; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); 
+    margin-bottom: 24px; 
+    transition: background-color 0.3s;
+  }
+  .panel h2 { font-size: 18px; color: var(--panel-header-text); margin-bottom: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+  .panel h2 .hint { font-size: 12px; font-weight: 400; color: var(--muted-color); }
+  
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { background: var(--bg-th); color: var(--text-th); text-align: left; padding: 12px 14px; font-weight: 600; border-bottom: 2px solid var(--border-line); transition: background-color 0.3s; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border-line); color: var(--text-td); }
+  tr:hover td { background: var(--bg-td-hover); }
+  .r { text-align: right; }
+  .c { text-align: center; }
+  .num { font-variant-numeric: tabular-nums; font-weight: 500; }
+  
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; text-align: center; }
+  .p-cur { background: var(--ok); color: #166534; }
+  .p-b1 { background: #dbeafe; color: #1e40af; }
+  .p-b2 { background: var(--doubt); color: #854d0e; }
+  .p-b3 { background: #ffe4e6; color: #9f1239; }
+  .p-b4 { background: #fecdd3; color: #be123c; }
+  .p-b5 { background: #fda4af; color: #9f1239; }
+  .p-b6 { background: #9f1239; color: #fff; }
+  .p-paid { background: #e2e8f0; color: #475569; }
+  .p-wo { background: #334155; color: #fff; }
+  .p-lit { background: #7c3aed; color: #fff; }
+  
+  button { font-family: inherit; transition: all 0.2s; }
+  button.act { 
+    background: var(--accent); 
+    color: #fff; 
+    border: none; 
+    border-radius: 8px; 
+    padding: 10px 18px; 
+    font-size: 13.5px; 
+    cursor: pointer; 
+    font-weight: 600; 
+  }
+  button.act:hover { background: #1d4ed8; }
+  button.ghost { background: var(--bg-panel); color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; padding: 9px 17px; font-weight: 600; cursor: pointer; }
+  button.ghost:hover { background: var(--bg-td-hover); }
+  button.sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border-input); background: var(--bg-panel); cursor: pointer; color: var(--text-td); transition: background-color 0.2s, border-color 0.2s; }
+  button.sm:hover { background: var(--bg-td-hover); color: var(--text-body); border-color: var(--border-input); }
+  
+  .toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; align-items: center; }
+  input, select { padding: 9px 12px; border: 1px solid var(--border-input); border-radius: 8px; font-size: 13.5px; outline: none; transition: border-color 0.2s, background-color 0.2s, color 0.2s; background: var(--bg-input); color: var(--text-input); }
+  input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+  
+  .bar { height: 22px; background: var(--border-line); border-radius: 6px; overflow: hidden; display: flex; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+  .agerow { display: grid; grid-template-columns: 140px 1fr 130px 80px; gap: 12px; align-items: center; margin-bottom: 10px; }
+  .agerow .anum { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted-color); font-size: 12px; }
+  .flex { display: flex; gap: 12px; flex-wrap: wrap; }
+  .right { margin-left: auto; }
+  
+  .modal-bg { position: fixed; inset: 0; background: var(--bg-modal-backdrop); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; transition: background-color 0.3s; }
+  .modal-bg.on { display: flex; }
+  .modal { background: var(--bg-modal); color: var(--text-body); border-radius: 16px; padding: 24px; width: 100%; max-width: 550px; max-height: 90vh; overflow: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); transition: background-color 0.3s, color 0.3s; }
+  .modal h3 { color: var(--panel-header-text); margin-bottom: 16px; font-weight: 700; font-size: 18px; border-bottom: 1px solid var(--border-line); padding-bottom: 10px; }
+  .fg { margin-bottom: 12px; }
+  .fg label { display: block; font-size: 12px; color: var(--text-th); margin-bottom: 4px; font-weight: 600; }
+  .fg input, .fg select { width: 100%; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .note { background: #fef3c7; border-radius: 8px; padding: 12px 16px; font-size: 12.5px; color: #92400e; margin-bottom: 16px; line-height: 1.6; border-left: 4px solid var(--amber); }
+  .note b { color: #b45309; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--muted-color); margin-top: 14px; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+  .tab { display: none; }
+  .tab.on { display: block; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 12px; background: var(--badge-bg); color: var(--badge-text); }
+  footer { text-align: center; color: var(--muted-color); padding: 32px 24px; border-top: 1px solid var(--border-line); margin-top: 40px; }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 13.5px; opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 999; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); font-weight: 500; pointer-events: none; }
+  #toast.on { opacity: 1; transform: translate(-50%, -8px); }
+
+  /* Mobile Responsive Design */
+  @media (max-width: 768px) {
+    body {
+      font-size: 13px;
+    }
+    header {
+      padding: 12px 16px;
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+      gap: 8px;
+    }
+    header h1 {
+      justify-content: center;
+      font-size: 18px;
+    }
+    header .flex {
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    header .asof {
+      width: 100%;
+      justify-content: center;
+    }
+    #userInfo {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    /* Horizontal scrollable navigation tabs on mobile */
+    nav {
+      padding: 0 8px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; /* Firefox */
+    }
+    nav::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+    nav button {
+      padding: 12px 12px;
+      font-size: 13px;
+      flex: 0 0 auto; /* Prevent tabs from shrinking */
+    }
+    
+    main {
+      padding: 12px;
+    }
+    .cards {
+      grid-template-columns: 1fr; /* Single column on mobile */
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card {
+      padding: 12px 16px;
+    }
+    .card .val {
+      font-size: 22px;
+    }
+    
+    .panel {
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      overflow-x: auto; /* Enable horizontal scrolling for tables inside panels */
+      -webkit-overflow-scrolling: touch;
+    }
+    .panel h2 {
+      font-size: 15px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    /* Responsive forms and toolbars */
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .toolbar button, .toolbar input, .toolbar select {
+      width: 100%;
+      margin-left: 0 !important;
+    }
+    
+    .flex {
+      flex-direction: column;
+    }
+    
+    /* Modals mobile optimization */
+    .modal {
+      width: 100%;
+      max-width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+    }
+    .grid2 {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    
+    /* Age rows stack on mobile */
+    .agerow {
+      grid-template-columns: 1fr;
+      gap: 4px;
+      border-bottom: 1px solid var(--border-line);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+    .agerow .anum {
+      text-align: left;
+    }
+    .agerow .bar {
+      height: 12px;
+    }
+    .agerow .muted {
+      text-align: left !important;
+    }
+  }
+
+  /* Print Stylesheet for Dunning Letters */
+  @media print {
+    @page {
+      size: A4;
+      margin: 1.5cm 2cm 2.5cm 3cm; /* Top 1.5cm, Right 2cm, Bottom 2.5cm, Left 3cm */
+    }
+    body {
+      background: #fff !important;
+      color: #000 !important;
+      font-family: "Sarabun", "TH Sarabun PSK", sans-serif !important;
+      font-size: 15px !important;
+      line-height: 1.6 !important;
+    }
+    /* Hide everything on screen except the print letter area */
+    #loginModal, header, nav, main, footer, .modal-bg, #toast, .no-print {
+      display: none !important;
+    }
+    #printLetterContainer {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+  }
+
+  /* Preview styles for the letter container when visible on screen inside modal */
+  .letter-preview-wrapper {
+    display: flex;
+    gap: 20px;
+    height: calc(90vh - 100px);
+    overflow: hidden;
+  }
+  .letter-control-panel {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-line);
+    border-radius: 12px;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .letter-paper-preview {
+    flex-grow: 1;
+    background: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 1.5cm 2cm 2.5cm 3cm; /* top right bottom left */
+    overflow-y: auto;
+    font-family: "Sarabun", "TH Sarabun PSK", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    position: relative;
+  }
+  .dark .letter-paper-preview {
+    background: #fff;
+    color: #000;
+  }
+  
+  /* Official Thai Letter layout classes */
+  .official-header {
+    position: relative;
+    height: 110px;
+    margin-bottom: 24px;
+  }
+  .official-emblem {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    width: 100px;
+    height: 100px;
+    text-align: center;
+  }
+  .official-emblem img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .official-meta-left {
+    position: absolute;
+    left: 0;
+    top: 40px;
+    font-size: 15px;
+  }
+  .official-meta-right {
+    position: absolute;
+    left: 50%;
+    margin-left: 65px; /* Safely offsets the address block to the right of the logo */
+    top: 30px;
+    text-align: left;
+    max-width: 320px;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .official-date {
+    text-align: center;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    font-size: 15px;
+  }
+  .official-detail {
+    margin-bottom: 20px;
+  }
+  .official-detail div {
+    margin-bottom: 6px;
+  }
+  .official-body {
+    text-indent: 2.5cm;
+    margin-bottom: 16px;
+    text-align: justify;
+  }
+  .official-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  .official-table th {
+    background: #f1f5f9 !important;
+    color: #000 !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 8px 12px;
+    font-weight: 600;
+  }
+  .official-table td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 8px 12px;
+    color: #000 !important;
+  }
+  .official-signoff {
+    margin-top: 40px;
+    margin-left: 50%;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- ล็อกอินโมดัลแบบครอบทับ (Glassmorphism Modal) -->
+<div class="modal-bg" id="loginModal" style="display:flex; z-index: 9999;">
+  <div class="modal" style="max-width: 400px; padding: 32px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="display: inline-block; padding: 10px; background: white; border-radius: 50%; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); width: 90px; height: 90px;">
+        <img src="/fmo-logo.png" style="width: 100%; height: 100%; object-fit: contain;">
+      </div>
+      <h2 style="color: var(--navy); font-weight: 800; font-size: 22px;">ระบบติดตามหนี้เช่า</h2>
+      <p style="color: var(--muted-color); font-size: 13px; margin-top: 4px;">Lease Receivables Tracker</p>
+    </div>
+    
+    <div class="fg">
+      <label>ชื่อผู้ใช้งาน (Username)</label>
+      <input id="loginUser" placeholder="เช่น admin, billing, cashier, manager" style="padding: 11px;">
+    </div>
+    <div class="fg" style="margin-top: 12px;">
+      <label>รหัสผ่าน (Password)</label>
+      <input id="loginPass" type="password" placeholder="••••••••" style="padding: 11px;" onkeyup="if(event.key==='Enter')submitLogin()">
+    </div>
+    
+    <div id="loginErr" style="color: var(--red); font-size: 12.5px; margin: 12px 0; font-weight: 600; text-align: center; min-height: 18px;"></div>
+    
+    <button class="act" onclick="submitLogin()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 8px;">เข้าสู่ระบบ</button>
+    
+    <div style="margin-top: 24px; padding: 12px; background: var(--grey); border-radius: 8px; border: 1px solid var(--border-line); font-size: 11.5px; line-height: 1.6; color: var(--muted-color);">
+      <b>ข้อมูลผู้ใช้จำลองสำหรับทดสอบ (รหัสผ่าน: password123):</b><br>
+      • <span style="font-weight:600; color:var(--accent);">admin</span> : เข้าใช้งานได้ทุกฟังก์ชัน<br>
+      • <span style="font-weight:600; color:var(--accent);">billing</span> : จัดการสัญญาและออกใบแจ้งหนี้<br>
+      • <span style="font-weight:600; color:var(--accent);">cashier</span> : บันทึกรับเงิน และหักเงินประกัน<br>
+      • <span style="font-weight:600; color:var(--accent);">manager</span> : อนุมัติส่งฟ้อง ตัดหนี้สูญ และปรับสำรอง
+    </div>
+  </div>
+</div>
+
+<header>
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <img src="/fmo-logo.png" style="height: 36px; width: 36px; object-fit: contain; background: white; padding: 2px; border-radius: 50%;">
+    <h1>ระบบติดตามหนี้เช่า <span class="sub">Backend + SQLite</span></h1>
+  </div>
+  <div class="flex" style="align-items:center">
+    <!-- Theme Toggle Switcher -->
+    <button id="themeToggleBtn" onclick="toggleTheme()" class="sm" style="border: none; background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
+      <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">โหมดมืด</span>
+    </button>
+    <div class="db"><span class="dbdot" id="dbdot"></span><span id="dbstat">เชื่อมต่อฐานข้อมูล</span></div>
+    <div class="asof">ณ วันที่ <input type="date" id="asof" onchange="loadAll()"></div>
+    
+    <!-- User Logged-in Info -->
+    <div id="userInfo" style="display: none;">
+      <span>👤 <b id="userFullname"></b> <span class="role-badge" id="userRole"></span></span>
+      <button onclick="logout()" class="sm" style="border: none; background: #be123c; color: #fff; font-weight: 600; padding: 5px 12px; border-radius: 8px; cursor: pointer;">ออกระบบ</button>
+    </div>
+  </div>
+</header>
+
+<nav id="mainNav" style="display: none; align-items: center; justify-content: space-between; padding: 0 24px;">
+  <div style="display: flex; align-items: center; flex-wrap: wrap;">
+    <button class="active" data-tab="dash" onclick="showTab('dash',this)">แดชบอร์ด</button>
+    <button data-tab="contracts" onclick="showTab('contracts',this)">สัญญาเช่า</button>
+    <button data-tab="invoices" onclick="showTab('invoices',this)">ลูกหนี้/ใบแจ้งหนี้</button>
+    <button data-tab="aging" onclick="showTab('aging',this)">Aging &amp; สำรอง</button>
+    <button data-tab="dunning" onclick="showTab('dunning',this)">ทวงถาม/ฟ้อง</button>
+    <button data-tab="audit" onclick="showTab('audit',this)">ประวัติการแก้ไข</button>
+  </div>
+  <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; padding: 6px 0;">
+    <span style="font-size: 13px; font-weight: 600; color: var(--text-nav);">🏢 ส่วนงาน:</span>
+    <select id="branchSelect" onchange="onBranchChange()" style="border: 1px solid var(--border-line); border-radius: 8px; padding: 6px 12px; font-size: 13px; outline: none; background: var(--bg-card); color: var(--text-body); font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08); min-width: 240px;">
+      <option value="all">🏢 ภาพรวมทั้งหมด 17 หน่วยงาน</option>
+    </select>
+  </div>
+</nav>
+
+<main id="mainContainer" style="display: none;">
+  <section id="dash" class="tab on">
+    <!-- Single Branch Banner -->
+    <div id="singleBranchBanner" style="display:none; background:var(--light-blue); padding:12px 18px; border-radius:10px; margin-bottom:16px; justify-content:space-between; align-items:center; border:1px solid var(--accent);">
+      <div style="font-size:14px;">📌 <b>กำลังแสดงหน้ารวมเฉพาะส่วนงาน:</b> <span id="singleBranchTitle" style="color:var(--accent); font-weight:700; font-size:16px; margin-left:6px;"></span></div>
+      <button class="sm ghost" onclick="selectBranch('all')" style="border-color:var(--accent); color:var(--accent); font-weight:700;">🏢 กลับสู่ภาพรวม 17 หน่วยงาน</button>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="cards" id="kpiCards"></div>
+
+    <!-- Multi-Branch Cards Grid (17 Branches) -->
+    <div class="panel" id="multiBranchGridPanel" style="display:none; margin-top:20px;">
+      <div class="flex" style="align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h2 style="margin:0;">🏢 สถานะบริหารลูกหนี้ 17 หน่วยงาน (สะพานปลา &amp; ท่าเทียบเรือประมง)</h2>
+        <span class="muted" style="font-size:12px;">💡 คลิกที่หน่วยงานเพื่อดูหน้ารวมรายละเอียดและจัดการลูกหนี้</span>
+      </div>
+      <div id="branchCardsGrid" style="display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap:12px;"></div>
+    </div>
+
+    <!-- Multi-Branch Comparison Table -->
+    <div class="panel" id="multiBranchTablePanel" style="display:none; margin-top:16px;">
+      <h2>📊 ตารางเปรียบเทียบการบริหารหนี้รายหน่วยงาน (17 ส่วนงาน)</h2>
+      <div style="overflow-x:auto;">
+        <table id="branchCompareTable"></table>
+      </div>
+    </div>
+
+    <!-- Single Branch Detailed Dashboard Views -->
+    <div id="singleBranchDetailsPanel">
+      <div class="panel"><h2>โครงสร้างอายุหนี้ (AR Aging)</h2><div id="agingBars"></div><div class="legend" id="agingLegend"></div></div>
+      <div class="flex">
+        <div class="panel" style="flex:1;min-width:300px"><h2>ลูกหนี้เสี่ยงสูงสุด</h2><table id="topOverdue"></table></div>
+        <div class="panel" style="flex:1;min-width:300px"><h2>สรุปสำรอง (Provision)</h2><table id="provSummary"></table></div>
+      </div>
+    </div>
+  </section>
+  
+  <section id="contracts" class="tab">
+    <div class="toolbar">
+      <button class="act" id="addContractBtn" onclick="openContract()">+ เพิ่มสัญญา</button>
+      <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ สร้างใบแจ้งหนี้งวดถัดไปทุกสัญญา</button>
+      <input id="cSearch" placeholder="ค้นหาผู้เช่า/ยูนิต..." oninput="renderContracts()" style="margin-left:auto; width:220px;">
+    </div>
+    <div class="panel"><table id="contractTable"></table></div>
+  </section>
+  
+  <section id="invoices" class="tab">
+    <div class="toolbar">
+      <select id="iFilter" onchange="renderInvoices()">
+        <option value="all">ทั้งหมด</option><option value="open">ค้างชำระ</option>
+        <option value="overdue">เกินกำหนด</option><option value="litig">ส่งฟ้อง</option><option value="wo">ตัดหนี้สูญ</option>
+      </select>
+      <input id="iSearch" placeholder="ค้นหา..." oninput="renderInvoices()" style="width:220px;">
+      <span class="right muted" id="iCount"></span>
+    </div>
+    <div class="panel" style="overflow:auto"><table id="invoiceTable"></table></div>
+  </section>
+  
+  <section id="aging" class="tab">
+    <div class="note"><b>ภาษี:</b> ค่าเผื่อหนี้สงสัยจะสูญนี้เป็นการตั้งตามระบบบัญชี <b>ต้องบวกกลับ</b> ทางภาษี (หักเป็นค่าใช้จ่ายไม่ได้) จะหักได้เมื่อตัดหนี้สูญจริงตามเกณฑ์กฎกระทรวง 186</div>
+    <div class="panel"><h2>ตารางอัตราสำรอง <span class="hint">แก้อัตราแล้วบันทึกลงฐานข้อมูล</span></h2><table id="provMatrix"></table>
+      <button class="act sm" id="saveRatesBtn" style="margin-top:12px; display:none;" onclick="saveRates()">บันทึกอัตราลงฐานข้อมูล</button></div>
+    <div class="panel"><h2>Aging รายสัญญา</h2><table id="agingByContract" style="font-size:12.5px"></table></div>
+  </section>
+  
+  <section id="dunning" class="tab">
+    <div class="toolbar"><button class="ghost" id="runJobBtn" style="display:none;" onclick="runJob()">▶ รัน daily job (จำลอง cron)</button><span class="right muted">คำแนะนำดำเนินการทวงหนี้อัตโนมัติตามระยะเวลาค้างชำระ</span></div>
+    <div class="note"><b>เกณฑ์กฎกระทรวง 186:</b> &gt;2ล้าน=ฟ้อง+บังคับคดีไม่มีทรัพย์ · 2แสน–2ล้าน=ศาลรับฟ้อง · ≤2แสน=ทวงถาม≥2ครั้ง+บอร์ดอนุมัติ</div>
+    <div class="panel" style="overflow:auto"><table id="dunTable"></table></div>
+  </section>
+  
+  <section id="audit" class="tab">
+    <div class="panel"><h2>ประวัติการแก้ไข (Audit Trail) <span class="hint">ธุรกรรมและการกระทำสำคัญที่บันทึกโดยผู้ใช้อย่างถาวร</span></h2><table id="auditTable"></table></div>
+  </section>
+</main>
+
+<!-- โมดัล สัญญา -->
+<div class="modal-bg" id="cModal"><div class="modal">
+  <h3 id="cModalTitle">เพิ่มสัญญาเช่า</h3>
+  <input type="hidden" id="c_branch">
+  <div class="fg"><label>รหัสสัญญา (ระบบรันให้อัตโนมัติ)</label><input id="c_id" style="font-weight:700; color:var(--accent);"></div>
+  <div class="fg"><label>ชื่อผู้เช่า</label><input id="c_tenant"></div>
+  <div class="grid2"><div class="fg"><label>เลขผู้เสียภาษี</label><input id="c_tax"></div><div class="fg"><label>ยูนิต</label><input id="c_unit"></div></div>
+  <div class="grid2"><div class="fg"><label>ค่าเช่า/เดือน</label><input id="c_rent" type="number"></div><div class="fg"><label>ค่าบริการ/เดือน</label><input id="c_service" type="number"></div></div>
+  <div class="grid2"><div class="fg"><label>วันเริ่ม</label><input id="c_start" type="date"></div><div class="fg"><label>วันสิ้นสุด</label><input id="c_end" type="date"></div></div>
+  <div class="grid2"><div class="fg"><label>ครบกำหนด(วันที่)</label><input id="c_due" type="number" value="5"></div><div class="fg"><label>เงินประกัน</label><input id="c_deposit" type="number"></div></div>
+  <div class="grid2"><div class="fg"><label>ค่าปรับ(%/ด.)</label><input id="c_penalty" type="number" value="1.5"></div><div class="fg"><label>ความเสี่ยง</label><select id="c_risk"><option>ต่ำ</option><option>กลาง</option><option>สูง</option></select></div></div>
+  <div class="flex" style="margin-top:16px">
+    <button class="act" id="cSave" onclick="saveContract()">บันทึก</button>
+    <button class="sm" onclick="closeM('cModal')">ยกเลิก</button>
+    <button class="sm right" id="cDel" onclick="delContract()" style="color:var(--red); border-color:var(--red); display:none;">ลบสัญญา</button>
+  </div>
+</div></div>
+
+<!-- โมดัล การเงิน & อนุมัติ -->
+<div class="modal-bg" id="pModal"><div class="modal"><h3 id="pTitle">จัดการ</h3><div id="pBody"></div></div></div>
+
+<!-- โมดัล พิมพ์หนังสือทวงถามหนี้ (Preview & Configuration) -->
+<div class="modal-bg" id="letterModal" style="z-index: 1000;">
+  <div class="modal" style="max-width: 1100px; width: 95%; padding: 20px; border-radius: 16px;">
+    <h3 class="no-print" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+      <span>📄 พิมพ์หนังสือทวงถามหนี้ (Dunning Preview)</span>
+      <button class="sm" onclick="closeLetterModal()" style="border: none; background: transparent; font-size: 20px; cursor: pointer; color: var(--text-td);">&times;</button>
+    </h3>
+    
+    <div class="letter-preview-wrapper no-print">
+      <!-- ส่วนควบคุมด้านซ้าย -->
+      <div class="letter-control-panel">
+        <h4 style="margin-top:0; margin-bottom:12px; color:var(--panel-header-text);">ปรับแต่งจดหมาย</h4>
+        
+        <div class="fg">
+          <label>ประเภทจดหมาย</label>
+          <select id="letterType" onchange="changeLetterTemplate()">
+            <option value="1">หนังสือทวงถามครั้งที่ 1 (ระดับ 1)</option>
+            <option value="2">หนังสือทวงถามครั้งที่ 2 + เตือนเลิกสัญญา (ระดับ 2)</option>
+            <option value="3">หนังสือทวงก่อนฟ้องโดยทนายความ (ระดับ 3)</option>
+          </select>
+        </div>
+        
+        <div class="fg">
+          <label>เลขที่หนังสือ (ที่)</label>
+          <input id="letterRef" placeholder="เช่น อสป. 100/2569" oninput="updateLetterPreview()">
+        </div>
+        
+        <div class="fg">
+          <label>ผู้ลงนาม / ทนายความ</label>
+          <input id="letterSigner" placeholder="ชื่อผู้ลงนาม" oninput="updateLetterPreview()">
+        </div>
+        
+        <div class="fg">
+          <label>ตำแหน่งผู้ลงนาม</label>
+          <input id="letterSignerPos" placeholder="เช่น ผู้อำนวยการ อสป." oninput="updateLetterPreview()">
+        </div>
+
+        <div class="fg" id="letterRefDateGroup" style="display:none;">
+          <label>วันที่หนังสือฉบับแรก (อ้างถึง)</label>
+          <input id="letterRefDate" type="date" onchange="updateLetterPreview()">
+        </div>
+
+        <div class="fg" id="letterLawFirmGroup" style="display:none;">
+          <label>ชื่อสำนักงานกฎหมาย</label>
+          <input id="letterLawFirm" placeholder="เช่น สนง. กฎหมาย อสป." oninput="updateLetterPreview()">
+        </div>
+
+        <div class="fg">
+          <label>ช่องทางการชำระเงิน</label>
+          <input id="letterPayment" placeholder="เช่น บัญชีธนาคารกรุงไทย..." oninput="updateLetterPreview()">
+        </div>
+
+        <div class="fg">
+          <label>ผู้ประสานงาน / เบอร์โทร</label>
+          <input id="letterContact" placeholder="ชื่อและเบอร์โทรติดต่อ" oninput="updateLetterPreview()">
+        </div>
+        
+        <button class="act" onclick="triggerPrintLetter()" style="width: 100%; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>🖨️ สั่งพิมพ์ / บันทึก PDF</span>
+        </button>
+      </div>
+      
+      <!-- ส่วนแสดงตัวอย่างกระดาษ A4 ด้านขวา -->
+      <div class="letter-paper-preview" id="letterPaperPreview">
+        <!-- เนื้อหาจดหมายจะถูกเรนเดอร์ตรงนี้ -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- คอนเทนเนอร์จริงสำหรับสั่งพิมพ์ (พิมพ์ซ่อนอยู่ในหน้าเว็บ) -->
+<div id="printLetterContainer" style="display: none;"></div>
+
+<div id="toast"></div>
+
+<footer>
+  <div>ระบบติดตามหนี้เช่า (Lease Receivables Tracker) · ความปลอดภัยระดับองค์กร</div>
+  <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">@2026 องค์การสะพานปลา (อสป.) สงวนลิขสิทธิ์</div>
+</footer>
+
+<script>
+const API = '/api';
+let D = { dash: null, contracts: [], invoices: [], aging: null, prov: null, rates: {}, branches: [] };
+const BK = [['cur','ยังไม่ครบกำหนด','#22c55e'],['b1','1–30 วัน','#3b82f6'],['b2','31–60 วัน','#eab308'],['b3','61–90 วัน','#f97316'],['b4','91–180 วัน','#ef4444'],['b5','181–365 วัน','#b91c1c'],['b6','เกิน 365 วัน','#7f1d1d']];
+const fmt = n => Math.round(n || 0).toLocaleString('en-US');
+const asof = () => document.getElementById('asof').value;
+
+function toast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+function onBranchChange() {
+  showTab('dash');
+  loadAll();
+}
+
+function selectBranch(bId) {
+  const sel = document.getElementById('branchSelect');
+  if (sel) sel.value = bId;
+  showTab('dash');
+  loadAll();
+}
+
+async function loadBranches() {
+  try {
+    const list = await api('/branches?asof=' + asof());
+    D.branches = list || [];
+    
+    const sel = document.getElementById('branchSelect');
+    if (sel) {
+      const curr = sel.value || 'all';
+      let optHtml = '<option value="all">🏢 ภาพรวมทั้งหมด 17 หน่วยงาน</option>';
+      (D.branches || []).forEach(b => {
+        optHtml += `<option value="${b.id}">${b.name} (${b.region})</option>`;
+      });
+      sel.innerHTML = optHtml;
+      sel.value = curr;
+    }
+
+    const cb = document.getElementById('c_branch');
+    if (cb) {
+      cb.innerHTML = (D.branches || []).map(b => `<option value="${b.id}">${b.name} (${b.region})</option>`).join('');
+    }
+  } catch(e) {
+    console.error('Failed to load branches:', e);
+  }
+}
+
+function renderAll() {
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+  const banner = document.getElementById('singleBranchBanner');
+  const multiGrid = document.getElementById('multiBranchGridPanel');
+  const multiTable = document.getElementById('multiBranchTablePanel');
+
+  if (selectedBranch === 'all') {
+    if (banner) banner.style.display = 'none';
+    if (multiGrid) multiGrid.style.display = 'block';
+    if (multiTable) multiTable.style.display = 'block';
+    renderMultiBranchGrid();
+    renderMultiBranchTable();
+  } else {
+    if (banner) banner.style.display = 'flex';
+    const brInfo = (D.branches || []).find(b => b.id === selectedBranch);
+    const brTitle = brInfo ? `${brInfo.name} (${brInfo.region})` : selectedBranch;
+    const titleEl = document.getElementById('singleBranchTitle');
+    if (titleEl) titleEl.textContent = brTitle;
+    if (multiGrid) multiGrid.style.display = 'none';
+    if (multiTable) multiTable.style.display = 'none';
+  }
+
+  if (D.dash) renderKPI();
+  if (D.aging) renderBars();
+  if (D.invoices) renderTop();
+  if (D.prov) renderProvSummary();
+  if (D.contracts) renderContracts();
+  if (D.invoices) renderInvoices();
+  if (D.prov) renderMatrix();
+  if (D.aging) renderAgingByC();
+  if (D.invoices) renderDun();
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.role === 'admin' || user.role === 'manager') {
+    loadAudit();
+  }
+}
+
+// ฟังก์ชันดึงข้อมูล API ที่ผูก JWT Token ใน Header อัตโนมัติ
+async function api(path, opt = {}) {
+  opt.headers = opt.headers || {};
+  const token = localStorage.getItem('token');
+  if (token) {
+    opt.headers['Authorization'] = 'Bearer ' + token;
+  }
+  
+  const r = await fetch(API + path, opt);
+  if (r.status === 401) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    showLoginModal();
+    const errData = await r.json().catch(() => ({}));
+    throw new Error(errData.error || 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+  }
+  if (r.status === 403) {
+    const errData = await r.json().catch(() => ({}));
+    throw new Error(errData.error || 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลส่วนนี้');
+  }
+  
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({ error: r.statusText }));
+    throw new Error(e.error || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+  }
+  return r.json();
+}
+
+function showLoginModal() {
+  document.getElementById('loginModal').style.display = 'flex';
+  document.getElementById('mainNav').style.display = 'none';
+  document.getElementById('mainContainer').style.display = 'none';
+  document.getElementById('userInfo').style.display = 'none';
+  document.getElementById('loginErr').textContent = '';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+function hideLoginModal(user) {
+  document.getElementById('loginModal').style.display = 'none';
+  document.getElementById('mainNav').style.display = 'flex';
+  document.getElementById('mainContainer').style.display = 'block';
+  document.getElementById('userInfo').style.display = 'flex';
+  document.getElementById('userFullname').textContent = user ? user.fullname : 'ผู้ใช้งาน';
+  document.getElementById('userRole').textContent = user ? user.role : '';
+  applyRolePermissions(user || {});
+}
+
+function applyRolePermissions(user) {
+  const isBilling = (user.role === 'admin' || user.role === 'billing');
+  const isCashier = (user.role === 'admin' || user.role === 'cashier');
+  const isManager = (user.role === 'admin' || user.role === 'manager');
+  
+  document.getElementById('addContractBtn').style.display = isBilling ? '' : 'none';
+  document.getElementById('genInvoicesBtn').style.display = isBilling ? '' : 'none';
+  document.getElementById('saveRatesBtn').style.display = isManager ? '' : 'none';
+  document.getElementById('runJobBtn').style.display = isManager ? '' : 'none';
+  
+  const billingTabs = ['dash', 'contracts', 'invoices', 'aging'];
+  const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning'];
+  const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
+  
+  document.querySelectorAll('nav button').forEach(btn => {
+    const tabName = btn.getAttribute('data-tab');
+    if (user.role === 'admin') {
+      btn.style.display = 'block';
+    } else if (user.role === 'billing' && billingTabs.includes(tabName)) {
+      btn.style.display = 'block';
+    } else if (user.role === 'cashier' && cashierTabs.includes(tabName)) {
+      btn.style.display = 'block';
+    } else if (user.role === 'manager' && managerTabs.includes(tabName)) {
+      btn.style.display = 'block';
+    } else {
+      btn.style.display = 'none';
+    }
+  });
+}
+
+async function submitLogin() {
+  const user = document.getElementById('loginUser').value;
+  const pass = document.getElementById('loginPass').value;
+  const errDiv = document.getElementById('loginErr');
+  errDiv.textContent = '';
+  
+  if (!user || !pass) {
+    errDiv.textContent = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';
+    return;
+  }
+  
+  try {
+    const res = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    }
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    hideLoginModal(data.user);
+    loadAll();
+  } catch (e) {
+    errDiv.textContent = e.message;
+  }
+}
+
+function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  showLoginModal();
+}
+
+async function loadAll() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showLoginModal();
+    return;
+  }
+  
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    hideLoginModal(user);
+    
+    // โหลดข้อมูล 17 หน่วยงานเสมอ
+    await loadBranches();
+
+    const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+    const q = '?asof=' + asof() + (selectedBranch !== 'all' ? '&branch_id=' + selectedBranch : '');
+    const cQuery = selectedBranch !== 'all' ? '?branch_id=' + selectedBranch : '';
+
+    const promises = [
+      api('/dashboard' + q),
+      api('/contracts' + cQuery),
+      api('/invoices' + q)
+    ];
+    
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing') {
+      promises.push(api('/aging' + q));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    if (user.role === 'admin' || user.role === 'manager') {
+      promises.push(api('/provision' + q));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing') {
+      promises.push(api('/provision/rates'));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+    
+    const [dash, contracts, invoices, aging, prov, rates] = await Promise.all(promises);
+    D = { ...D, dash, contracts, invoices, aging, prov, rates };
+    
+    document.getElementById('dbdot').style.background = '#22c55e';
+    document.getElementById('dbdot').style.boxShadow = '0 0 8px #22c55e';
+    document.getElementById('dbstat').textContent = 'เชื่อมต่อฐานข้อมูล';
+    
+    renderAll();
+  } catch (e) {
+    console.error(e);
+    if (e.message !== 'กรุณาเข้าสู่ระบบใหม่') {
+      document.getElementById('dbdot').style.background = '#ef4444';
+      document.getElementById('dbdot').style.boxShadow = '0 0 8px #ef4444';
+      document.getElementById('dbstat').textContent = 'โหลดข้อมูลไม่สมบูรณ์';
+    }
+  }
+}
+
+function renderAll() {
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+  const banner = document.getElementById('singleBranchBanner');
+  const multiGrid = document.getElementById('multiBranchGridPanel');
+  const multiTable = document.getElementById('multiBranchTablePanel');
+
+  if (selectedBranch === 'all') {
+    banner.style.display = 'none';
+    multiGrid.style.display = 'block';
+    multiTable.style.display = 'block';
+    renderMultiBranchGrid();
+    renderMultiBranchTable();
+  } else {
+    banner.style.display = 'flex';
+    const brInfo = (D.branches || []).find(b => b.id === selectedBranch);
+    document.getElementById('singleBranchTitle').textContent = brInfo ? `${brInfo.name} (${brInfo.region})` : selectedBranch;
+    multiGrid.style.display = 'none';
+    multiTable.style.display = 'none';
+  }
+
+  if (D.dash) renderKPI();
+  if (D.aging) renderBars();
+  if (D.invoices) renderTop();
+  if (D.prov) renderProvSummary();
+  if (D.contracts) renderContracts();
+  if (D.invoices) renderInvoices();
+  if (D.prov) renderMatrix();
+  if (D.aging) renderAgingByC();
+  if (D.invoices) renderDun();
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.role === 'admin' || user.role === 'manager') {
+    loadAudit();
+  }
+}
+
+function renderMultiBranchGrid() {
+  if (!D.branches || !D.branches.length) return;
+  const grid = document.getElementById('branchCardsGrid');
+  grid.innerHTML = D.branches.map(b => {
+    // 🟢 ปกติ (Normal Risk - Soft pastel green)
+    let cardBg = '#f0fdf4', cardBorder = '#bbf7d0', leftBorder = '#22c55e', badgeBg = '#dcfce7', badgeCol = '#15803d', titleColor = '#065f46';
+    
+    // 🟡 เฝ้าระวัง (Watch Risk - Soft pastel yellow/amber)
+    if (b.riskLevel === 'เฝ้าระวัง') { 
+      cardBg = '#fffbeb'; 
+      cardBorder = '#fde68a'; 
+      leftBorder = '#f59e0b';
+      badgeBg = '#fef3c7'; 
+      badgeCol = '#b45309'; 
+      titleColor = '#92400e';
+    }
+    
+    // 🔴 เสี่ยงสูง (High Risk - Soft pastel red/rose)
+    if (b.riskLevel === 'เสี่ยงสูง') { 
+      cardBg = '#fff1f2'; 
+      cardBorder = '#fecdd3'; 
+      leftBorder = '#e11d48';
+      badgeBg = '#ffe4e6'; 
+      badgeCol = '#be123c'; 
+      titleColor = '#9f1239';
+    }
+
+    return `
+      <div class="card" style="position:relative; cursor:pointer; background:${cardBg}; border:1px solid ${cardBorder}; border-left:5px solid ${leftBorder}; border-radius:12px; padding:12px 14px; transition:all 0.2s; box-shadow:0 2px 4px rgba(0,0,0,0.03);" onclick="selectBranch('${b.id}')" onmouseenter="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.08)'" onmouseleave="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.03)'">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+          <div>
+            <div style="font-size:10.5px; color:#64748b; font-weight:700;">${b.id} · ${b.region}</div>
+            <div style="font-weight:800; font-size:13px; color:${titleColor}; line-height:1.3; margin-top:2px;">${b.name}</div>
+          </div>
+          <span class="badge" style="background:${badgeBg}; color:${badgeCol}; font-weight:700; margin:0; padding:2px 7px; font-size:10.5px; border-radius:12px;">${b.riskLevel}</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:8px 0; background:rgba(255,255,255,0.75); padding:6px 8px; border-radius:8px; border:1px solid rgba(0,0,0,0.05);">
+          <div><span style="font-size:10px; color:#64748b; font-weight:600;">AR รวม</span><div style="font-weight:800; font-size:12.5px; color:#1e293b;">${fmt(b.totalAR)}</div></div>
+          <div><span style="font-size:10px; color:#64748b; font-weight:600;">เกินกำหนด</span><div style="font-weight:800; font-size:12.5px; color:#be123c;">${fmt(b.overdue)} (${b.overduePct}%)</div></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:10.5px;">
+          <span style="color:#64748b;">สัญญา: <b style="color:#0f172a;">${b.contractCount}</b> ราย</span>
+          <button class="sm act" style="padding:2px 6px; font-size:10px; font-weight:700;" onclick="event.stopPropagation(); selectBranch('${b.id}')">📊 หน้ารวมส่วนงาน</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMultiBranchTable() {
+  if (!D.branches || !D.branches.length) return;
+  const tbl = document.getElementById('branchCompareTable');
+  let h = '<tr><th style="white-space:nowrap; min-width:80px;">รหัส</th><th>ชื่อหน่วยงาน / สะพานปลา / ท่าเทียบเรือ</th><th style="white-space:nowrap;">ภาค</th><th class="c" style="white-space:nowrap;">สัญญา Active</th><th class="r" style="white-space:nowrap;">ยอด AR รวม</th><th class="r" style="white-space:nowrap;">ค้างชำระ (Overdue)</th><th class="c" style="white-space:nowrap;">% ค้างชำระ</th><th class="r" style="white-space:nowrap;">ค่าเผื่อสำรอง (Provision)</th><th class="c" style="white-space:nowrap;">ระดับความเสี่ยง</th><th></th></tr>';
+
+  D.branches.forEach(b => {
+    let badgeBg = '#dcfce7', badgeCol = '#15803d';
+    if (b.riskLevel === 'เฝ้าระวัง') { badgeBg = '#fef3c7'; badgeCol = '#b45309'; }
+    if (b.riskLevel === 'เสี่ยงสูง') { badgeBg = '#fee2e2'; badgeCol = '#be123c'; }
+
+    h += `
+      <tr>
+        <td style="white-space:nowrap;"><b>${b.id}</b></td>
+        <td><b>${b.name}</b></td>
+        <td style="white-space:nowrap;"><span class="badge" style="white-space:nowrap;">${b.region}</span></td>
+        <td class="c">${b.contractCount}</td>
+        <td class="r num">${fmt(b.totalAR)}</td>
+        <td class="r num" style="color:${b.overdue > 0 ? 'var(--red)' : '#64748b'}; font-weight:700;">${fmt(b.overdue)}</td>
+        <td class="c font-weight:600; color:${b.overduePct > 20 ? 'var(--red)' : 'var(--navy)'};">${b.overduePct}%</td>
+        <td class="r num" style="color:var(--amber);">${fmt(b.provision)}</td>
+        <td class="c"><span class="badge" style="background:${badgeBg}; color:${badgeCol}; font-weight:700; white-space:nowrap;">${b.riskLevel}</span></td>
+        <td class="c"><button class="sm act" style="padding:3px 10px; white-space:nowrap;" onclick="selectBranch('${b.id}')">ดูหน้ารวม</button></td>
+      </tr>
+    `;
+  });
+  tbl.innerHTML = h;
+}
+
+function renderKPI() {
+  const d = D.dash;
+  const c = [
+    ['ลูกหนี้คงค้างรวม', fmt(d.totalAR), d.openCount + ' ใบแจ้งหนี้', ''],
+    ['เกินกำหนดชำระ', fmt(d.overdue), d.overduePct.toFixed(1) + '%', d.overduePct > 25 ? 'red' : 'amber'],
+    ['ค่าเผื่อฯ ที่ควรตั้ง', fmt(d.provision), 'คำนวณตามอายุหนี้', 'amber'],
+    ['อยู่ระหว่างยื่นฟ้อง', fmt(d.litigation), d.litCount + ' รายการคดี', 'red'],
+    ['ตัดหนี้สูญสะสม', fmt(d.writeoff), d.woCount + ' ใบแจ้งหนี้', '']
+  ];
+  document.getElementById('kpiCards').innerHTML = c.map(x => `
+    <div class="card" style="border-left-color: ${x[3] === 'red' ? 'var(--red)' : x[3] === 'amber' ? 'var(--amber)' : 'var(--accent)'}">
+      <div class="lbl">${x[0]}</div>
+      <div class="val ${x[3]}">${x[1]}</div>
+      <div class="foot">${x[2]}</div>
+    </div>
+  `).join('');
+}
+
+function renderBars() {
+  const s = D.aging.sums;
+  const tot = Object.values(s).reduce((a, b) => a + b, 0) || 1;
+  
+  // Calculate unique debtors (tenants) count per bucket from invoices
+  const debtorCounts = {};
+  BK.forEach(([k]) => {
+    const activeInvs = D.invoices.filter(i => !i.written_off && i.outstanding > 0 && i.bucket === k);
+    const uniqueTenants = new Set(activeInvs.map(i => i.tenant));
+    debtorCounts[k] = uniqueTenants.size;
+  });
+
+  document.getElementById('agingBars').innerHTML = BK.map(([k, l, col]) => {
+    const a = s[k] || 0, p = a / tot * 100;
+    const count = debtorCounts[k] || 0;
+    const tooltipText = `จำนวนลูกหนี้: ${count} ราย`;
+    return `
+      <div class="agerow" title="${tooltipText}">
+        <div style="font-weight:600;">${l}</div>
+        <div class="bar" title="${tooltipText}"><span style="width:${p}%;background:${col};display:block;height:100%"></span></div>
+        <div class="anum">${fmt(a)}</div>
+        <div class="muted r">${p.toFixed(1)}%</div>
+      </div>`;
+  }).join('');
+  document.getElementById('agingLegend').innerHTML = BK.map(([k, l, c]) => `<span><span class="dot" style="background:${c}"></span>${l}</span>`).join('');
+}
+
+function renderTop() {
+  const m = {};
+  D.invoices.forEach(i => {
+    if (!i.written_off && i.outstanding > 0) {
+      m[i.contract_id] = (m[i.contract_id] || { t: i.tenant, unit: i.unit, risk: i.risk_tier, amt: 0, old: 0 });
+    }
+  });
+  D.invoices.forEach(i => {
+    if (!i.written_off && i.outstanding > 0) {
+      m[i.contract_id].amt += i.outstanding;
+      m[i.contract_id].old = Math.max(m[i.contract_id].old, i.days_overdue);
+    }
+  });
+  const rows = Object.values(m).sort((a, b) => b.amt - a.amt).slice(0, 6);
+  let h = '<tr><th>ผู้เช่า / โครงการ</th><th class="r">ค้างรวม (บาท)</th><th class="c">ค้างนานที่สุด</th><th class="c">เกณฑ์ ก.186</th></tr>';
+  rows.forEach(r => {
+    const t = r.amt > 2000000 ? '>2 ล้านบาท' : (r.amt >= 200000 ? '2แสน–2ล้าน' : '≤2แสน');
+    h += `
+      <tr>
+        <td><b>${r.t}</b><div class="muted">พื้นที่: ${r.unit} · ความเสี่ยง: ${r.risk}</div></td>
+        <td class="r num" style="color:var(--red); font-size:14px;">${fmt(r.amt)}</td>
+        <td class="c font-weight:600;">${r.old > 0 ? r.old + ' วัน' : '-'}</td>
+        <td class="c"><span class="badge" style="background:#fee2e2; color:#be123c;">${t}</span></td>
+      </tr>`;
+  });
+  document.getElementById('topOverdue').innerHTML = h;
+}
+
+function renderProvSummary() {
+  if (!D.prov) return;
+  const d = D.prov.detail;
+  let h = '<tr><th>ช่วงอายุหนี้</th><th class="r">ยอดลูกหนี้คงค้าง</th><th class="c">อัตราสำรอง</th><th class="r">ค่าเผื่อที่ตั้ง (บาท)</th></tr>';
+  BK.forEach(([k, l]) => {
+    const x = d[k];
+    if (x.amt > 0) {
+      h += `
+        <tr>
+          <td>${l}</td>
+          <td class="r num">${fmt(x.amt)}</td>
+          <td class="c" style="color:var(--accent); font-weight:600;">${x.rate}%</td>
+          <td class="r num" style="color:var(--amber);">${fmt(x.prov)}</td>
+        </tr>`;
+    }
+  });
+  h += `<tr style="background:var(--grey); font-weight:700;"><td colspan="3"><b>ประมาณการยอดสำรองรวม</b></td><td class="r num" style="color:var(--amber); font-size:14px;"><b>${fmt(D.prov.total)}</b></td></tr>`;
+  document.getElementById('provSummary').innerHTML = h;
+}
+
+function renderContracts() {
+  const q = (document.getElementById('cSearch').value || '').toLowerCase();
+  let h = '<tr><th>รหัสสัญญา</th><th>ผู้เช่า / เลขผู้เสียภาษี</th><th>ยูนิต</th><th class="r">ค่าเช่า/ด.</th><th class="r">บริการ/ด.</th><th class="r">เงินประกันคงเหลือ</th><th class="c">ความเสี่ยง</th><th class="r">ยอดหนี้ค้าง</th><th></th></tr>';
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isBilling = (user.role === 'admin' || user.role === 'billing');
+  
+  D.contracts.filter(c => !q || (c.tenant || '').toLowerCase().includes(q) || (c.unit || '').toLowerCase().includes(q) || (c.branch_name || '').toLowerCase().includes(q)).forEach(c => {
+    const btnLabel = isBilling ? 'แก้ไข' : 'ดูสัญญา';
+    h += `
+      <tr>
+        <td><b>${c.id}</b></td>
+        <td><b>${c.tenant}</b><div class="muted">${c.tax_id || '-'}</div></td>
+        <td><span class="badge" style="background:var(--light-blue); color:var(--blue); margin:0;">${c.unit || '-'}</span></td>
+        <td class="r num">${fmt(c.rent_monthly)}</td>
+        <td class="r num">${fmt(c.service_monthly)}</td>
+        <td class="r num">${fmt(c.deposit_balance)}</td>
+        <td class="c"><span style="font-weight:600; color:${c.risk_tier==='สูง'?'var(--red)':c.risk_tier==='กลาง'?'var(--amber)':'var(--green)'}">${c.risk_tier}</span></td>
+        <td class="r num" style="color:${c.outstanding > 0 ? 'var(--red)' : '#64748b'}; font-weight:${c.outstanding > 0 ? 'bold' : 'normal'};">${c.outstanding > 0 ? fmt(c.outstanding) : '-'}</td>
+        <td><button class="sm" onclick='openContract(${JSON.stringify(c.id)})'>${btnLabel}</button></td>
+      </tr>`;
+  });
+  document.getElementById('contractTable').innerHTML = h;
+}
+
+function renderInvoices() {
+  const f = document.getElementById('iFilter').value;
+  const q = (document.getElementById('iSearch').value || '').toLowerCase();
+  
+  let list = D.invoices.filter(i => {
+    if (f === 'open') return i.outstanding > 0 && !i.written_off;
+    if (f === 'overdue') return i.days_overdue > 0 && i.outstanding > 0 && !i.written_off;
+    if (f === 'litig') return i.litigation;
+    if (f === 'wo') return i.written_off;
+    return true;
+  }).filter(i => !q || (i.tenant || '').toLowerCase().includes(q) || i.id.toLowerCase().includes(q) || (i.branch_name || '').toLowerCase().includes(q));
+  
+  let h = '<tr><th>เลขใบแจ้งหนี้</th><th class="l">ผู้เช่า / โครงการ</th><th class="c">งวด</th><th class="c">ครบกำหนด</th><th class="r">ยอดรวม (บาท)</th><th class="r">ค้างจ่าย (บาท)</th><th class="c">จำนวนวันค้าง</th><th class="c">ช่วงอายุหนี้</th><th class="c">สถานะ</th><th class="c">การดำเนินการ</th></tr>';
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const canManage = (user.role === 'admin' || user.role === 'cashier' || user.role === 'manager');
+  
+  list.slice(0, 300).forEach(i => {
+    let sp;
+    if (i.written_off) {
+      sp = '<span class="pill p-wo">ตัดหนี้สูญ</span>';
+    } else if (i.litigation) {
+      sp = '<span class="pill p-lit">ดำเนินคดี</span>';
+    } else if (i.outstanding <= 0) {
+      sp = '<span class="pill p-paid">ชำระแล้ว</span>';
+    } else {
+      sp = `<span class="pill p-${i.bucket || 'b1'}">ค้างชำระ</span>`;
+    }
+    
+    const manageBtn = (canManage && i.outstanding > 0 && !i.written_off)
+      ? `<button class="sm" style="border-color:var(--accent); color:var(--accent);" onclick='openPay(${JSON.stringify(i.id)})'>จัดการสิทธิ์</button>`
+      : '';
+      
+    h += `
+      <tr>
+        <td><b>${i.id}</b></td>
+        <td><b>${i.tenant}</b></td>
+        <td class="c">${i.period}</td>
+        <td class="c">${i.due_date}</td>
+        <td class="r num">${fmt(i.total)}</td>
+        <td class="r num" style="color:${i.outstanding > 0 ? 'var(--red)' : '#64748b'}; font-weight:${i.outstanding > 0 ? '700' : '500'};">${i.outstanding > 0 ? fmt(i.outstanding) : '-'}</td>
+        <td class="c font-weight:600; color:${i.days_overdue > 0 ? 'var(--red)' : '#64748b'};">${i.outstanding > 0 && i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
+        <td class="c">${i.bucket ? '<span class="pill p-' + i.bucket + '">' + i.bucket_label + '</span>' : '-'}</td>
+        <td class="c">${sp}</td>
+        <td class="c">${manageBtn}</td>
+      </tr>`;
+  });
+  document.getElementById('invoiceTable').innerHTML = h;
+  document.getElementById('iCount').textContent = list.length + ' รายการ';
+}
+
+function renderMatrix() {
+  if (!D.prov) return;
+  const d = D.prov.detail;
+  let h = '<tr><th>ช่วงอายุหนี้</th><th class="c">อัตราสำรองบัญชี (%)</th><th class="r">ยอดหนี้ลูกหนี้</th><th class="r">จำนวนเงินประมาณการสำรอง</th></tr>';
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isManager = (user.role === 'admin' || user.role === 'manager');
+  
+  BK.forEach(([k, l]) => {
+    const x = d[k];
+    const inputField = isManager
+      ? `<input style="width:70px;text-align:right;" type="number" value="${D.rates[k]}" onchange="D.rates['${k}']=parseFloat(this.value)||0">`
+      : `<span style="font-weight:700;">${D.rates[k]} %</span>`;
+      
+    h += `
+      <tr>
+        <td>${l}</td>
+        <td class="c">${inputField}</td>
+        <td class="r num">${fmt(x.amt)}</td>
+        <td class="r num" style="color:var(--amber);">${fmt(x.prov)}</td>
+      </tr>`;
+  });
+  h += `<tr style="background:var(--light-blue); font-weight:700;"><td colspan="3"><b>รวมประมาณการสะสมที่ต้องตั้งสำรองบัญชี</b></td><td class="r num" style="color:var(--amber); font-size:14px;"><b>${fmt(D.prov.total)}</b></td></tr>`;
+  document.getElementById('provMatrix').innerHTML = h;
+}
+
+function renderAgingByC() {
+  if (!D.aging) return;
+  const bc = D.aging.byContract;
+  let h = '<tr><th>ชื่อผู้เช่า / สัญญา</th><th>หน่วยงาน</th>' + BK.map(b => `<th class="r">${b[1]}</th>`).join('') + '<th class="r">ยอดรวมค้าง</th></tr>';
+  Object.values(bc).sort((a, b) => b.tot - a.tot).forEach(v => {
+    h += `<tr><td><b>${v.tenant}</b></td><td><span class="badge">${v.branch_name || '-'}</span></td>` + BK.map(b => `<td class="r num">${v[b[0]] ? fmt(v[b[0]]) : '-'}</td>`).join('') + `<td class="r num" style="color:var(--red); font-weight:700;">${fmt(v.tot)}</td></tr>`;
+  });
+  document.getElementById('agingByContract').innerHTML = h;
+}
+
+// Legacy stub removed
+
+function renderDun() {
+  let list = D.invoices.filter(i => i.outstanding > 0 && !i.written_off && (i.days_overdue > 0 || i.litigation)).sort((a, b) => b.days_overdue - a.days_overdue);
+  let h = '<tr><th>เลขที่</th><th>ชื่อผู้เช่า / โครงการ</th><th class="c">ครบกำหนด</th><th class="r">ยอดค้างจ่าย</th><th class="c">อายุหนี้</th><th>มาตรการทวงถามที่ระบบแนะนำ</th><th></th></tr>';
+  const clsFor = c => ({ call: 'p-b1', pen: 'p-b1', l1: 'p-b2', l2: 'p-b2', legal: 'p-b3', demand: 'p-b3', sue: 'p-b4', lit: 'p-lit', wo: 'p-wo', ok: 'p-cur' }[c] || 'p-b1');
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const canManage = (user.role === 'admin' || user.role === 'cashier' || user.role === 'manager');
+  
+  list.slice(0, 300).forEach(i => {
+    const actBtn = canManage
+      ? `<button class="sm" onclick='openPay(${JSON.stringify(i.id)})'>จัดการ</button>`
+      : '';
+    const printBtn = i.days_overdue > 0
+      ? `<button class="sm ghost" onclick='openPrintLetter(${JSON.stringify(i.id)})' style="margin-left:6px;">📄 ออกหนังสือทวง</button>`
+      : '';
+    h += `
+      <tr>
+        <td><b>${i.id}</b></td>
+        <td><b>${i.tenant}</b></td>
+        <td class="c">${i.due_date}</td>
+        <td class="r num" style="color:var(--red);">${fmt(i.outstanding)}</td>
+        <td class="c" style="color:var(--red); font-weight:600;">${i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
+        <td><span class="pill ${clsFor(i.action.code)}">${i.action.text}</span></td>
+        <td>${actBtn}${printBtn}</td>
+      </tr>`;
+  });
+  document.getElementById('dunTable').innerHTML = h;
+}
+
+async function loadAudit() {
+  try {
+    const a = await api('/audit');
+    let h = '<tr><th>ตราประทับเวลา</th><th>ผู้ดำเนินงาน (Actor)</th><th>การกระทำ (Action)</th><th>ตาราง/ID</th><th>รายละเอียดเพิ่มเติม (Audit Trace)</th></tr>';
+    a.slice(0, 60).forEach(r => {
+      h += `
+        <tr>
+          <td class="muted">${r.ts}</td>
+          <td><span class="badge" style="background:var(--navy); color:#fff; margin:0;">${r.actor}</span></td>
+          <td><b style="color:var(--accent);">${r.action}</b></td>
+          <td><span class="badge">${r.entity}</span> <b>${r.entity_id}</b></td>
+          <td class="muted" style="max-width:350px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.detail || '-'}</td>
+        </tr>`;
+    });
+    document.getElementById('auditTable').innerHTML = h;
+  } catch (e) {
+    console.error('ไม่สามารถเรียกดูระบบประวัติการทำธุรกรรมได้:', e.message);
+  }
+}
+
+// ========== ACTIONS & BUSINESS LOGIC ==========
+function generateNextContractId(branchId) {
+  const topBranch = document.getElementById('branchSelect')?.value || 'all';
+  const brTarget = (branchId && branchId !== 'all') ? branchId : (topBranch !== 'all' ? topBranch : 'C-02');
+
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const beYear = String(d.getFullYear() + 543).slice(-2);
+
+  const branchContracts = (D.contracts || []).filter(c => c.branch_id === brTarget);
+  let maxSeq = branchContracts.length;
+
+  branchContracts.forEach(c => {
+    const match = (c.id || '').match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && num > maxSeq) {
+        maxSeq = num;
+      }
+    }
+  });
+
+  const nextSeq = String(maxSeq + 1).padStart(4, '0');
+  return `${brTarget}-${mm}${beYear}-${nextSeq}`;
+}
+
+function updateModalContractId() {
+  const title = document.getElementById('cModalTitle')?.textContent || '';
+  const isEdit = title.includes('แก้ไข') || title.includes('ดูรายละเอียด');
+  if (!isEdit) {
+    const selBranch = document.getElementById('c_branch')?.value || 'C-02';
+    document.getElementById('c_id').value = generateNextContractId(selBranch);
+  }
+}
+
+function openContract(id) {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isBilling = (user.role === 'admin' || user.role === 'billing');
+  
+  document.getElementById('cSave').style.display = isBilling ? '' : 'none';
+  const del = document.getElementById('cDel');
+  
+  const cb = document.getElementById('c_branch');
+  const topBranch = document.getElementById('branchSelect')?.value || 'all';
+  const curBranch = (topBranch !== 'all') ? topBranch : ((D.branches && D.branches[0]) ? D.branches[0].id : 'C-02');
+  if (cb) cb.value = curBranch;
+
+  if (id) {
+    const c = D.contracts.find(x => x.id === id);
+    document.getElementById('cModalTitle').textContent = (isBilling ? 'แก้ไขสัญญา: ' : 'ดูรายละเอียดสัญญา: ') + id;
+    if (cb && c.branch_id) cb.value = c.branch_id;
+    c_id.value = id;
+    c_tenant.value = c.tenant;
+    c_tax.value = c.tax_id || '';
+    c_unit.value = c.unit || '';
+    c_rent.value = c.rent_monthly;
+    c_service.value = c.service_monthly;
+    c_start.value = c.start_date;
+    c_end.value = c.end_date;
+    c_due.value = c.due_day;
+    c_deposit.value = c.deposit;
+    c_penalty.value = c.penalty_rate;
+    c_risk.value = c.risk_tier;
+    del.style.display = (isBilling && id) ? '' : 'none';
+    
+    document.querySelectorAll('#cModal input, #cModal select').forEach(el => {
+      el.disabled = !isBilling;
+    });
+    c_id.disabled = true;
+  } else {
+    document.getElementById('cModalTitle').textContent = 'เพิ่มสัญญาเช่าใหม่';
+    c_id.value = generateNextContractId(curBranch);
+    ['c_tenant','c_tax','c_unit','c_rent','c_service','c_start','c_end','c_deposit'].forEach(k => document.getElementById(k).value = '');
+    c_due.value = 5;
+    c_penalty.value = 1.5;
+    c_risk.value = 'ต่ำ';
+    del.style.display = 'none';
+    
+    document.querySelectorAll('#cModal input, #cModal select').forEach(el => {
+      el.disabled = false;
+    });
+    c_id.disabled = false;
+  }
+  document.getElementById('cModal').classList.add('on');
+}
+
+async function saveContract() {
+  const topBranch = document.getElementById('branchSelect')?.value || 'all';
+  const curBranch = (c_branch.value && c_branch.value !== 'all') ? c_branch.value : (topBranch !== 'all' ? topBranch : 'C-02');
+  
+  const b = {
+    id: c_id.value || undefined,
+    branch_id: curBranch,
+    tenant: c_tenant.value,
+    tax_id: c_tax.value,
+    unit: c_unit.value,
+    rent_monthly: c_rent.value,
+    service_monthly: c_service.value,
+    start_date: c_start.value,
+    end_date: c_end.value,
+    due_day: c_due.value,
+    deposit: c_deposit.value,
+    penalty_rate: c_penalty.value,
+    risk_tier: c_risk.value
+  };
+  
+  try {
+    if (c_id.value) {
+      await api('/contracts/' + c_id.value, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+    } else {
+      await api('/contracts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+    }
+    closeM('cModal');
+    toast('บันทึกรายละเอียดสัญญาเรียบร้อย');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function delContract() {
+  if (!confirm('ยืนยันลบสัญญานี้และใบแจ้งหนี้ที่ผูกไว้ทั้งหมดหรือไม่? ประวัตินี้จะไม่สามารถกู้คืนได้!')) return;
+  try {
+    await api('/contracts/' + c_id.value, { method: 'DELETE' });
+    closeM('cModal');
+    toast('ลบสัญญานี้เรียบร้อย');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function genAll() {
+  try {
+    const r = await api('/invoices/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: 'all' }) });
+    toast('สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+let currentLetterInvoice = null;
+
+function openPrintLetter(invId) {
+  const inv = D.invoices.find(i => i.id === invId);
+  if (!inv) return;
+  currentLetterInvoice = inv;
+  
+  // Set default type based on recommended action
+  let type = "1";
+  if (inv.action.code === "l2" || inv.action.code === "legal") {
+    type = "2";
+  } else if (inv.action.code === "demand" || inv.action.code === "sue") {
+    type = "3";
+  }
+  
+  document.getElementById("letterType").value = type;
+  
+  // Fill default inputs
+  const currentYearBE = new Date().getFullYear() + 543;
+  document.getElementById("letterRef").value = `อสป. ${inv.contract_id}/${currentYearBE}`;
+  
+  if (type === "3") {
+    document.getElementById("letterSigner").value = "สมศักดิ์ รักยุติธรรม";
+    document.getElementById("letterSignerPos").value = "ทนายความผู้รับมอบอำนาจ";
+    document.getElementById("letterLawFirm").value = "สำนักงานกฎหมายสะพานปลาและการบัญชี";
+  } else {
+    document.getElementById("letterSigner").value = "ผู้จัดการองค์การสะพานปลา";
+    document.getElementById("letterSignerPos").value = "ผู้อำนวยการองค์การสะพานปลา";
+  }
+  
+  // Default values for bank details and contacts
+  document.getElementById("letterPayment").value = "บัญชีธนาคารกรุงไทย เลขที่บัญชี 000-0-00000-0";
+  document.getElementById("letterContact").value = "ฝ่ายการเงินและบัญชี โทร. 02-211-5800 ต่อ 123";
+  
+  // 30 days ago default for first letter date (in Level 2 context)
+  const d30 = new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  const d30Str = `${d30.getFullYear()}-${pad(d30.getMonth() + 1)}-${pad(d30.getDate())}`;
+  document.getElementById("letterRefDate").value = d30Str;
+  
+  toggleControlFields(type);
+  updateLetterPreview();
+  
+  document.getElementById("letterModal").classList.add('on');
+}
+
+function closeLetterModal() {
+  document.getElementById("letterModal").classList.remove('on');
+}
+
+function toggleControlFields(type) {
+  document.getElementById("letterRefDateGroup").style.display = type === "2" ? "block" : "none";
+  document.getElementById("letterLawFirmGroup").style.display = type === "3" ? "block" : "none";
+}
+
+function changeLetterTemplate() {
+  const type = document.getElementById("letterType").value;
+  toggleControlFields(type);
+  
+  // Adjust defaults for signer based on type
+  if (type === "3") {
+    document.getElementById("letterSigner").value = "สมศักดิ์ รักยุติธรรม";
+    document.getElementById("letterSignerPos").value = "ทนายความผู้รับมอบอำนาจ";
+    document.getElementById("letterLawFirm").value = "สำนักงานกฎหมายสะพานปลาและการบัญชี";
+  } else {
+    document.getElementById("letterSigner").value = "ผู้จัดการองค์การสะพานปลา";
+    document.getElementById("letterSignerPos").value = "ผู้อำนวยการองค์การสะพานปลา";
+  }
+  
+  updateLetterPreview();
+}
+
+function updateLetterPreview() {
+  if (!currentLetterInvoice) return;
+  const type = document.getElementById("letterType").value;
+  
+  const config = {
+    ref: document.getElementById("letterRef").value || "...",
+    signer: document.getElementById("letterSigner").value || "...",
+    signerPos: document.getElementById("letterSignerPos").value || "...",
+    payment: document.getElementById("letterPayment").value || "...",
+    contact: document.getElementById("letterContact").value || "...",
+    refDate: document.getElementById("letterRefDate").value,
+    lawFirm: document.getElementById("letterLawFirm").value || "..."
+  };
+  
+  const html = generateLetterHTML(type, currentLetterInvoice, config);
+  document.getElementById("letterPaperPreview").innerHTML = html;
+  document.getElementById("printLetterContainer").innerHTML = html;
+}
+
+async function triggerPrintLetter() {
+  if (!currentLetterInvoice) return;
+  const type = document.getElementById("letterType").value;
+  const ref = document.getElementById("letterRef").value || "---";
+  
+  // Log printing action to Backend Audit trail
+  try {
+    await api('/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'print-letter',
+        entity: 'invoices',
+        entity_id: currentLetterInvoice.id,
+        detail: `Printed dunning letter Level ${type} (Ref: ${ref}) for tenant: ${currentLetterInvoice.tenant}`
+      })
+    });
+    // Reload audit logs to show immediate progress
+    loadAudit();
+  } catch (err) {
+    console.error('Failed to log audit trail:', err);
+  }
+  
+  // Trigger Browser Print Dialog
+  window.print();
+}
+
+function generateLetterHTML(type, inv, config) {
+  const thaiMonths = [
+    "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+    "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+  ];
+  const now = new Date();
+  const dateStr = `${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`;
+  
+  // Format dates to Thai format
+  const fmtThaiDate = (dateIso) => {
+    if (!dateIso) return "...";
+    const d = new Date(dateIso);
+    if (isNaN(d.getTime())) return dateIso;
+    return `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
+  };
+
+  const refDateStr = fmtThaiDate(config.refDate);
+  const totalDebtText = fmt(inv.outstanding);
+  const penaltyRate = inv.penalty_rate || 1.5;
+  const addressText = inv.address || "ตามทะเบียนราษฎร์/ที่อยู่ผู้เช่าตามสัญญาเช่า";
+  const taxIdText = inv.tax_id ? `เลขประจำตัวผู้เสียภาษี/เลขบัตรประชาชน: ${inv.tax_id}` : '';
+
+  // FMO Logo Emblem
+  const logoHTML = `
+    <img src="/fmo-logo.png" style="width: 100px; height: 100px; margin: 0 auto 12px auto; display: block; object-fit: contain;">
+  `;
+
+  let headerHTML = "";
+  let subjectHTML = "";
+  let bodyHTML = "";
+  let signoffHTML = "";
+
+  if (type === "1") {
+    headerHTML = `
+      <div class="official-header">
+        <div class="official-meta-left">
+          <strong>ที่:</strong> ${config.ref}<br>
+        </div>
+        <div class="official-emblem">${logoHTML}</div>
+        <div class="official-meta-right">
+          <strong>องค์การสะพานปลา</strong><br>
+          ๑๔๙ ซอยเจริญกรุง ๕๘<br>
+          แขวงยานนาวา เขตสาทร<br>
+          กรุงเทพฯ ๑๐๑๒๐
+        </div>
+      </div>
+      <div class="official-date">
+        <strong>วันที่:</strong> ${dateStr}
+      </div>
+    `;
+    
+    subjectHTML = `
+      <div class="official-detail">
+        <div><strong>เรื่อง:</strong> ขอให้ชำระเงินค่าเช่าและค่าบริการค้างชำระ (เตือนครั้งที่ 1)</div>
+        <div><strong>เรียน:</strong> คุณ ${inv.tenant}</div>
+        <div><strong>อ้างถึง:</strong> สัญญาเช่าพื้นที่ ยูนิต/พื้นที่ ${inv.unit} เลขที่สัญญา ${inv.contract_id}</div>
+      </div>
+    `;
+
+    bodyHTML = `
+      <p class="official-body">
+        ตามที่ท่านได้ทำสัญญาเช่าพื้นที่กับองค์การสะพานปลา ("ผู้ให้เช่า") ตามสัญญาที่อ้างถึงข้างต้นนั้น 
+        ปรากฏว่า ณ ปัจจุบันท่านมีหนี้ค้างชำระค่าเช่าและค่าบริการสำหรับงวดประจำงวด <strong>${inv.period}</strong> 
+        ซึ่งเกินกำหนดระยะเวลาชำระเงินมาแล้วเป็นเวลา <strong>${inv.days_overdue} วัน</strong> ดังรายละเอียดปรากฏตามตารางต่อไปนี้:
+      </p>
+      
+      <table class="official-table">
+        <thead>
+          <tr>
+            <th>รายการค้างชำระ</th>
+            <th style="text-align: center; width: 150px;">งวด/เดือน</th>
+            <th style="text-align: right; width: 180px;">จำนวนเงินคงค้าง (บาท)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ค่าเช่าและค่าบริการ (พื้นที่ยูนิต ${inv.unit})</td>
+            <td style="text-align: center;">${inv.period}</td>
+            <td style="text-align: right;">${fmt(inv.total)}</td>
+          </tr>
+          <tr>
+            <td>หัก: ยอดเงินที่ชำระเข้ามาแล้วบางส่วน</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: right; color: green;">-${fmt(inv.paid)}</td>
+          </tr>
+          <tr style="background:#f8fafc; font-weight:bold;">
+            <td>ยอดค้างชำระสุทธิ (ไม่รวมเบี้ยปรับผิดนัด)</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: right; color: #b91c1c;">${totalDebtText}</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <p class="official-body">
+        ดังนั้น องค์การสะพานปลาจึงขอแจ้งมายังท่านเพื่อโปรดชำระเงินจำนวนค้างชำระสุทธิข้างต้น 
+        พร้อมทั้งเบี้ยปรับค้างชำระในอัตราดอกเบี้ยผิดนัดร้อยละ ${penaltyRate}% ต่อเดือน (หรือตามที่ระบุในสัญญาเช่า) 
+        โดยขอให้ท่านดำเนินการชำระเงินภายในวันที่ <strong>${fmtThaiDate(new Date(now.getTime() + 15 * 86400000).toISOString().split('T')[0])} (ภายใน 15 วัน นับจากวันที่ได้รับหนังสือฉบับนี้)</strong>
+        โดยทำการโอนชำระผ่านช่องทาง: <strong>${config.payment}</strong>
+      </p>
+      
+      <p class="official-body">
+        หากท่านได้ชำระเงินจำนวนดังกล่าวเป็นที่เรียบร้อยแล้ว โปรดละเว้นหนังสือฉบับนี้และแจ้งหลักฐานการโอนเงินให้ทางผู้ให้เช่าทราบ 
+        หากท่านมีข้อสงสัยหรือต้องการประนีประนอมยอดหนี้กรุณาติดต่อ <strong>${config.contact}</strong>
+      </p>
+      
+      <p class="official-body">
+        จึงเรียนมาเพื่อโปรดดำเนินการชำระหนี้โดยด่วน
+      </p>
+    `;
+
+    signoffHTML = `
+      <div class="official-signoff">
+        ขอแสดงความนับถือ<br><br><br>
+        (....................................................)<br>
+        <strong>${config.signer}</strong><br>
+        ${config.signerPos}
+      </div>
+    `;
+  } else if (type === "2") {
+    headerHTML = `
+      <div class="official-header">
+        <div class="official-meta-left">
+          <strong>ที่:</strong> ${config.ref}<br>
+        </div>
+        <div class="official-emblem">${logoHTML}</div>
+        <div class="official-meta-right">
+          <strong>องค์การสะพานปลา</strong><br>
+          ๑๔๙ ซอยเจริญกรุง ๕๘<br>
+          แขวงยานนาวา เขตสาทร<br>
+          กรุงเทพฯ ๑๐๑๒๐
+        </div>
+      </div>
+      <div class="official-date">
+        <strong>วันที่:</strong> ${dateStr}
+      </div>
+    `;
+
+    subjectHTML = `
+      <div class="official-detail">
+        <div><strong>เรื่อง:</strong> ทวงถามครั้งสุดท้ายและแจ้งเตือนบอกเลิกสัญญาเช่า (เตือนครั้งที่ 2)</div>
+        <div><strong>เรียน:</strong> คุณ ${inv.tenant}</div>
+        <div><strong>อ้างถึง:</strong> 1) สัญญาเช่าพื้นที่ ยูนิต/พื้นที่ ${inv.unit} เลขที่สัญญา ${inv.contract_id}<br>
+        2) หนังสือทวงถามครั้งที่ 1 อ้างอิงลงวันที่ ${refDateStr}</div>
+      </div>
+    `;
+
+    bodyHTML = `
+      <p class="official-body">
+        ตามที่องค์การสะพานปลา ("ผู้ให้เช่า") ได้จัดส่งหนังสือทวงถามเพื่อขอให้ท่านชำระหนี้ค้างชำระค่าเช่าและค่าบริการมายังท่านแล้ว 
+        ตามหนังสือที่อ้างถึง (2) ปรากฏว่าจนถึงปัจจุบัน ท่านยังเพิกเฉยมิได้ดำเนินการชำระหนี้ค้างหรือเข้ามาเจรจาประนีประนอมยอดหนี้แต่อย่างใด 
+        ณ ปัจจุบัน ท่านมียอดคงค้างชำระเป็นเวลา <strong>${inv.days_overdue} วัน</strong> รายละเอียดดังนี้:
+      </p>
+      
+      <table class="official-table">
+        <thead>
+          <tr>
+            <th>รายการค้างชำระ</th>
+            <th style="text-align: center; width: 150px;">งวด/เดือน</th>
+            <th style="text-align: right; width: 180px;">จำนวนเงินคงค้าง (บาท)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ค่าเช่าและค่าบริการ (พื้นที่ยูนิต ${inv.unit})</td>
+            <td style="text-align: center;">${inv.period}</td>
+            <td style="text-align: right;">${fmt(inv.total)}</td>
+          </tr>
+          <tr>
+            <td>หัก: ยอดเงินที่ชำระเข้ามาแล้วบางส่วน</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: right; color: green;">-${fmt(inv.paid)}</td>
+          </tr>
+          <tr style="background:#f8fafc; font-weight:bold;">
+            <td>ยอดค้างชำระสุทธิ (ไม่รวมเบี้ยปรับผิดนัด)</td>
+            <td style="text-align: center;">-</td>
+            <td style="text-align: right; color: #b91c1c;">${totalDebtText}</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <p class="official-body">
+        องค์การสะพานปลา จึงขอทวงถามท่านเป็นครั้งสุดท้าย ให้ดำเนินการชำระเงินสุทธิจำนวนดังกล่าวพร้อมเบี้ยปรับ 
+        ภายในกำหนด <strong>7 วัน นับแต่วันที่ได้รับหนังสือฉบับนี้</strong> โดยโอนผ่านช่องทาง <strong>${config.payment}</strong>
+      </p>
+      
+      <p class="official-body" style="font-weight: 500; color: #b91c1c;">
+        หากพ้นกำหนดเวลาดังกล่าวแล้ว ท่านยังคงเพิกเฉยไม่ดำเนินการชำระหนี้ทั้งหมด องค์การสะพานปลาขอแจ้งว่าหนังสือฉบับนี้ถือเป็นคำแจ้ง 
+        <strong>"บอกเลิกสัญญาเช่าโดยทันที"</strong> และองค์การสะพานปลาขอสงวนสิทธิ์ในการดำเนินคดีแพ่งทางศาล ดำเนินการยึดพื้นที่คืน ริบวงเงินประกันสัญญาเช่าจำนวน <strong>${fmt(inv.deposit_balance)} บาท</strong> และเรียกร้องสิทธิ์เบี้ยปรับและค่าทนายความทั้งหมดจากท่านต่อไป
+      </p>
+      
+      <p class="official-body">
+        หวังเป็นอย่างยิ่งว่าท่านจะชำระหนี้ภายในกำหนด เพื่อมิให้ต้องดำเนินคดีทางกฎหมายอันจะก่อให้เกิดความเสียหายต่อทั้งสองฝ่าย
+      </p>
+    `;
+
+    signoffHTML = `
+      <div class="official-signoff">
+        ขอแสดงความนับถือ<br><br><br>
+        (....................................................)<br>
+        <strong>${config.signer}</strong><br>
+        ${config.signerPos}
+      </div>
+    `;
+  } else if (type === "3") {
+    headerHTML = `
+      <div class="official-header">
+        <div class="official-emblem" style="text-align:left; margin-bottom:8px;">
+          <strong style="font-size:17px; text-decoration: underline;">${config.lawFirm}</strong><br>
+          <span style="font-size:12px; color:#555;">ที่อยู่/ช่องทางประสานงาน: ${config.payment}</span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+        <div><strong>ที่:</strong> ${config.ref}</div>
+        <div><strong>วันที่:</strong> ${dateStr}</div>
+      </div>
+    `;
+
+    subjectHTML = `
+      <div class="official-detail">
+        <div><strong>เรื่อง:</strong> หนังสือทวงถามให้ชำระหนี้และแจ้งบอกเลิกสัญญาเช่า (ครั้งสุดท้ายก่อนยื่นฟ้องดำเนินคดีศาลแพ่ง)</div>
+        <div><strong>เรียน:</strong> คุณ ${inv.tenant}</div>
+        <div><strong>ที่อยู่ผู้รับจดหมาย:</strong> ${addressText}</div>
+        <div style="font-size: 13.5px; margin-top:2px;"><strong>อ้างอิง:</strong> ${taxIdText}</div>
+        <div style="margin-top:4px;"><strong>อ้างถึง:</strong> สัญญาเช่าพื้นที่ ยูนิต/พื้นที่ ${inv.unit} เลขที่สัญญา ${inv.contract_id} ระหว่างท่านกับองค์การสะพานปลา</div>
+      </div>
+    `;
+
+    bodyHTML = `
+      <p class="official-body">
+        ข้าพเจ้า <strong>${config.signer}</strong> ทนายความผู้ได้รับมอบอำนาจโดยชอบด้วยกฎหมายจาก <strong>องค์การสะพานปลา ("ผู้ให้เช่า")</strong> 
+        ขอแจ้งมายังท่านว่า ตามสัญญาเช่าที่อ้างถึงข้างต้น ท่านได้ตกลงชำระเงินค่าเช่าและค่าบริการให้กับผู้ให้เช่าเป็นรายเดือนอย่างถูกต้อง 
+        ทว่าปรากฏหลักฐานชัดเจนว่า ท่านได้ละเลยและผิดนัดไม่ชำระค่าเช่าตามกำหนด โดยมียอดค้างชำระสุทธิคิดเป็นจำนวนเงินต้น 
+        <strong>${totalDebtText} บาท</strong> ซึ่งมีอายุหนี้คงค้างเกินกำหนดรวมเป็นระยะเวลากว่า <strong>${inv.days_overdue} วัน</strong> แล้วนั้น
+      </p>
+      
+      <p class="official-body">
+        อาศัยอำนาจตามหนังสือมอบอำนาจ ข้าพเจ้าในฐานะทนายความผู้รับมอบอำนาจ จึงขอทวงถามให้ท่านนำเงินจำนวนยอดค้างชำระทั้งหมดพร้อมเบี้ยปรับ 
+        ไปชำระให้แก่ผู้ให้เช่าให้เสร็จสิ้นภายในกำหนด <strong>15 วัน นับแต่วันที่ได้รับหนังสือฉบับนี้</strong>
+      </p>
+      
+      <p class="official-body" style="font-weight: 500; color: #b91c1c;">
+        หากท่านยังเพิกเฉยละเลยไม่ชำระหนี้ตามระยะเวลาที่กำหนด ข้าพเจ้ามีความจำเป็นอย่างยิ่งที่จะต้องดำเนินคดีแพ่งทางศาลจนถึงที่สุด 
+        เพื่อฟ้องร้องขอให้ศาลมีคำพิพากษาบังคับคดีให้ท่านชำระเงินต้นค้างชำระ เบี้ยปรับผิดนัด อนุมัติการบอกเลิกสัญญาและขับไล่ท่านออกจากพื้นที่เช่า 
+        รวมถึงเรียกร้องให้ท่านชำระค่าธรรมเนียมฤชาศาลและค่าทนายความทั้งหมดที่เกิดขึ้นในการฟ้องร้องดำเนินคดีตามสิทธิ์อันชอบธรรมของผู้ให้เช่าต่อไป
+      </p>
+      
+      <p class="official-body">
+        จึงเรียนมาเพื่อทราบและโปรดดำเนินการชำระหนี้ภายในกำหนดอย่างเคร่งครัด
+      </p>
+    `;
+
+    signoffHTML = `
+      <div class="official-signoff">
+        ขอแสดงความนับถือ<br><br><br>
+        (....................................................)<br>
+        <strong>${config.signer}</strong><br>
+        ${config.signerPos}
+      </div>
+    `;
+  }
+
+  const templateLabel = (type === "1" || type === "2")
+    ? `<div style="position: absolute; right: 0; top: 0; font-size: 13px; font-weight: bold; font-family: 'Sarabun', sans-serif;">บต.๑</div>`
+    : '';
+
+  return `
+    <div style="font-family:'Sarabun', sans-serif; color:#000; padding:10px; position:relative;">
+      ${templateLabel}
+      ${headerHTML}
+      ${subjectHTML}
+      ${bodyHTML}
+      ${signoffHTML}
+    </div>
+  `;
+}
+
+function closeM(id) {
+  document.getElementById(id).classList.remove('on');
+}
+
+function openPay(id) {
+  const i = D.invoices.find(x => x.id === id);
+  const t = i.action;
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isCashier = (user.role === 'admin' || user.role === 'cashier');
+  const isManager = (user.role === 'admin' || user.role === 'manager');
+  
+  document.getElementById('pTitle').textContent = 'จัดการใบแจ้งหนี้: ' + i.id + ' · ' + i.tenant;
+  
+  let cashierActions = '';
+  if (isCashier) {
+    cashierActions = `
+      <div class="fg"><label>ยอดบันทึกรับเงินจริง (บาท)</label><input id="payAmt" type="number" value="${Math.round(i.outstanding)}"></div>
+      <div class="grid2">
+        <div class="fg"><label>ภาษีหัก ณ ที่จ่าย (WHT)</label><input id="payWht" type="number" value="0"></div>
+        <div class="fg"><label>วิธีการรับชำระ</label><select id="payMethod"><option value="transfer">โอนเงินเข้าบัญชีธนาคาร</option><option value="cash">รับเป็นเงินสด</option></select></div>
+      </div>
+      <div class="flex" style="margin-top:8px;">
+        <button class="act" onclick="doPay('${id}')" style="flex:1;">บันทึกรับชำระ</button>
+        <button class="ghost" onclick="useDeposit('${id}')" style="flex:1;">หักบัญชีเงินประกัน</button>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+    `;
+  }
+  
+  let managerActions = '';
+  if (isManager) {
+    managerActions = `
+      <div class="flex">
+        ${i.litigation ? '' : `<button class="ghost" onclick="flagLit('${id}')" style="color:var(--navy); border-color:var(--navy); flex:1;">⚖ ยื่นส่งฟ้องดำเนินคดี</button>`}
+        <button class="act" onclick="writeOff('${id}')" style="background:var(--red); flex:1;">✂ อนุมัติตัดหนี้สูญ (ก.186)</button>
+      </div>
+    `;
+  }
+
+  document.getElementById('pBody').innerHTML = `
+    <div style="background:var(--grey); padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid var(--line);">
+      <div class="fg" style="margin:0;"><b>ยอดลูกหนี้คงเหลือค้างชำระ:</b> <span style="color:var(--red); font-size:16px; font-weight:700;">${fmt(i.outstanding)} บาท</span></div>
+      <div class="fg" style="margin:4px 0 0 0;"><b>อายุหนี้ค้างส่งสะสม:</b> <span style="font-weight:600;">${i.days_overdue>0 ? i.days_overdue+' วัน' : 'ยังไม่ครบกำหนด'}</span></div>
+      <div class="fg" style="margin:4px 0 0 0;"><b>มาตรการที่แนะนำ:</b> <span class="pill p-b3" style="font-size:11px;">${t.text}</span></div>
+    </div>
+    ${cashierActions}
+    ${managerActions}
+    <div style="margin-top:16px; text-align:right;"><button class="sm" onclick="closeM('pModal')">ปิดหน้าต่าง</button></div>
+  `;
+  document.getElementById('pModal').classList.add('on');
+}
+
+async function doPay(id) {
+  const amt = +document.getElementById('payAmt').value || 0;
+  const wht = +document.getElementById('payWht').value || 0;
+  const m = document.getElementById('payMethod').value;
+  
+  try {
+    await api('/invoices/' + id + '/payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: amt, wht, method: m }) });
+    closeM('pModal');
+    toast('บันทึกยอดรับชำระเงินเข้าสู่ฐานข้อมูลสำเร็จ');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function useDeposit(id) {
+  if (!confirm('คุณต้องการหักหนี้ยอดนี้ด้วยเงินหลักประกันที่ผู้เช่าวางไว้หรือไม่?')) return;
+  try {
+    const r = await api('/invoices/' + id + '/use-deposit', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    closeM('pModal');
+    toast('หักเงินประกันสัญญาสำเร็จเป็นจำนวนเงิน ' + fmt(r.used) + ' บาท (ยอดประกันคงเหลือ ' + fmt(r.deposit_left) + ' บาท)');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function flagLit(id) {
+  const note = prompt('กรุณาระบุเลขที่คดีหรือข้อมูลบันทึกส่งเรื่องฟ้องดำเนินคดี:');
+  if (note === null) return; // กดยกเลิก
+  try {
+    await api('/invoices/' + id + '/litigation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note }) });
+    closeM('pModal');
+    toast('บันทึกการส่งฟ้องดำเนินคดีลูกหนี้รายนี้สำเร็จ');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function writeOff(id) {
+  const reason = prompt('กรุณาระบุเลขที่คดีศาล เอกสารรับฟ้อง หรือบันทึกรายงานการทวงหนี้และมติกรรมการ เพื่อใช้ประกอบสิทธิ์การหักภาษีตามกฎกระทรวงฉบับที่ 186 (เช่น "คดีหมายเลขดำที่ พ.xxx/2569 ยื่นฟ้องแล้วศาลประทับรับฟ้อง"):');
+  if (!reason) {
+    toast('ปฏิเสธการดำเนินการ: การตัดหนี้สูญต้องระบุรายละเอียดเหตุผลและหลักฐานกฎกระทรวง 186');
+    return;
+  }
+  
+  try {
+    await api('/invoices/' + id + '/writeoff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) });
+    closeM('pModal');
+    toast('อนุมัติตัดหนี้สูญและลดหนี้ลูกหนี้ในระบบสำเร็จ');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function saveRates() {
+  try {
+    await api('/provision/rates', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rates: D.rates }) });
+    toast('บันทึกการปรับปรุงอัตราตั้งค่าเผื่อหนี้สูญ (Provision Matrix) เรียบร้อย');
+    loadAll();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function runJob() {
+  try {
+    const r = await api('/jobs/daily', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ asof: asof() }) });
+    toast('รันระบบประมวลผลการทวงหนี้ประจำวันจำลอง (Cron) สำเร็จเรียบร้อย');
+    loadAudit();
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('on');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const targetBtn = document.querySelector(`nav button[data-tab="${id}"]`);
+    if (targetBtn) targetBtn.classList.add('active');
+  }
+}
+
+// ตั้งค่าวันที่เริ่มต้น (วันที่ปัจจุบัน)
+const _today = new Date();
+const _yyyy = _today.getFullYear();
+const _mm = String(_today.getMonth() + 1).padStart(2, '0');
+const _dd = String(_today.getDate()).padStart(2, '0');
+document.getElementById('asof').value = `${_yyyy}-${_mm}-${_dd}`;
+
+// ฟังก์ชันสลับโหมดมืด/สว่าง
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  updateThemeUI(isDark);
+}
+
+function updateThemeUI(isDark) {
+  const icon = document.getElementById('themeToggleIcon');
+  const text = document.getElementById('themeToggleText');
+  if (isDark) {
+    icon.textContent = '☀️';
+    text.textContent = 'โหมดสว่าง';
+  } else {
+    icon.textContent = '🌙';
+    text.textContent = 'โหมดมืด';
+  }
+}
+
+// โหลดธีมที่บันทึกไว้เมื่อเปิดเว็บ
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+  document.body.classList.add('dark');
+  updateThemeUI(true);
+} else {
+  updateThemeUI(false);
+}
+
+// ตรวจสอบเช็ค Token ในเครื่องเมื่อเปิดหน้าเว็บ
+const token = localStorage.getItem('token');
+if (token) {
+  const user = JSON.parse(localStorage.getItem('user'));
+  hideLoginModal(user);
+  loadAll();
+} else {
+  showLoginModal();
+}
+</script>
+</body>
+</html>

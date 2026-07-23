@@ -14,6 +14,7 @@ const { generateToken, authenticateToken, requireRole } = require('./auth');
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 const PORT = process.env.PORT || 3000;
 const today = () => new Date().toISOString().slice(0, 10);
