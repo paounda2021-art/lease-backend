@@ -32,12 +32,15 @@ const branches = [
 const bins = db.prepare('INSERT INTO branches(id,code,name,region) VALUES(?,?,?,?)');
 branches.forEach(b => bins.run(...b));
 
-// 2. ข้อมูลผู้ใช้จำลอง
+// 2. ข้อมูลผู้ใช้งานระบบ
 const mockUsers = [
-  ['U-001', 'admin', bcrypt.hashSync('password123', 10), 'admin', 'สมชาย แอดมิน', null],
-  ['U-002', 'billing', bcrypt.hashSync('password123', 10), 'billing', 'วรรณา ฝ่ายวางบิล', 'C-02'],
-  ['U-003', 'cashier', bcrypt.hashSync('password123', 10), 'cashier', 'สมศรี ฝ่ายการเงิน', 'C-02'],
-  ['U-004', 'manager', bcrypt.hashSync('password123', 10), 'manager', 'เดชา ผู้จัดการฝ่ายการเงิน', null]
+  ['U-001', 'admin', bcrypt.hashSync('password123', 10), 'admin', 'ผู้ดูแลระบบ (Admin)', null],
+  ['U-002', 'viewer1', bcrypt.hashSync('password123', 10), 'viewer', 'ผู้ดูข้อมูลระบบ 1 (Read-Only ทั้งหมด)', null],
+  ['U-003', 'viewer2', bcrypt.hashSync('password123', 10), 'viewer', 'ผู้ดูข้อมูลระบบ 2 (Read-Only ทั้งหมด)', null],
+  ['U-004', 'viewer3', bcrypt.hashSync('password123', 10), 'viewer', 'ผู้ดูข้อมูลระบบ 3 (Read-Only ทั้งหมด)', null],
+  ['U-005', 'billing', bcrypt.hashSync('password123', 10), 'billing', 'เจ้าหน้าที่ฝ่ายวางบิลและสัญญา', null],
+  ['U-006', 'cashier', bcrypt.hashSync('password123', 10), 'cashier', 'เจ้าหน้าที่ฝ่ายการเงินและรับชำระ', null],
+  ['U-007', 'manager', bcrypt.hashSync('password123', 10), 'manager', 'ผู้จัดการฝ่ายการเงินและอนุมัติ', null]
 ];
 const uins = db.prepare('INSERT INTO users(id,username,password,role,fullname,branch_id) VALUES(?,?,?,?,?,?)');
 mockUsers.forEach(u => uins.run(...u));

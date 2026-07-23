@@ -926,9 +926,11 @@ function hideLoginModal(user) {
 }
 
 function applyRolePermissions(user) {
-  const isBilling = (user.role === 'admin' || user.role === 'billing');
-  const isCashier = (user.role === 'admin' || user.role === 'cashier');
-  const isManager = (user.role === 'admin' || user.role === 'manager');
+  const role = user ? user.role : '';
+  const isBilling = (role === 'admin' || role === 'billing');
+  const isCashier = (role === 'admin' || role === 'cashier');
+  const isManager = (role === 'admin' || role === 'manager');
+  const isViewer = (role === 'viewer');
   
   document.getElementById('addContractBtn').style.display = isBilling ? '' : 'none';
   document.getElementById('genInvoicesBtn').style.display = isBilling ? '' : 'none';
@@ -938,16 +940,17 @@ function applyRolePermissions(user) {
   const billingTabs = ['dash', 'contracts', 'invoices', 'aging'];
   const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning'];
   const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
+  const viewerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
   
   document.querySelectorAll('nav button').forEach(btn => {
     const tabName = btn.getAttribute('data-tab');
-    if (user.role === 'admin') {
+    if (role === 'admin' || role === 'viewer') {
       btn.style.display = 'block';
-    } else if (user.role === 'billing' && billingTabs.includes(tabName)) {
+    } else if (role === 'billing' && billingTabs.includes(tabName)) {
       btn.style.display = 'block';
-    } else if (user.role === 'cashier' && cashierTabs.includes(tabName)) {
+    } else if (role === 'cashier' && cashierTabs.includes(tabName)) {
       btn.style.display = 'block';
-    } else if (user.role === 'manager' && managerTabs.includes(tabName)) {
+    } else if (role === 'manager' && managerTabs.includes(tabName)) {
       btn.style.display = 'block';
     } else {
       btn.style.display = 'none';
@@ -1017,19 +1020,19 @@ async function loadAll() {
       api('/invoices' + q)
     ];
     
-    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing' || user.role === 'viewer') {
       promises.push(api('/aging' + q));
     } else {
       promises.push(Promise.resolve(null));
     }
 
-    if (user.role === 'admin' || user.role === 'manager') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'viewer') {
       promises.push(api('/provision' + q));
     } else {
       promises.push(Promise.resolve(null));
     }
 
-    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing') {
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing' || user.role === 'viewer') {
       promises.push(api('/provision/rates'));
     } else {
       promises.push(Promise.resolve(null));
@@ -1084,7 +1087,7 @@ function renderAll() {
   if (D.invoices) renderDun();
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.role === 'admin' || user.role === 'manager') {
+  if (user.role === 'admin' || user.role === 'manager' || user.role === 'viewer') {
     loadAudit();
   }
 }

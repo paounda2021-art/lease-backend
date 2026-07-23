@@ -435,7 +435,7 @@ app.get('/api/dunning/:contract_id', authenticateToken, (req, res) => {
 });
 
 // ========== AGING & PROVISION ==========
-app.get('/api/aging', authenticateToken, requireRole(['manager', 'billing']), (req, res) => {
+app.get('/api/aging', authenticateToken, requireRole(['manager', 'billing', 'viewer']), (req, res) => {
   try {
     const asOf = req.query.asof || today();
     const branchId = req.query.branch_id;
@@ -460,7 +460,7 @@ app.get('/api/aging', authenticateToken, requireRole(['manager', 'billing']), (r
   }
 });
 
-app.get('/api/provision', authenticateToken, requireRole('manager'), (req, res) => {
+app.get('/api/provision', authenticateToken, requireRole(['manager', 'viewer']), (req, res) => {
   try {
     const asOf = req.query.asof || today();
     const branchId = req.query.branch_id;
@@ -585,7 +585,7 @@ app.post('/api/jobs/daily', authenticateToken, requireRole('manager'), (req, res
   }
 });
 
-app.get('/api/audit', authenticateToken, requireRole('manager'), (req, res) => {
+app.get('/api/audit', authenticateToken, requireRole(['manager', 'viewer']), (req, res) => {
   try {
     res.json(db.prepare('SELECT * FROM audit_log ORDER BY id DESC LIMIT 200').all());
   } catch (err) {
