@@ -246,16 +246,21 @@
     body {
       font-size: 13px;
     }
+  /* Mobile Responsive Design Enhancements */
+  @media (max-width: 768px) {
+    body {
+      font-size: 13px;
+    }
     header {
-      padding: 12px 16px;
+      padding: 12px 14px;
       flex-direction: column;
       align-items: stretch;
       text-align: center;
-      gap: 8px;
+      gap: 10px;
     }
     header h1 {
       justify-content: center;
-      font-size: 18px;
+      font-size: 17px;
     }
     header .flex {
       justify-content: center;
@@ -272,6 +277,15 @@
       flex-wrap: wrap;
       gap: 8px;
     }
+    #branchSelect {
+      width: 100% !important;
+      max-width: 100% !important;
+      font-size: 13px;
+    }
+    #branchCardsGrid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+      gap: 10px !important;
+    }
     
     /* Horizontal scrollable navigation tabs on mobile */
     nav {
@@ -279,36 +293,36 @@
       flex-wrap: nowrap;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: none; /* Firefox */
+      scrollbar-width: none;
     }
     nav::-webkit-scrollbar {
-      display: none; /* Chrome, Safari, Opera */
+      display: none;
     }
     nav button {
-      padding: 12px 12px;
+      padding: 12px 14px;
       font-size: 13px;
-      flex: 0 0 auto; /* Prevent tabs from shrinking */
+      flex: 0 0 auto;
     }
     
     main {
-      padding: 12px;
+      padding: 10px;
     }
     .cards {
-      grid-template-columns: 1fr; /* Single column on mobile */
-      gap: 12px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .card {
-      padding: 12px 16px;
+      padding: 12px 14px;
     }
     .card .val {
-      font-size: 22px;
+      font-size: 20px;
     }
     
     .panel {
-      padding: 12px 16px;
-      margin-bottom: 16px;
-      overflow-x: auto; /* Enable horizontal scrolling for tables inside panels */
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
     .panel h2 {
@@ -318,7 +332,12 @@
       gap: 4px;
     }
     
-    /* Responsive forms and toolbars */
+    /* Tables horizontal scroll touch optimization */
+    table {
+      min-width: 600px;
+    }
+    
+    /* Toolbars & Controls */
     .toolbar {
       flex-direction: column;
       align-items: stretch;
@@ -335,17 +354,17 @@
     
     /* Modals mobile optimization */
     .modal {
-      width: 100%;
-      max-width: 100%;
+      width: 95%;
+      max-width: 95%;
       padding: 16px;
-      border-radius: 12px;
+      border-radius: 14px;
+      max-height: 92vh;
     }
     .grid2 {
       grid-template-columns: 1fr;
       gap: 8px;
     }
     
-    /* Age rows stack on mobile */
     .agerow {
       grid-template-columns: 1fr;
       gap: 4px;
@@ -361,6 +380,15 @@
     }
     .agerow .muted {
       text-align: left !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cards {
+      grid-template-columns: 1fr;
+    }
+    #branchCardsGrid {
+      grid-template-columns: 1fr !important;
     }
   }
 
