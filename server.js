@@ -134,9 +134,16 @@ app.post('/api/auth/login', (req, res) => {
       return res.status(400).json({ error: 'กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน' });
     }
 
-    const shortUser = (username || '').split('@')[0].toLowerCase();
-    const fullUser = (username || '').toLowerCase();
-    const user = db.prepare('SELECT * FROM users WHERE LOWER(username) = ? OR LOWER(username) = ?').get(fullUser, shortUser);
+    const cleanUser = (username || '').trim().toLowerCase();
+    const shortUser = cleanUser.split('@')[0];
+    const emailUser = cleanUser.includes('@') ? cleanUser : cleanUser + '@fishmarket.co.th';
+    
+    const user = db.prepare(`
+      SELECT * FROM users 
+      WHERE LOWER(username) = ? 
+         OR LOWER(username) = ? 
+         OR LOWER(username) = ?
+    `).get(cleanUser, emailUser, shortUser);
     if (!user) {
       return res.status(401).json({ error: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' });
     }
