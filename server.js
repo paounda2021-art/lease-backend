@@ -603,6 +603,38 @@ app.post('/api/audit', authenticateToken, (req, res) => {
   }
 });
 
+// ========== USER MANAGEMENT ==========
+app.get('/api/users', authenticateToken, requireRole('admin'), (req, res) => {
+  try {
+    const rows = db.prepare('SELECT id, username, role, fullname, branch_id, created_at FROM users').all();
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/users', authenticateToken, requireRole('admin'), (req, res) => {
+  try {
+    const { username, password, role, fullname, branch_id } = req.body;
+    if (!username || !password || !role) {
+      return res.status(400).json({ error: 'กรุณากรอก username, password และ role' });
+    }
+    const exists = db.prepare('SELECT id FROM users WHERE username=?').get(username);
+    if (exists) {
+      return res.status(400).json({ error: 'ชื่อผู้ใช้นี้มีในระบบแล้ว' });
+    }
+    const count = db.prepare('SELECT COUNT(*) c FROM users').get().c + 1;
+    const id = 'U-' + String(count).padStart(3, '0');
+    const hash = bcrypt.hashSync(password, 10);
+    db.prepare('INSERT INTO users(id, username, password, role, fullname, branch_id) VALUES(?,?,?,?,?,?)')
+      .run(id, username, hash, role, fullname || username, branch_id || null);
+    audit(req.user.username, 'create', 'user', id, `username=${username} role=${role}`);
+    res.json({ ok: true, id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/health', (req, res) => res.json({ ok: true, db: 'connected' }));
 
 // Backup function
