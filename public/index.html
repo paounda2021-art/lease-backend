@@ -246,16 +246,21 @@
     body {
       font-size: 13px;
     }
+  /* Mobile Responsive Design Enhancements */
+  @media (max-width: 768px) {
+    body {
+      font-size: 13px;
+    }
     header {
-      padding: 12px 16px;
+      padding: 12px 14px;
       flex-direction: column;
       align-items: stretch;
       text-align: center;
-      gap: 8px;
+      gap: 10px;
     }
     header h1 {
       justify-content: center;
-      font-size: 18px;
+      font-size: 17px;
     }
     header .flex {
       justify-content: center;
@@ -272,6 +277,15 @@
       flex-wrap: wrap;
       gap: 8px;
     }
+    #branchSelect {
+      width: 100% !important;
+      max-width: 100% !important;
+      font-size: 13px;
+    }
+    #branchCardsGrid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+      gap: 10px !important;
+    }
     
     /* Horizontal scrollable navigation tabs on mobile */
     nav {
@@ -279,36 +293,36 @@
       flex-wrap: nowrap;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: none; /* Firefox */
+      scrollbar-width: none;
     }
     nav::-webkit-scrollbar {
-      display: none; /* Chrome, Safari, Opera */
+      display: none;
     }
     nav button {
-      padding: 12px 12px;
+      padding: 12px 14px;
       font-size: 13px;
-      flex: 0 0 auto; /* Prevent tabs from shrinking */
+      flex: 0 0 auto;
     }
     
     main {
-      padding: 12px;
+      padding: 10px;
     }
     .cards {
-      grid-template-columns: 1fr; /* Single column on mobile */
-      gap: 12px;
-      margin-bottom: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .card {
-      padding: 12px 16px;
+      padding: 12px 14px;
     }
     .card .val {
-      font-size: 22px;
+      font-size: 20px;
     }
     
     .panel {
-      padding: 12px 16px;
-      margin-bottom: 16px;
-      overflow-x: auto; /* Enable horizontal scrolling for tables inside panels */
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
     .panel h2 {
@@ -318,7 +332,12 @@
       gap: 4px;
     }
     
-    /* Responsive forms and toolbars */
+    /* Tables horizontal scroll touch optimization */
+    table {
+      min-width: 600px;
+    }
+    
+    /* Toolbars & Controls */
     .toolbar {
       flex-direction: column;
       align-items: stretch;
@@ -335,17 +354,17 @@
     
     /* Modals mobile optimization */
     .modal {
-      width: 100%;
-      max-width: 100%;
+      width: 95%;
+      max-width: 95%;
       padding: 16px;
-      border-radius: 12px;
+      border-radius: 14px;
+      max-height: 92vh;
     }
     .grid2 {
       grid-template-columns: 1fr;
       gap: 8px;
     }
     
-    /* Age rows stack on mobile */
     .agerow {
       grid-template-columns: 1fr;
       gap: 4px;
@@ -361,6 +380,15 @@
     }
     .agerow .muted {
       text-align: left !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cards {
+      grid-template-columns: 1fr;
+    }
+    #branchCardsGrid {
+      grid-template-columns: 1fr !important;
     }
   }
 
@@ -519,23 +547,19 @@
     
     <div class="fg">
       <label>ชื่อผู้ใช้งาน (Username)</label>
-      <input id="loginUser" placeholder="เช่น admin, billing, cashier, manager" style="padding: 11px;">
+      <input id="loginUser" placeholder="เช่น natmaytinee.j" style="padding: 11px;">
     </div>
     <div class="fg" style="margin-top: 12px;">
       <label>รหัสผ่าน (Password)</label>
-      <input id="loginPass" type="password" placeholder="••••••••" style="padding: 11px;" onkeyup="if(event.key==='Enter')submitLogin()">
+      <input id="loginPass" type="password" placeholder="รหัสพนักงาน 8 หลัก" style="padding: 11px;" onkeyup="if(event.key==='Enter')submitLogin()">
     </div>
     
     <div id="loginErr" style="color: var(--red); font-size: 12.5px; margin: 12px 0; font-weight: 600; text-align: center; min-height: 18px;"></div>
     
     <button class="act" onclick="submitLogin()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 8px;">เข้าสู่ระบบ</button>
     
-    <div style="margin-top: 24px; padding: 12px; background: var(--grey); border-radius: 8px; border: 1px solid var(--border-line); font-size: 11.5px; line-height: 1.6; color: var(--muted-color);">
-      <b>ข้อมูลผู้ใช้จำลองสำหรับทดสอบ (รหัสผ่าน: password123):</b><br>
-      • <span style="font-weight:600; color:var(--accent);">admin</span> : เข้าใช้งานได้ทุกฟังก์ชัน<br>
-      • <span style="font-weight:600; color:var(--accent);">billing</span> : จัดการสัญญาและออกใบแจ้งหนี้<br>
-      • <span style="font-weight:600; color:var(--accent);">cashier</span> : บันทึกรับเงิน และหักเงินประกัน<br>
-      • <span style="font-weight:600; color:var(--accent);">manager</span> : อนุมัติส่งฟ้อง ตัดหนี้สูญ และปรับสำรอง
+    <div style="margin-top: 24px; text-align: center; font-size: 11.5px; color: var(--muted-color); border-top: 1px solid var(--border-line); padding-top: 14px;">
+      @ 2026 องค์การสะพานปลา By สำนักงานเทคโนโลยีสารสนเทศ
     </div>
   </div>
 </div>
@@ -568,7 +592,6 @@
     <button data-tab="invoices" onclick="showTab('invoices',this)">ลูกหนี้/ใบแจ้งหนี้</button>
     <button data-tab="aging" onclick="showTab('aging',this)">Aging &amp; สำรอง</button>
     <button data-tab="dunning" onclick="showTab('dunning',this)">ทวงถาม/ฟ้อง</button>
-    <button data-tab="portLedger" onclick="showTab('portLedger',this)">ทะเบียนคุมรับชำระ/ยอดยกไป</button>
     <button data-tab="audit" onclick="showTab('audit',this)">ประวัติการแก้ไข</button>
   </div>
   <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; padding: 6px 0;">
@@ -591,7 +614,7 @@
     <div class="cards" id="kpiCards"></div>
 
     <!-- Multi-Branch Cards Grid (17 Branches) -->
-    <div class="panel" id="multiBranchGridPanel" style="margin-top:20px;">
+    <div class="panel" id="multiBranchGridPanel" style="display:none; margin-top:20px;">
       <div class="flex" style="align-items:center; justify-content:space-between; margin-bottom:12px;">
         <h2 style="margin:0;">🏢 สถานะบริหารลูกหนี้ 17 หน่วยงาน (สะพานปลา &amp; ท่าเทียบเรือประมง)</h2>
         <span class="muted" style="font-size:12px;">💡 คลิกที่หน่วยงานเพื่อดูหน้ารวมรายละเอียดและจัดการลูกหนี้</span>
@@ -600,31 +623,17 @@
     </div>
 
     <!-- Multi-Branch Comparison Table -->
-    <div class="panel" id="multiBranchTablePanel" style="margin-top:16px;">
+    <div class="panel" id="multiBranchTablePanel" style="display:none; margin-top:16px;">
       <h2>📊 ตารางเปรียบเทียบการบริหารหนี้รายหน่วยงาน (17 ส่วนงาน)</h2>
       <div style="overflow-x:auto;">
         <table id="branchCompareTable"></table>
       </div>
     </div>
 
-    <!-- GL Fee Breakdown Table (12 Categories) -->
-    <div class="panel" id="feeBreakdownPanel" style="margin-top:16px;">
-      <div class="flex" style="align-items:center; justify-content:space-between; margin-bottom:10px;">
-        <h2 style="margin:0;">📊 รายการสรุปยอดลูกหนี้แยกตามประเภทค่าธรรมเนียมและค่าเช่า (12 หมวดหมู่ GL) <span class="hint">ดึงตามโครงสร้างผังบัญชี อสป. (GL 4700400, 4600200, 4600300, 4600400, 4700200, 4700300, 4701420 ฯลฯ)</span></h2>
-        <div style="display:flex; gap:8px;">
-          <input id="feeSearch" placeholder="ค้นหาประเภทค่า..." oninput="renderFeeBreakdownTable()" style="padding:4px 8px; font-size:12px; border-radius:6px; border:1px solid var(--border-line); width:180px;">
-          <button class="ghost sm" onclick="exportFeeBreakdownCSV()" style="font-size:11px;">📥 ส่งออก Excel</button>
-        </div>
-      </div>
-      <div style="overflow-x:auto;">
-        <table id="feeBreakdownTable" style="font-size:12px;"></table>
-      </div>
-    </div>
-
     <!-- Single Branch Detailed Dashboard Views -->
     <div id="singleBranchDetailsPanel">
-      <div class="panel" style="margin-top:16px;"><h2>โครงสร้างอายุหนี้ (AR Aging)</h2><div id="agingBars"></div><div class="legend" id="agingLegend"></div></div>
-      <div class="flex" style="margin-top:16px; gap:16px;">
+      <div class="panel"><h2>โครงสร้างอายุหนี้ (AR Aging)</h2><div id="agingBars"></div><div class="legend" id="agingLegend"></div></div>
+      <div class="flex">
         <div class="panel" style="flex:1;min-width:300px"><h2>ลูกหนี้เสี่ยงสูงสุด</h2><table id="topOverdue"></table></div>
         <div class="panel" style="flex:1;min-width:300px"><h2>สรุปสำรอง (Provision)</h2><table id="provSummary"></table></div>
       </div>
@@ -634,7 +643,7 @@
   <section id="contracts" class="tab">
     <div class="toolbar">
       <button class="act" id="addContractBtn" onclick="openContract()">+ เพิ่มสัญญา</button>
-      <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ สร้างใบแจ้งหนี้งวดถัดไปทุกสัญญา</button>
+      <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ ออกใบแจ้งหนี้งวดถัดไป <span id="selectedContractsCount" style="color:var(--accent); font-weight:700;"></span></button>
       <input id="cSearch" placeholder="ค้นหาผู้เช่า/ยูนิต..." oninput="renderContracts()" style="margin-left:auto; width:220px;">
     </div>
     <div class="panel"><table id="contractTable"></table></div>
@@ -664,44 +673,6 @@
     <div class="note"><b>เกณฑ์กฎกระทรวง 186:</b> &gt;2ล้าน=ฟ้อง+บังคับคดีไม่มีทรัพย์ · 2แสน–2ล้าน=ศาลรับฟ้อง · ≤2แสน=ทวงถาม≥2ครั้ง+บอร์ดอนุมัติ</div>
     <div class="panel" style="overflow:auto"><table id="dunTable"></table></div>
   </section>
-
-  <section id="portLedger" class="tab">
-    <div class="toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-weight:700; color:var(--navy);">งวดประมวลผล:</span>
-        <input type="month" id="portLedgerPeriod" value="2026-07" onchange="loadPortLedger()" style="padding:4px 8px; border-radius:6px; border:1px solid var(--border-line); font-weight:600;">
-        <button class="act sm" onclick="openLedgerPayModal()" style="background:#0284c7; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
-          <span>💵 บันทึกรับยอด (ทร.)</span>
-        </button>
-        <button class="ghost sm" onclick="rollForwardLedger()" style="border-color:#16a34a; color:#16a34a; font-weight:700;">
-          <span>🔄 ยกยอดค้างยกไปตั้งต้นงวดเดือนถัดไป</span>
-        </button>
-        <button class="act sm" id="ledgerPaySelectedBtn" onclick="openLedgerPayModal()" style="background:#16a34a; font-weight:700; display:none;">
-          💵 บันทึกรับยอดที่เลือก
-        </button>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <input id="portLedgerSearch" placeholder="ค้นหาผู้เช่า / ทะเบียน / ยูนิต..." oninput="renderPortLedgerTable()" style="width:220px; font-size:12.5px;">
-        <button class="ghost sm" onclick="exportLedgerCSV()" style="font-weight:600;">📥 ส่งออก Excel</button>
-      </div>
-    </div>
-
-    <div style="background:#fefce8; border:1px solid #fef08a; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:12px; color:#854d0e; display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        📌 <b>ทะเบียนคุมรับชำระและยอดยกไป (3 ส่วน):</b> 
-        <span style="color:#b91c1c;">🔴 ข้อมูลตั้งต้นยกมา</span> &rightarrow; 
-        <span style="color:#854d0e;">🟡 รับชำระตัดยอดอัตโนมัติ</span> &rightarrow; 
-        <span style="color:#15803d;">🟢 ยอดค้างยกไปตั้งต้นงวดใหม่</span>
-      </div>
-      <div id="portLedgerCountText" style="font-weight:700; color:#713f12;"></div>
-    </div>
-
-    <div class="panel" style="overflow:auto; max-height:75vh; padding:0;">
-      <table id="portLedgerTable" style="font-size:12px; border-collapse:collapse; width:100%;">
-        <!-- Populated dynamically by renderPortLedgerTable() -->
-      </table>
-    </div>
-  </section>
   
   <section id="audit" class="tab">
     <div class="panel"><h2>ประวัติการแก้ไข (Audit Trail) <span class="hint">ธุรกรรมและการกระทำสำคัญที่บันทึกโดยผู้ใช้อย่างถาวร</span></h2><table id="auditTable"></table></div>
@@ -728,6 +699,18 @@
 
 <!-- โมดัล การเงิน & อนุมัติ -->
 <div class="modal-bg" id="pModal"><div class="modal"><h3 id="pTitle">จัดการ</h3><div id="pBody"></div></div></div>
+
+<!-- โมดัล ยืนยันออกใบแจ้งหนี้งวดถัดไป -->
+<div class="modal-bg" id="genInvoiceModal">
+  <div class="modal" style="max-width: 480px;">
+    <h3 style="margin-bottom:12px;">⚙ ยืนยันออกใบแจ้งหนี้งวดถัดไป</h3>
+    <div id="genInvoiceModalBody" style="line-height:1.6; margin:16px 0; color:var(--text-body);"></div>
+    <div class="flex" style="justify-content: flex-end; gap:10px; margin-top:20px;">
+      <button class="act" id="genInvoiceConfirmBtn" onclick="confirmGenInvoices()">ยืนยันสร้างใบแจ้งหนี้</button>
+      <button class="sm" onclick="closeM('genInvoiceModal')">ยกเลิก</button>
+    </div>
+  </div>
+</div>
 
 <!-- โมดัล พิมพ์หนังสือทวงถามหนี้ (Preview & Configuration) -->
 <div class="modal-bg" id="letterModal" style="z-index: 1000;">
@@ -799,90 +782,14 @@
   </div>
 </div>
 
-<!-- โมดัล บันทึกข้อมูลการรับชำระหนี้ (ทร.) -->
-<div class="modal-bg" id="ledgerPayModal" style="z-index:1100;">
-  <div class="modal" style="max-width:950px; width:95%; padding:20px; border-radius:16px;">
-    <h3 style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-      <span>💵 บันทึกข้อมูลการรับชำระหนี้ (ทะเบียนคุมรับชำระ ทร.)</span>
-      <button class="sm ghost" onclick="closeLedgerPayModal()">✕</button>
-    </h3>
-
-    <div style="background:#e0f2fe; border:1px solid #bae6fd; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:12.5px; color:#0369a1;">
-      💡 <b>คำแนะนำ:</b> ระบุวันที่รับชำระเงิน เลขที่ใบเสร็จรับเงิน และจำนวนเงินรับชำระจริง เพื่อส่งข้อมูลรอส่วนกลางอนุมัติตัดยอดหนี้ในระบบ
-    </div>
-
-    <div style="display:flex; gap:10px; margin-bottom:12px;">
-      <input type="text" id="lp_search_name" placeholder="ค้นหาชื่อลูกหนี้ / ผู้เช่า..." oninput="filterLedgerPayItems()" style="flex:1; padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border-line);">
-    </div>
-
-    <div style="max-height:55vh; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:14px;">
-      <table style="width:100%; font-size:12px; border-collapse:collapse;">
-        <thead>
-          <tr style="background:#f8fafc; color:var(--navy); position:sticky; top:0; z-index:5;">
-            <th style="width:40px;" class="c">ลำดับ</th>
-            <th style="min-width:180px;">รายชื่อลูกหนี้</th>
-            <th style="min-width:120px;">ยูนิต/สถานที่</th>
-            <th style="width:110px;" class="r">ยอดยกมา (บาท)</th>
-            <th style="width:140px;" class="c">วันที่รับชำระ</th>
-            <th style="width:150px;" class="c">เลขที่ใบเสร็จ</th>
-            <th style="width:130px;" class="r">จำนวนเงินรับชำระ</th>
-          </tr>
-        </thead>
-        <tbody id="ledgerPayModalBody">
-          <!-- Items will be populated dynamically -->
-        </tbody>
-      </table>
-    </div>
-
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span style="font-size:12px; color:var(--muted-color);">💡 ปุ่มสีฟ้าคือการส่งยอดรอส่วนกลางตรวจสอบ</span>
-      <div style="display:flex; gap:8px;">
-        <button class="sm ghost" onclick="closeLedgerPayModal()">ยกเลิก</button>
-        <button class="act" onclick="savePendingPay()" style="background:#0284c7; font-weight:700;">💾 บันทึกยอด (รอส่วนกลางตรวจสอบ)</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- โมดัล ส่วนกลางตรวจสอบและอนุมัติตัดยอดชำระเงิน -->
-<div class="modal-bg" id="approveModal" style="z-index:1100;">
-  <div class="modal" style="max-width:900px; width:95%; padding:20px; border-radius:16px;">
-    <h3 style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-      <span>✅ ส่วนกลางอนุมัติตัดยอดชำระเงิน (Central Approval)</span>
-      <button class="sm ghost" onclick="closeApproveModal()">✕</button>
-    </h3>
-    <div style="background:#fef3c7; border:1px solid #fde68a; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:12.5px; color:#92400e;">
-      ⚠️ <b>คำเตือน:</b> การอนุมัติจะทำการตัดยอดหนี้และปรับปรุงยอดยกไป (โซนสีเขียว) ในฐานข้อมูลจริง
-    </div>
-    <div style="max-height:50vh; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:14px;">
-      <table style="width:100%; font-size:12px; border-collapse:collapse;">
-        <thead>
-          <tr style="background:#f8fafc; color:var(--navy);">
-            <th style="width:40px;" class="c">ลำดับ</th>
-            <th style="min-width:180px;">รายชื่อลูกหนี้</th>
-            <th style="width:100px;" class="c">วันที่รับเงิน</th>
-            <th style="width:120px;" class="c">เลขที่ใบเสร็จ</th>
-            <th style="width:110px;" class="r">ยอดชำระ</th>
-            <th style="width:110px;" class="c">ผู้ขออนุมัติ</th>
-            <th style="width:80px;" class="c">อนุมัติ</th>
-          </tr>
-        </thead>
-        <tbody id="approveModalBody">
-          <!-- Items populated dynamically -->
-        </tbody>
-      </table>
-    </div>
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
-      <button class="sm ghost" onclick="closeApproveModal()">ปิดหน้าต่าง</button>
-    </div>
-  </div>
-</div>
+<!-- คอนเทนเนอร์จริงสำหรับสั่งพิมพ์ (พิมพ์ซ่อนอยู่ในหน้าเว็บ) -->
+<div id="printLetterContainer" style="display: none;"></div>
 
 <div id="toast"></div>
 
 <footer>
   <div>ระบบติดตามหนี้เช่า (Lease Receivables Tracker) · ความปลอดภัยระดับองค์กร</div>
-  <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">@2026 องค์การสะพานปลา (อสป.) สงวนลิขสิทธิ์</div>
+  <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">@ 2026 องค์การสะพานปลา By สำนักงานเทคโนโลยีสารสนเทศ</div>
 </footer>
 
 <script>
@@ -959,7 +866,6 @@ function renderAll() {
   }
 
   if (D.dash) renderKPI();
-  if (D.feeReport) renderFeeBreakdownTable();
   if (D.aging) renderBars();
   if (D.invoices) renderTop();
   if (D.prov) renderProvSummary();
@@ -968,10 +874,9 @@ function renderAll() {
   if (D.prov) renderMatrix();
   if (D.aging) renderAgingByC();
   if (D.invoices) renderDun();
-  loadPortLedger();
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.role === 'admin' || user.role === 'manager' || user.role === 'viewer') {
+  if (user.role === 'admin' || user.role === 'manager') {
     loadAudit();
   }
 }
@@ -1025,29 +930,31 @@ function hideLoginModal(user) {
 }
 
 function applyRolePermissions(user) {
-  const isBilling = (user.role === 'admin' || user.role === 'billing');
-  const isCashier = (user.role === 'admin' || user.role === 'cashier');
-  const isManager = (user.role === 'admin' || user.role === 'manager');
+  const role = user ? user.role : '';
+  const isBilling = (role === 'admin' || role === 'billing');
+  const isCashier = (role === 'admin' || role === 'cashier');
+  const isManager = (role === 'admin' || role === 'manager');
+  const isViewer = (role === 'viewer');
   
   document.getElementById('addContractBtn').style.display = isBilling ? '' : 'none';
   document.getElementById('genInvoicesBtn').style.display = isBilling ? '' : 'none';
   document.getElementById('saveRatesBtn').style.display = isManager ? '' : 'none';
   document.getElementById('runJobBtn').style.display = isManager ? '' : 'none';
   
-  const billingTabs = ['dash', 'contracts', 'invoices', 'aging', 'portLedger'];
-  const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning', 'portLedger'];
-  const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'portLedger', 'audit'];
-  const viewerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'portLedger', 'audit'];
+  const billingTabs = ['dash', 'contracts', 'invoices', 'aging'];
+  const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning'];
+  const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
+  const viewerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
   
   document.querySelectorAll('nav button').forEach(btn => {
     const tabName = btn.getAttribute('data-tab');
-    if (user.role === 'admin' || user.role === 'viewer') {
+    if (role === 'admin' || role === 'viewer') {
       btn.style.display = 'block';
-    } else if (user.role === 'billing' && billingTabs.includes(tabName)) {
+    } else if (role === 'billing' && billingTabs.includes(tabName)) {
       btn.style.display = 'block';
-    } else if (user.role === 'cashier' && cashierTabs.includes(tabName)) {
+    } else if (role === 'cashier' && cashierTabs.includes(tabName)) {
       btn.style.display = 'block';
-    } else if (user.role === 'manager' && managerTabs.includes(tabName)) {
+    } else if (role === 'manager' && managerTabs.includes(tabName)) {
       btn.style.display = 'block';
     } else {
       btn.style.display = 'none';
@@ -1101,39 +1008,42 @@ async function loadAll() {
   }
   
   try {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = JSON.parse(localStorage.getItem('user'));
     hideLoginModal(user);
     
     // โหลดข้อมูล 17 หน่วยงานเสมอ
-    await loadBranches().catch(e => console.warn('loadBranches error:', e));
+    await loadBranches();
 
     const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
     const q = '?asof=' + asof() + (selectedBranch !== 'all' ? '&branch_id=' + selectedBranch : '');
     const cQuery = selectedBranch !== 'all' ? '?branch_id=' + selectedBranch : '';
 
-    const safeApi = path => api(path).catch(e => { console.warn('API error for ' + path, e); return null; });
-
     const promises = [
-      safeApi('/dashboard' + q),
-      safeApi('/contracts' + cQuery),
-      safeApi('/invoices' + q),
-      safeApi('/reports/fee-breakdown' + q),
-      safeApi('/aging' + q),
-      safeApi('/provision' + q),
-      safeApi('/provision/rates')
+      api('/dashboard' + q),
+      api('/contracts' + cQuery),
+      api('/invoices' + q)
     ];
     
-    const [dash, contracts, invoices, feeReport, aging, prov, rates] = await Promise.all(promises);
-    D = {
-      ...D,
-      dash: dash || D.dash,
-      contracts: contracts || D.contracts || [],
-      invoices: invoices || D.invoices || [],
-      feeReport: feeReport || D.feeReport,
-      aging: aging || D.aging,
-      prov: prov || D.prov,
-      rates: rates || D.rates || {}
-    };
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing' || user.role === 'viewer') {
+      promises.push(api('/aging' + q));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'viewer') {
+      promises.push(api('/provision' + q));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing' || user.role === 'viewer') {
+      promises.push(api('/provision/rates'));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+    
+    const [dash, contracts, invoices, aging, prov, rates] = await Promise.all(promises);
+    D = { ...D, dash, contracts, invoices, aging, prov, rates };
     
     document.getElementById('dbdot').style.background = '#22c55e';
     document.getElementById('dbdot').style.boxShadow = '0 0 8px #22c55e';
@@ -1150,136 +1060,40 @@ async function loadAll() {
   }
 }
 
-function renderFeeBreakdownTable() {
-  if (!D.feeReport || !D.feeReport.categories) return;
-  const tbl = document.getElementById('feeBreakdownTable');
-  if (!tbl) return;
-  const q = (document.getElementById('feeSearch')?.value || '').toLowerCase().trim();
+function renderAll() {
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+  const banner = document.getElementById('singleBranchBanner');
+  const multiGrid = document.getElementById('multiBranchGridPanel');
+  const multiTable = document.getElementById('multiBranchTablePanel');
 
-  let list = D.feeReport.categories.filter(r => {
-    const name = (r.category || r.category_name || r.label || '').toLowerCase();
-    return !q || name.includes(q);
-  });
+  if (selectedBranch === 'all') {
+    banner.style.display = 'none';
+    multiGrid.style.display = 'block';
+    multiTable.style.display = 'block';
+    renderMultiBranchGrid();
+    renderMultiBranchTable();
+  } else {
+    banner.style.display = 'flex';
+    const brInfo = (D.branches || []).find(b => b.id === selectedBranch);
+    document.getElementById('singleBranchTitle').textContent = brInfo ? `${brInfo.name} (${brInfo.region})` : selectedBranch;
+    multiGrid.style.display = 'none';
+    multiTable.style.display = 'none';
+  }
 
-  // 1. เรียงลำดับจากยอดรวมหนี้ค้างสุทธิมากไปน้อย (Sort Descending by Total AR)
-  list.sort((a, b) => {
-    const totA = a.total_ar || a.total || 0;
-    const totB = b.total_ar || b.total || 0;
-    return totB - totA;
-  });
-
-  const maxTotal = Math.max(...list.map(r => r.total_ar || r.total || 0), 1);
-  const grandTotalSum = list.reduce((sum, r) => sum + (r.total_ar || r.total || 0), 0);
-
-  let h = `
-    <thead>
-      <tr style="background:#f8fafc; font-size:12px; color:var(--navy);">
-        <th style="width:40px; padding:8px 6px;" class="c">ลำดับ</th>
-        <th style="min-width:200px; padding:8px 6px;">รหัสบัญชี &amp; หมวดหมู่ค่าธรรมเนียม / ค่าเช่า</th>
-        <th style="width:110px; padding:8px 6px;" class="r">ยังไม่ครบกำหนด</th>
-        <th style="width:110px; padding:8px 6px;" class="r">1–30 วัน</th>
-        <th style="width:110px; padding:8px 6px;" class="r">31–60 วัน</th>
-        <th style="width:110px; padding:8px 6px;" class="r">61–90 วัน</th>
-        <th style="width:110px; padding:8px 6px;" class="r">91–180 วัน</th>
-        <th style="width:110px; padding:8px 6px;" class="r">181–365 วัน</th>
-        <th style="width:110px; padding:8px 6px;" class="r">เกิน 365 วัน</th>
-        <th style="width:130px; padding:8px 6px;" class="r">รวมหนี้ค้างสุทธิ</th>
-        <th style="width:75px; padding:8px 6px;" class="c">สัดส่วน</th>
-      </tr>
-    </thead>
-    <tbody>
-  `;
-
-  let grandCur = 0, grandB1 = 0, grandB2 = 0, grandB3 = 0, grandB4 = 0, grandB5 = 0, grandB6 = 0, grandTotal = 0;
-
-  list.forEach((r, idx) => {
-    const name = r.category || r.category_name || r.label || 'ไม่ระบุหมวดหมู่';
-    const cur = r.cur || 0;
-    const b1 = r.b1 || 0;
-    const b2 = r.b2 || 0;
-    const b3 = r.b3 || 0;
-    const b4 = r.b4 || 0;
-    const b5 = r.b5 || 0;
-    const b6 = r.b6 || 0;
-    const tot = r.total_ar || r.total || 0;
-
-    grandCur += cur;
-    grandB1 += b1;
-    grandB2 += b2;
-    grandB3 += b3;
-    grandB4 += b4;
-    grandB5 += b5;
-    grandB6 += b6;
-    grandTotal += tot;
-
-    const pctVal = grandTotalSum > 0 ? ((tot / grandTotalSum) * 100) : 0;
-    const pct = pctVal.toFixed(1);
-    const ratio = tot > 0 ? (tot / maxTotal) : 0;
-
-    // คำนวณเฉดสีเข้มไปอ่อนตามสัดส่วนยอดเงิน (Heatmap dynamic shading from dark to light)
-    let cellBg = 'transparent', cellText = '#334155', cellFontWeight = '600';
-    if (tot > 0) {
-      if (ratio >= 0.5) {
-        // เข้มสุด (Highest) - Deep Rose/Red
-        cellBg = `rgba(225, 29, 72, ${0.18 + ratio * 0.22})`;
-        cellText = '#881337';
-        cellFontWeight = '800';
-      } else if (ratio >= 0.2) {
-        // เข้มปานกลาง (Medium High) - Warm Coral/Orange
-        cellBg = `rgba(249, 115, 22, ${0.15 + ratio * 0.15})`;
-        cellText = '#7c2d12';
-        cellFontWeight = '700';
-      } else if (ratio >= 0.05) {
-        // ปานกลาง (Medium) - Amber/Yellow
-        cellBg = `rgba(245, 158, 11, ${0.12 + ratio * 0.12})`;
-        cellText = '#78350f';
-        cellFontWeight = '700';
-      } else {
-        // อ่อน (Low) - Light Soft Blue
-        cellBg = 'rgba(59, 130, 246, 0.08)';
-        cellText = '#1e3a8a';
-        cellFontWeight = '600';
-      }
-    } else {
-      cellText = '#94a3b8';
-    }
-
-    h += `
-      <tr style="border-bottom:1px solid #e2e8f0; background:${idx % 2 === 0 ? '#fff' : '#f8fafc'};">
-        <td class="c"><b>${idx + 1}</b></td>
-        <td><b style="color:var(--navy);">${name}</b></td>
-        <td class="r num" style="color:#166534;">${cur > 0 ? fmt(cur) : '-'}</td>
-        <td class="r num" style="color:#1d4ed8;">${b1 > 0 ? fmt(b1) : '-'}</td>
-        <td class="r num" style="color:#854d0e;">${b2 > 0 ? fmt(b2) : '-'}</td>
-        <td class="r num" style="color:#c2410c;">${b3 > 0 ? fmt(b3) : '-'}</td>
-        <td class="r num" style="color:#dc2626;">${b4 > 0 ? fmt(b4) : '-'}</td>
-        <td class="r num" style="color:#991b1b;">${b5 > 0 ? fmt(b5) : '-'}</td>
-        <td class="r num" style="color:#7f1d1d; font-weight:700;">${b6 > 0 ? fmt(b6) : '-'}</td>
-        <td class="r num" style="font-weight:${cellFontWeight}; color:${cellText}; background:${cellBg};">${fmt(tot)}</td>
-        <td class="c" style="font-weight:${cellFontWeight}; color:${cellText}; background:${cellBg};">${pct}%</td>
-      </tr>
-    `;
-  });
-
-  h += `
-    </tbody>
-    <tfoot>
-      <tr style="background:#f1f5f9; font-weight:bold; font-size:12.5px; border-top:2px solid #cbd5e1;">
-        <td colspan="2" class="r" style="padding:8px;"><b>รวมหนี้ค้างชำระทั้งหมด (Grand Total)</b></td>
-        <td class="r num" style="color:#166534;"><b>${fmt(grandCur)}</b></td>
-        <td class="r num" style="color:#1d4ed8;"><b>${fmt(grandB1)}</b></td>
-        <td class="r num" style="color:#854d0e;"><b>${fmt(grandB2)}</b></td>
-        <td class="r num" style="color:#c2410c;"><b>${fmt(grandB3)}</b></td>
-        <td class="r num" style="color:#dc2626;"><b>${fmt(grandB4)}</b></td>
-        <td class="r num" style="color:#991b1b;"><b>${fmt(grandB5)}</b></td>
-        <td class="r num" style="color:#7f1d1d;"><b>${fmt(grandB6)}</b></td>
-        <td class="r num" style="color:#be123c; font-size:13.5px; font-weight:800; background:#fecdd3;"><b>${fmt(grandTotal)}</b></td>
-        <td class="c"><b>100%</b></td>
-      </tr>
-    </tfoot>
-  `;
-
-  tbl.innerHTML = h;
+  if (D.dash) renderKPI();
+  if (D.aging) renderBars();
+  if (D.invoices) renderTop();
+  if (D.prov) renderProvSummary();
+  if (D.contracts) renderContracts();
+  if (D.invoices) renderInvoices();
+  if (D.prov) renderMatrix();
+  if (D.aging) renderAgingByC();
+  if (D.invoices) renderDun();
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.role === 'admin' || user.role === 'manager' || user.role === 'viewer') {
+    loadAudit();
+  }
 }
 
 function renderMultiBranchGrid() {
@@ -1452,17 +1266,36 @@ function renderProvSummary() {
   document.getElementById('provSummary').innerHTML = h;
 }
 
+function toggleSelectAllContracts(master) {
+  document.querySelectorAll('.c-select').forEach(cb => {
+    cb.checked = master.checked;
+  });
+  updateSelectedContractsCount();
+}
+
+function updateSelectedContractsCount() {
+  const selected = document.querySelectorAll('.c-select:checked');
+  const countSpan = document.getElementById('selectedContractsCount');
+  if (countSpan) {
+    countSpan.textContent = selected.length > 0 ? `(เลือก ${selected.length} รายการ)` : '';
+  }
+}
+
 function renderContracts() {
   const q = (document.getElementById('cSearch').value || '').toLowerCase();
-  let h = '<tr><th>รหัสสัญญา</th><th>ผู้เช่า / เลขผู้เสียภาษี</th><th>ยูนิต</th><th class="r">ค่าเช่า/ด.</th><th class="r">บริการ/ด.</th><th class="r">เงินประกันคงเหลือ</th><th class="c">ความเสี่ยง</th><th class="r">ยอดหนี้ค้าง</th><th></th></tr>';
-  
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isBilling = (user.role === 'admin' || user.role === 'billing');
+
+  let h = `<tr>
+    ${isBilling ? '<th class="c" style="width:36px;"><input type="checkbox" id="selectAllContracts" onchange="toggleSelectAllContracts(this)"></th>' : ''}
+    <th>รหัสสัญญา</th><th>ผู้เช่า / เลขผู้เสียภาษี</th><th>ยูนิต</th><th class="r">ค่าเช่า/ด.</th><th class="r">บริการ/ด.</th><th class="r">เงินประกันคงเหลือ</th><th class="c">ความเสี่ยง</th><th class="r">ยอดหนี้ค้าง</th><th></th>
+  </tr>`;
   
   D.contracts.filter(c => !q || (c.tenant || '').toLowerCase().includes(q) || (c.unit || '').toLowerCase().includes(q) || (c.branch_name || '').toLowerCase().includes(q)).forEach(c => {
     const btnLabel = isBilling ? 'แก้ไข' : 'ดูสัญญา';
     h += `
       <tr>
+        ${isBilling ? `<td class="c"><input type="checkbox" class="c-select" value="${c.id}" onchange="updateSelectedContractsCount()"></td>` : ''}
         <td><b>${c.id}</b></td>
         <td><b>${c.tenant}</b><div class="muted">${c.tax_id || '-'}</div></td>
         <td><span class="badge" style="background:var(--light-blue); color:var(--blue); margin:0;">${c.unit || '-'}</span></td>
@@ -1475,6 +1308,7 @@ function renderContracts() {
       </tr>`;
   });
   document.getElementById('contractTable').innerHTML = h;
+  updateSelectedContractsCount();
 }
 
 function renderInvoices() {
@@ -1747,10 +1581,52 @@ async function delContract() {
   }
 }
 
-async function genAll() {
+let pendingGenMode = 'all';
+let pendingSelectedIds = [];
+
+function genAll() {
+  const selected = Array.from(document.querySelectorAll('.c-select:checked')).map(cb => cb.value);
+  const modalBody = document.getElementById('genInvoiceModalBody');
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+  
+  if (selected.length > 0) {
+    pendingGenMode = 'selected';
+    pendingSelectedIds = selected;
+    modalBody.innerHTML = `
+      <div class="note" style="margin-bottom:12px;"><b>การสร้างใบแจ้งหนี้แบบระบุสัญญา:</b> คุณได้เลือกสัญญาเช่าจำนวน <b style="color:var(--accent); font-size:15px;">${selected.length} รายการ</b></div>
+      คุณต้องการออกใบแจ้งหนี้ประจำเดือนงวดถัดไปสำหรับ <b>${selected.length} สัญญาที่เลือก</b> นี้หรือไม่?
+    `;
+  } else {
+    pendingGenMode = 'all';
+    pendingSelectedIds = [];
+    const branchText = selectedBranch === 'all' ? 'ทุกส่วนงาน (17 หน่วยงาน)' : ('ส่วนงาน ' + selectedBranch);
+    modalBody.innerHTML = `
+      <div class="note" style="margin-bottom:12px;"><b>คำเตือน (ออกทุกสัญญา):</b> คุณยังไม่ได้เลือกสัญญาแบบระบุรายตัว</div>
+      คุณต้องการออกใบแจ้งหนี้ประจำเดือนงวดถัดไปสำหรับ <b>สัญญาเช่าทั้งหมดใน ${branchText}</b> หรือไม่?
+    `;
+  }
+  
+  document.getElementById('genInvoiceModal').classList.add('on');
+}
+
+async function confirmGenInvoices() {
+  closeM('genInvoiceModal');
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
   try {
-    const r = await api('/invoices/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: 'all' }) });
-    toast('สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
+    let payload = {};
+    if (pendingGenMode === 'selected' && pendingSelectedIds.length > 0) {
+      payload = { contract_ids: pendingSelectedIds };
+    } else {
+      payload = { contract_id: 'all', branch_id: selectedBranch };
+    }
+    
+    const r = await api('/invoices/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    toast('🎉 สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
     loadAll();
   } catch (e) {
     toast(e.message);
@@ -2292,338 +2168,6 @@ function showTab(id, btn) {
     const targetBtn = document.querySelector(`nav button[data-tab="${id}"]`);
     if (targetBtn) targetBtn.classList.add('active');
   }
-}
-
-// ========== PORT LEDGER FUNCTIONS ==========
-async function loadPortLedger() {
-  const branchId = document.getElementById('branchSelect')?.value || 'all';
-  const period = document.getElementById('portLedgerPeriod')?.value || '2026-07';
-
-  try {
-    const data = await api('/port-ledgers?branch_id=' + branchId + '&period=' + period);
-    D.portLedgers = data || [];
-    renderPortLedgerTable();
-  } catch (err) {
-    console.error('Error loading port ledgers:', err);
-  }
-}
-
-function renderPortLedgerTable() {
-  const tbl = document.getElementById('portLedgerTable');
-  if (!tbl) return;
-  
-  const searchQ = (document.getElementById('portLedgerSearch')?.value || '').toLowerCase().trim();
-  let list = (D.portLedgers || []).filter(r => {
-    const name = (r.customer_name || '').toLowerCase();
-    const unit = (r.unit_no || '').toLowerCase();
-    return !searchQ || name.includes(searchQ) || unit.includes(searchQ);
-  });
-
-  const totalItems = list.length;
-  document.getElementById('portLedgerCountText').textContent = `รายการที่ 1 - ${totalItems} จากทั้งหมด ${totalItems} รายการ`;
-
-  let totBgAmt = 0, totBgVat = 0, totBgTotal = 0;
-  let totPayAmt = 0;
-  let totEdAmt = 0, totEdVat = 0, totEdTotal = 0;
-
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isCentral = (user.role === 'admin' || user.role === 'manager' || user.role === 'cashier');
-
-  let h = `
-    <thead>
-      <tr style="background:#f8fafc; font-size:11px; color:var(--navy);">
-        <th style="width:30px;" class="c"><input type="checkbox" onchange="toggleAllLedgerCheck(this)"></th>
-        <th style="width:40px;" class="c">ลำดับ</th>
-        <th style="min-width:180px;">รายชื่อ</th>
-        <th style="min-width:130px;">สถานที่ตั้ง / ทะเบียน</th>
-        <th style="width:90px;" class="r">อัตราค่าเช่า</th>
-        
-        <th style="width:75px;" class="c">ค้างตั้งแต่</th>
-        <th style="width:45px;" class="c">งวด</th>
-        <th style="width:55px;" class="c">อายุ(ด.)</th>
-        <th style="width:85px;" class="r">จำนวนเงิน</th>
-        <th style="width:75px;" class="r">ภาษี</th>
-        <th style="width:95px;" class="r">รวมยกมา</th>
-
-        <th style="width:80px;" class="c">วดป.</th>
-        <th style="width:110px;" class="c">เลขที่ใบเสร็จ</th>
-        <th style="width:95px;" class="r">จำนวนเงิน</th>
-        <th style="width:90px;" class="c">สถานะรับยอด</th>
-
-        <th style="width:75px;" class="c">ค้างตั้งแต่</th>
-        <th style="width:45px;" class="c">งวด</th>
-        <th style="width:55px;" class="c">อายุ(ด.)</th>
-        <th style="width:85px;" class="r">จำนวนเงิน</th>
-        <th style="width:75px;" class="r">ภาษี</th>
-        <th style="width:95px;" class="r">รวมยกไป</th>
-        <th style="width:80px;" class="c">การดำเนินการ</th>
-      </tr>
-    </thead>
-    <tbody>
-  `;
-
-  list.forEach((r, idx) => {
-    const bgAmt = r.bg_amount || 0;
-    const bgVat = r.bg_vat || 0;
-    const bgTot = r.bg_total || 0;
-    const payAmt = r.pay_amount || 0;
-    const edAmt = r.ed_amount || 0;
-    const edVat = r.ed_vat || 0;
-    const edTot = r.ed_total || 0;
-
-    totBgAmt += bgAmt;
-    totBgVat += bgVat;
-    totBgTotal += bgTot;
-    totPayAmt += payAmt;
-    totEdAmt += edAmt;
-    totEdVat += edVat;
-    totEdTotal += edTot;
-
-    const isPending = r.pay_status === 'pending_approval';
-    const isApproved = r.pay_status === 'approved';
-    const hasPayAmt = (r.pay_amount || 0) > 0;
-
-    let statusBadge = `<span class="badge" style="background:#f1f5f9; color:#64748b; font-size:10px;">ยังไม่บันทึก</span>`;
-    if (isPending) {
-      statusBadge = `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700; font-size:10px;">⏳ รอส่วนกลางตรวจสอบ</span>`;
-    } else if (isApproved) {
-      statusBadge = `<span class="badge" style="background:#dcfce7; color:#15803d; font-weight:700; font-size:10px;">✓ อนุมัติตัดยอดแล้ว</span>`;
-    } else if (hasPayAmt) {
-      statusBadge = `<span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700; font-size:10px;">บันทึกยอดแล้ว</span>`;
-    }
-
-    h += `
-      <tr style="border-bottom:1px solid #e2e8f0; font-size:12px;">
-        <td class="c"><input type="checkbox" class="ledger-chk" value="${r.id}" onchange="updateLedgerCheckSummary()"></td>
-        <td class="c"><b>${idx + 1}</b></td>
-        <td><b style="color:var(--navy);">${r.customer_name}</b></td>
-        <td><span class="muted">${r.unit_no || '-'}</span></td>
-        <td class="r num">${r.rate > 0 ? fmt(r.rate) : '-'}</td>
-
-        <td class="c" style="color:#b91c1c;">${r.bg_overdue_from || '-'}</td>
-        <td class="c">${r.bg_periods || '-'}</td>
-        <td class="c">${r.bg_overdue_months || '-'}</td>
-        <td class="r num">${bgAmt > 0 ? fmt(bgAmt) : '-'}</td>
-        <td class="r num">${bgVat > 0 ? fmt(bgVat) : '-'}</td>
-        <td class="r num" style="color:#b91c1c; font-weight:700; background:#fff1f2;">${bgTot > 0 ? fmt(bgTot) : '-'}</td>
-
-        <td class="c" style="color:#854d0e;">${r.pay_date || '-'}</td>
-        <td class="c" style="color:#854d0e; font-weight:600;">${r.pay_receipt_no || '-'}</td>
-        <td class="r num" style="color:#854d0e; font-weight:700; background:#fefce8;">${payAmt > 0 ? fmt(payAmt) : '-'}</td>
-        <td class="c">${statusBadge}</td>
-
-        <td class="c" style="color:#15803d;">${r.ed_overdue_from || '-'}</td>
-        <td class="c">${r.ed_periods || '-'}</td>
-        <td class="c">${r.ed_overdue_months || '-'}</td>
-        <td class="r num">${edAmt > 0 ? fmt(edAmt) : (bgTot > 0 || payAmt > 0 ? '0' : '-')}</td>
-        <td class="r num">${edVat > 0 ? fmt(edVat) : (bgTot > 0 || payAmt > 0 ? '0' : '-')}</td>
-        <td class="r num" style="color:${edTot > 0 ? '#15803d' : '#166534'}; font-weight:800; background:#f0fdf4;">${bgTot > 0 || payAmt > 0 ? fmt(edTot) : '-'}</td>
-
-        <td class="c">
-          ${isPending && isCentral ? `
-            <button class="sm act" style="padding:2px 8px; font-size:11px; background:#16a34a; font-weight:700;" onclick="approveSinglePayment(${r.id})">
-              ✅ อนุมัติ
-            </button>
-          ` : `
-            <button class="sm ${isApproved ? 'ghost' : 'act'}" style="padding:2px 6px; font-size:11px;" onclick="openLedgerPayModal('${encodeURIComponent(r.customer_name)}')">
-              ${isApproved ? '✓ อนุมัติแล้ว' : '💵 บันทึก'}
-            </button>
-          `}
-        </td>
-      </tr>
-    `;
-  });
-
-  h += `
-    </tbody>
-    <tfoot>
-      <tr style="background:#f1f5f9; font-weight:bold; font-size:12px; border-top:2px solid #cbd5e1;">
-        <td colspan="5" class="r" style="padding:8px;"><b>รวมทั้งสิ้น (${fmt(totalItems)} รายการ)</b></td>
-        
-        <td colspan="3" class="c" style="background:#fee2e2; color:#991b1b;"><b>ค้างยกมา</b></td>
-        <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmt(totBgAmt)}</b></td>
-        <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmt(totBgVat)}</b></td>
-        <td class="r num" style="background:#fca5a5; color:#7f1d1d; font-weight:800;"><b>${fmt(totBgTotal)}</b></td>
-
-        <td colspan="3" class="c" style="background:#fef9c3; color:#854d0e;"><b>รวมชำระ</b></td>
-        <td class="r num" style="background:#fde047; color:#713f12; font-weight:800;"><b>${fmt(totPayAmt)}</b></td>
-
-        <td colspan="3" class="c" style="background:#dcfce7; color:#166534;"><b>ค้างยกไป</b></td>
-        <td class="r num" style="background:#dcfce7; color:#166534;"><b>${fmt(totEdAmt)}</b></td>
-        <td class="r num" style="background:#dcfce7; color:#166534;"><b>${fmt(totEdVat)}</b></td>
-        <td class="r num" style="background:#86efac; color:#14532d; font-weight:800;"><b>${fmt(totEdTotal)}</b></td>
-
-        <td></td>
-      </tr>
-    </tfoot>
-  `;
-
-  tbl.innerHTML = h;
-  updateLedgerCheckSummary();
-}
-
-function updateLedgerCheckSummary() {
-  const chks = document.querySelectorAll('.ledger-chk:checked');
-  const count = chks.length;
-  let totalAmt = 0;
-  chks.forEach(chk => {
-    const id = parseInt(chk.value);
-    const item = (D.portLedgers || []).find(x => x.id === id);
-    if (item) totalAmt += (item.pay_amount || item.bg_total || 0);
-  });
-  const btn = document.getElementById('ledgerPaySelectedBtn');
-  if (btn) {
-    btn.style.display = count > 0 ? 'inline-flex' : 'none';
-    btn.textContent = `💵 บันทึกรับยอด (${count} รายการ - ${fmt(totalAmt)} บาท)`;
-  }
-}
-
-function toggleAllLedgerCheck(master) {
-  document.querySelectorAll('.ledger-chk').forEach(c => c.checked = master.checked);
-  updateLedgerCheckSummary();
-}
-
-const today = () => document.getElementById('asof')?.value || new Date().toISOString().split('T')[0];
-
-async function openLedgerPayModal(customerName) {
-  if (!D.portLedgers || !D.portLedgers.length) {
-    await loadPortLedger();
-  }
-  const decodedName = customerName ? decodeURIComponent(customerName) : '';
-  const searchInput = document.getElementById('lp_search_name');
-  if (searchInput) searchInput.value = decodedName;
-  
-  filterLedgerPayItems();
-  
-  const modal = document.getElementById('ledgerPayModal');
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeLedgerPayModal() {
-  const modal = document.getElementById('ledgerPayModal');
-  if (modal) modal.style.display = 'none';
-}
-
-function filterLedgerPayItems() {
-  const tbody = document.getElementById('ledgerPayModalBody');
-  if (!tbody) return;
-
-  const searchQ = (document.getElementById('lp_search_name')?.value || '').toLowerCase().trim();
-  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
-
-  let list = (D.portLedgers || []).filter(r => {
-    const nameMatch = !searchQ || (r.customer_name || '').toLowerCase().includes(searchQ);
-    const branchMatch = (selectedBranch === 'all' || r.branch_id === selectedBranch);
-    return nameMatch && branchMatch;
-  });
-
-  if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="c muted" style="padding:20px;">ไม่พบรายการลูกหนี้ตรงตามเงื่อนไขค้นหา</td></tr>';
-    return;
-  }
-
-  let h = '';
-  list.forEach((r, idx) => {
-    const curDate = r.pay_date || today();
-    const curRcpt = r.pay_receipt_no || '';
-    const curAmt = r.pay_amount || r.bg_total || 0;
-
-    h += `
-      <tr data-id="${r.id}">
-        <td class="c"><b>${idx + 1}</b></td>
-        <td><b>${r.customer_name}</b></td>
-        <td><span class="muted">${r.unit_no || '-'}</span></td>
-        <td class="r num" style="color:#b91c1c; font-weight:700;">${fmt(r.bg_total)}</td>
-        <td class="c"><input type="date" class="lp-date" value="${curDate}" style="width:130px; font-size:12px; padding:4px;"></td>
-        <td class="c"><input type="text" class="lp-rcpt" value="${curRcpt}" placeholder="เดิม: ${r.receipt_no || '-'}" style="width:140px; font-size:12px; padding:4px;"></td>
-        <td class="r"><input type="number" class="lp-amt" value="${curAmt}" placeholder="เดิม: ${fmt(r.bg_total)}" style="width:120px; font-size:12px; padding:4px; text-align:right; font-weight:700; color:#0284c7;"></td>
-      </tr>
-    `;
-  });
-  tbody.innerHTML = h;
-}
-
-async function savePendingPay() {
-  const rows = document.querySelectorAll('#ledgerPayModalBody tr[data-id]');
-  const items = [];
-  rows.forEach(tr => {
-    const id = parseInt(tr.getAttribute('data-id'));
-    const pay_date = tr.querySelector('.lp-date')?.value || today();
-    const pay_receipt_no = tr.querySelector('.lp-rcpt')?.value || '';
-    const pay_amount = parseFloat(tr.querySelector('.lp-amt')?.value) || 0;
-    if (id) {
-      items.push({ id, pay_date, pay_receipt_no, pay_amount });
-    }
-  });
-
-  if (!items.length) {
-    toast('ไม่พบรายการที่ต้องการบันทึก');
-    return;
-  }
-
-  try {
-    const res = await api('/port-ledgers/save-pending-pay', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items })
-    });
-    closeLedgerPayModal();
-    toast(res.message || 'บันทึกข้อมูลสำเร็จ รอส่วนกลางตรวจสอบ');
-    await loadPortLedger();
-  } catch (err) {
-    toast(err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-  }
-}
-
-async function approveSinglePayment(id) {
-  if (!confirm('ยืนยันการอนุมัติตัดยอดชำระเงินสำหรับรายการนี้หรือไม่?')) return;
-  try {
-    const res = await api('/port-ledgers/approve-pay', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: [id] })
-    });
-    toast(res.message || 'อนุมัติตัดยอดชำระเงินเรียบร้อยแล้ว');
-    await loadPortLedger();
-  } catch (err) {
-    toast(err.message || 'เกิดข้อผิดพลาดในการอนุมัติ');
-  }
-}
-
-function openApproveModal() {
-  const modal = document.getElementById('approveModal');
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeApproveModal() {
-  const modal = document.getElementById('approveModal');
-  if (modal) modal.style.display = 'none';
-}
-
-async function rollForwardLedger() {
-  if (!confirm('ยืนยันการยกยอดค้างยกไป (โซนสีเขียว) ไปตั้งต้นเป็นยอดยกมาของเดือนใหม่หรือไม่?')) return;
-  try {
-    const res = await api('/port-ledgers/roll-forward', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-    toast(res.message || 'ยกยอดไปตั้งต้นเดือนถัดไปสำเร็จ');
-    await loadPortLedger();
-  } catch (err) {
-    toast(err.message || 'เกิดข้อผิดพลาดในการยกยอด');
-  }
-}
-
-function exportLedgerCSV() {
-  if (!D.portLedgers || !D.portLedgers.length) return;
-  let csv = '\uFEFF';
-  csv += 'ลำดับ,รายชื่อ,สถานที่ตั้ง,อัตราค่าเช่า,ค้างตั้งแต่,งวด,อายุ(ด.),จำนวนเงินยกมา,ภาษียกมา,รวมยกมา,วดป.รับชำระ,เลขที่ใบเสร็จ,จำนวนเงินชำระ,สถานะรับยอด,ค้างตั้งแต่ยกไป,งวดยกไป,อายุยกไป,จำนวนเงินยกไป,ภาษียกไป,รวมยกไป\n';
-  D.portLedgers.forEach((r, idx) => {
-    csv += `"${idx+1}","${r.customer_name}","${r.unit_no||''}","${r.rate||0}","${r.bg_overdue_from||''}","${r.bg_periods||''}","${r.bg_overdue_months||0}","${r.bg_amount||0}","${r.bg_vat||0}","${r.bg_total||0}","${r.pay_date||''}","${r.pay_receipt_no||''}","${r.pay_amount||0}","${r.pay_status||''}","${r.ed_overdue_from||''}","${r.ed_periods||''}","${r.ed_overdue_months||0}","${r.ed_amount||0}","${r.ed_vat||0}","${r.ed_total||0}"\n`;
-  });
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `port_ledger_${document.getElementById('branchSelect')?.value || 'all'}.csv`;
-  a.click();
 }
 
 // ตั้งค่าวันที่เริ่มต้น (วันที่ปัจจุบัน)
