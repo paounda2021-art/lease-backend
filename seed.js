@@ -32,12 +32,34 @@ const branches = [
 const bins = db.prepare('INSERT INTO branches(id,code,name,region) VALUES(?,?,?,?)');
 branches.forEach(b => bins.run(...b));
 
-// 2. ข้อมูลผู้ใช้จำลอง
+// 2. ข้อมูลผู้ใช้งานระบบ
 const mockUsers = [
-  ['U-001', 'admin', bcrypt.hashSync('password123', 10), 'admin', 'สมชาย แอดมิน', null],
-  ['U-002', 'billing', bcrypt.hashSync('password123', 10), 'billing', 'วรรณา ฝ่ายวางบิล', 'C-02'],
-  ['U-003', 'cashier', bcrypt.hashSync('password123', 10), 'cashier', 'สมศรี ฝ่ายการเงิน', 'C-02'],
-  ['U-004', 'manager', bcrypt.hashSync('password123', 10), 'manager', 'เดชา ผู้จัดการฝ่ายการเงิน', null]
+  ['U-001', 'admin', bcrypt.hashSync('password123', 10), 'admin', 'ผู้ดูแลระบบหลัก (System Admin)', null],
+  
+  // Viewers (3 ท่าน)
+  ['U-002', 'preeda.y@fishmarket.co.th', bcrypt.hashSync('password123', 10), 'viewer', 'นายปรีดา ยังสุขสถาพร (ผอ.)', null],
+  ['U-003', 'preeda.y', bcrypt.hashSync('password123', 10), 'viewer', 'นายปรีดา ยังสุขสถาพร (ผอ.)', null],
+  ['U-004', 'supbhachart.c@fishmarket.co.th', bcrypt.hashSync('07170184', 10), 'viewer', 'นายศุภชาติ ชาสมบัติ (รองผู้อำนวยการด้านบริหาร)', null],
+  ['U-005', 'supbhachart.c', bcrypt.hashSync('07170184', 10), 'viewer', 'นายศุภชาติ ชาสมบัติ (รองผู้อำนวยการด้านบริหาร)', null],
+  ['U-006', 'thanachai.c@fishmarket.co.th', bcrypt.hashSync('07170078', 10), 'viewer', 'นายธนชัย ฉายศรี (เจ้าหน้าที่ตรวจสอบภายใน)', null],
+  ['U-007', 'thanachai.c', bcrypt.hashSync('07170078', 10), 'viewer', 'นายธนชัย ฉายศรี (เจ้าหน้าที่ตรวจสอบภายใน)', null],
+  
+  // Admins (5 ท่าน)
+  ['U-008', 'jiraporn.p@fishmarket.co.th', bcrypt.hashSync('07170164', 10), 'admin', 'น.ส.จิราพร พงษ์ศิริ (หัวหน้าสำนักงาน)', null],
+  ['U-009', 'jiraporn.p', bcrypt.hashSync('07170164', 10), 'admin', 'น.ส.จิราพร พงษ์ศิริ (หัวหน้าสำนักงาน)', null],
+  ['U-010', 'jareelak.m@fishmarket.co.th', bcrypt.hashSync('07170041', 10), 'admin', 'น.ส.จรีลักษณ์ เมืองอุดม (เจ้าหน้าที่การเงินและบัญชี)', null],
+  ['U-011', 'jareelak.m', bcrypt.hashSync('07170041', 10), 'admin', 'น.ส.จรีลักษณ์ เมืองอุดม (เจ้าหน้าที่การเงินและบัญชี)', null],
+  ['U-012', 'jittamas.p@fishmarket.co.th', bcrypt.hashSync('07170167', 10), 'admin', 'น.ส.จิตทามาศ ผลงาม (เจ้าหน้าที่บริหารงานทั่วไป)', null],
+  ['U-013', 'jittamas.p', bcrypt.hashSync('07170167', 10), 'admin', 'น.ส.จิตทามาศ ผลงาม (เจ้าหน้าที่บริหารงานทั่วไป)', null],
+  ['U-014', 'natmethinee.c@fishmarket.co.th', bcrypt.hashSync('07170146', 10), 'admin', 'น.ส.ณัฏฐ์เมธินี จงสัจจา (เจ้าหน้าที่การเงินและบัญชี)', null],
+  ['U-015', 'natmethinee.c', bcrypt.hashSync('07170146', 10), 'admin', 'น.ส.ณัฏฐ์เมธินี จงสัจจา (เจ้าหน้าที่การเงินและบัญชี)', null],
+  ['U-016', 'ranida.c@fishmarket.co.th', bcrypt.hashSync('07170065', 10), 'admin', 'น.ส.รณิดา โชติธนาอุดม (Admin System)', null],
+  ['U-017', 'ranida.c', bcrypt.hashSync('07170065', 10), 'admin', 'น.ส.รณิดา โชติธนาอุดม (Admin System)', null],
+  
+  // Roles จำลอง
+  ['U-018', 'billing', bcrypt.hashSync('password123', 10), 'billing', 'เจ้าหน้าที่ฝ่ายวางบิลและสัญญา', null],
+  ['U-019', 'cashier', bcrypt.hashSync('password123', 10), 'cashier', 'เจ้าหน้าที่ฝ่ายการเงินและรับชำระ', null],
+  ['U-020', 'manager', bcrypt.hashSync('password123', 10), 'manager', 'ผู้จัดการฝ่ายการเงินและอนุมัติ', null]
 ];
 const uins = db.prepare('INSERT INTO users(id,username,password,role,fullname,branch_id) VALUES(?,?,?,?,?,?)');
 mockUsers.forEach(u => uins.run(...u));

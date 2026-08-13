@@ -8,11 +8,18 @@ const db = new DatabaseSync(DB_PATH);
 db.exec('PRAGMA journal_mode = WAL;');
 db.exec('PRAGMA foreign_keys = ON;');
 
-// Migration: ตรวจสอบคอลัมน์ branch_id ใน contracts ก่อนรัน schema
+// Migration: ตรวจสอบคอลัมน์ในตารางต่าง ๆ ก่อนรัน schema
 try {
   const cols = db.prepare('PRAGMA table_info(contracts)').all();
   if (cols.length > 0 && !cols.some(c => c.name === 'branch_id')) {
     db.exec('ALTER TABLE contracts ADD COLUMN branch_id TEXT;');
+  }
+  const ledgerCols = db.prepare('PRAGMA table_info(port_ledgers)').all();
+  if (ledgerCols.length > 0 && !ledgerCols.some(c => c.name === 'pay_status')) {
+    db.exec("ALTER TABLE port_ledgers ADD COLUMN pay_status TEXT DEFAULT 'none';");
+    db.exec("ALTER TABLE port_ledgers ADD COLUMN pay_requested_by TEXT;");
+    db.exec("ALTER TABLE port_ledgers ADD COLUMN pay_approved_by TEXT;");
+    db.exec("ALTER TABLE port_ledgers ADD COLUMN pay_approved_at TEXT;");
   }
 } catch (e) {}
 
