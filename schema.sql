@@ -123,3 +123,42 @@ CREATE TABLE IF NOT EXISTS audit_log (
   entity_id TEXT,
   detail    TEXT
 );
+
+-- ทะเบียนคุมการรับชำระและยอดยกไปรายท่าเทียบเรือ/สะพานปลา (Port Ledger 3 Parts)
+CREATE TABLE IF NOT EXISTS port_ledgers (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  branch_id       TEXT NOT NULL REFERENCES branches(id),
+  period          TEXT NOT NULL,               -- งวด เช่น 2026-07
+  contract_id     TEXT REFERENCES contracts(id),
+  customer_name   TEXT NOT NULL,
+  category_name   TEXT NOT NULL,               -- ประเภทค่าธรรมเนียม/ค่าเช่า
+  location_detail TEXT,                        -- ทะเบียนรถ / ยูนิต / สถานที่ตั้ง
+  rate_amount     REAL DEFAULT 0,              -- อัตราค่าเช่า / ค่าธรรมเนียม
+  
+  -- 1. ข้อมูลตั้งต้น / ยอดค้างชำระยกมา (Beginning Balance)
+  bg_overdue_from TEXT,                        -- ค้างตั้งแต่
+  bg_periods      INTEGER DEFAULT 0,           -- งวดค้าง
+  bg_overdue_months INTEGER DEFAULT 0,         -- อายุหนี้ (เดือน)
+  bg_amount       REAL DEFAULT 0,              -- จำนวนเงินต้น
+  bg_vat          REAL DEFAULT 0,              -- ภาษี VAT
+  bg_total        REAL DEFAULT 0,              -- รวมค้างชำระยกมา
+  
+  -- 2. รับชำระมาตัดยอด (Payment Settlement)
+  pay_date        TEXT,                        -- วดป. ที่รับชำระ
+  pay_receipt_no  TEXT,                        -- เลขที่ใบเสร็จ
+  pay_amount      REAL DEFAULT 0,              -- จำนวนเงินที่รับชำระ
+  
+  -- 3. ค้างชำระยกไป (Ending Balance / Carried Forward)
+  ed_overdue_from TEXT,                        -- ค้างตั้งแต่
+  ed_periods      INTEGER DEFAULT 0,           -- งวดค้าง
+  ed_overdue_months INTEGER DEFAULT 0,         -- อายุหนี้ (เดือน)
+  ed_amount       REAL DEFAULT 0,              -- จำนวนเงินต้น
+  ed_vat          REAL DEFAULT 0,              -- ภาษี VAT
+  ed_total        REAL DEFAULT 0,              -- รวมค้างชำระยกไป
+  
+  status          TEXT DEFAULT 'unpaid',       -- unpaid / partial / paid
+  created_at      TEXT DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_port_ledger_branch ON port_ledgers(branch_id);
+CREATE INDEX IF NOT EXISTS idx_port_ledger_period ON port_ledgers(period);
+
