@@ -1248,6 +1248,43 @@
   </div>
 </div>
 
+<!-- โมดัล แจ้งเตือนผลลัพธ์การนำเข้าข้อมูล (Import Result Modal) -->
+<div class="modal-bg" id="importResultModal" style="z-index:1250;">
+  <div class="modal" style="max-width:550px; width:90%; padding:24px; border-radius:18px; text-align:center;">
+    <div id="importResultIcon" style="font-size:48px; margin-bottom:8px;">🎉</div>
+    <h3 id="importResultTitle" style="color:var(--navy); font-size:18px; margin-bottom:6px;">นำเข้าข้อมูลสำเร็จเรียบร้อยแล้ว!</h3>
+    <div id="importResultDesc" class="muted" style="font-size:13px; margin-bottom:16px;">ระบบได้บันทึกข้อมูลและปรับปรุงตารางให้พร้อมใช้งานทันที</div>
+
+    <div id="importResultDetails" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; text-align:left; font-size:13px; margin-bottom:18px;">
+      <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f1f5f9;">
+        <span class="muted">🏢 หน่วยงาน / สาขา:</span>
+        <b id="resBranchName" style="color:var(--navy);">-</b>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f1f5f9;">
+        <span class="muted">📅 งวดประมวลผล:</span>
+        <b id="resPeriodText" style="color:#0284c7;">-</b>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f1f5f9;">
+        <span class="muted">📦 จำนวนรายการ:</span>
+        <b id="resItemCount" style="color:#16a34a;">0 รายการ</b>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:5px 0;">
+        <span class="muted">💰 ยอดหนี้รวม (AR):</span>
+        <b id="resTotalAR" style="color:#dc2626; font-weight:800;">0.00 บาท</b>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+      <button type="button" class="sm act" onclick="goToPortLedgerTabAfterImport()" style="background:#16a34a; font-weight:700; padding:8px 20px;">
+        📋 ดูข้อมูลในตารางทะเบียนคุมหนี้ทันที
+      </button>
+      <button type="button" class="sm ghost" onclick="closeImportResultModal()" style="padding:8px 16px;">
+        ปิดหน้าต่าง
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Thai BE Modal Row DatePicker Popup -->
 <div id="modalRowDatePickerPopup" style="display:none; position:fixed; z-index:999999; background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25); padding:14px; width:280px;">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -4248,17 +4285,28 @@ async function submitExcelImport() {
   const fileInput = document.getElementById('importExcelFile');
   const file = fileInput?.files[0];
   if (!file) {
-    toast('กรุณาเลือกไฟล์ Excel ที่ต้องการนำเข้า');
+    alert('กรุณาเลือกไฟล์ Excel ที่ต้องการนำเข้า');
     return;
   }
 
-  const branch_id = document.getElementById('importBranchSelect')?.value || 'C-22';
+  const branchSel = document.getElementById('importBranchSelect');
+  const branch_id = branchSel?.value || 'C-22';
+  const branchName = branchSel ? branchSel.options[branchSel.selectedIndex]?.text : branch_id;
+  
   const period = document.getElementById('importPeriod')?.value || '2026-07';
+  const pParts = period.split('-');
+  const thaiMonthsFull = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  let periodText = period;
+  if (pParts.length === 2) {
+    const mIdx = parseInt(pParts[1], 10) - 1;
+    const yBE = parseInt(pParts[0], 10) + 543;
+    periodText = `${thaiMonthsFull[mIdx] || ''} ${yBE}`;
+  }
 
   const btn = document.getElementById('submitImportBtn');
   if (btn) {
     btn.disabled = true;
-    btn.textContent = '⏳ กำลังนำเข้าข้อมูล...';
+    btn.textContent = '⏳ กำลังประมวลผลและนำเข้าข้อมูล...';
   }
 
   try {
@@ -4277,20 +4325,36 @@ async function submitExcelImport() {
           })
         });
 
-        toast(res.message || 'นำเข้าข้อมูลสำเร็จ');
         closeExcelImportModal();
-        
-        // Update selected branch to the newly imported branch
+
+        // 1. Update active branch selector to the newly imported branch
         const mainBranchSel = document.getElementById('branchSelect');
         if (mainBranchSel) {
           mainBranchSel.value = branch_id;
+          localStorage.setItem('selectedBranch', branch_id);
           if (typeof onBranchChange === 'function') onBranchChange();
         }
+
+        // 2. Update port ledger period picker
+        const ledgerPeriodInp = document.getElementById('portLedgerPeriod');
+        const ledgerPeriodLbl = document.getElementById('portLedgerPeriodLabel');
+        if (ledgerPeriodInp) ledgerPeriodInp.value = period;
+        if (ledgerPeriodLbl) ledgerPeriodLbl.textContent = periodText;
+
+        // 3. Reload and re-render all data immediately
+        if (typeof loadBranches === 'function') await loadBranches();
         if (typeof loadPortLedger === 'function') await loadPortLedger();
         if (typeof loadContracts === 'function') await loadContracts();
         if (typeof loadInvoices === 'function') await loadInvoices();
         if (typeof loadAll === 'function') await loadAll();
+        if (typeof renderAll === 'function') renderAll();
+
+        // 4. Open rich result notification dialog
+        openImportResultModal(res, branchName, periodText);
+        toast(res.message || 'นำเข้าข้อมูลสำเร็จ');
       } catch (err) {
+        console.error('Import API error:', err);
+        alert(`เกิดข้อผิดพลาดในการนำเข้าไฟล์:\n${err.message || 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้'}`);
         toast(err.message || 'เกิดข้อผิดพลาดในการนำเข้าไฟล์');
       } finally {
         if (btn) {
@@ -4301,12 +4365,40 @@ async function submitExcelImport() {
     };
     reader.readAsDataURL(file);
   } catch (err) {
+    alert(`เกิดข้อผิดพลาดในการอ่านไฟล์: ${err.message}`);
     toast(err.message || 'เกิดข้อผิดพลาดในการอ่านไฟล์');
     if (btn) {
       btn.disabled = false;
       btn.textContent = '🚀 เริ่มนำเข้าข้อมูล';
     }
   }
+}
+
+function openImportResultModal(data, branchName, periodText) {
+  const modal = document.getElementById('importResultModal');
+  if (!modal) return;
+  document.getElementById('importResultIcon').textContent = data.ok ? '🎉' : '❌';
+  document.getElementById('importResultTitle').textContent = data.ok ? 'นำเข้าข้อมูลสำเร็จเรียบร้อยแล้ว!' : 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล';
+  document.getElementById('importResultDesc').textContent = data.message || (data.ok ? 'ระบบได้บันทึกข้อมูลและปรับปรุงตารางให้พร้อมใช้งานทันที' : 'กรุณาตรวจสอบโครงสร้างไฟล์');
+
+  document.getElementById('resBranchName').textContent = branchName || data.branch_id || '-';
+  document.getElementById('resPeriodText').textContent = periodText || data.period || '-';
+  document.getElementById('resItemCount').textContent = `${(data.count || 0).toLocaleString()} รายการ`;
+  document.getElementById('resTotalAR').textContent = `${(data.totalAR || 0).toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`;
+
+  modal.style.display = 'flex';
+}
+
+function closeImportResultModal() {
+  const modal = document.getElementById('importResultModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function goToPortLedgerTabAfterImport() {
+  closeImportResultModal();
+  showTab('portLedger');
+  const tbl = document.getElementById('portLedgerTable');
+  if (tbl) tbl.scrollIntoView({ behavior: 'smooth' });
 }
 
 // ตั้งค่าปฏิทิน พ.ศ. ภาษาไทย

@@ -971,10 +971,20 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
     const buffer = Buffer.from(file_base64.replace(/^data:.*?;base64,/, ''), 'base64');
     const wb = XLSX.read(buffer, { type: 'buffer' });
     
-    // Auto-detect sheet
+    // Auto-detect sheet based on period (e.g. 2026-06 -> มิ.ย., 2026-07 -> ก.ค.)
     let sheetName = wb.SheetNames[0];
     if (period) {
-      const found = wb.SheetNames.find(s => s.toLowerCase().includes('กค') || s.toLowerCase().includes('ก.ค.'));
+      const pParts = period.split('-');
+      const mNum = pParts.length === 2 ? parseInt(pParts[1], 10) : 7;
+      const thMonthShorts = ['', 'มค', 'กพ', 'มีค', 'เมย', 'พค', 'มิย', 'กค', 'สค', 'กย', 'ตค', 'พย', 'ธค'];
+      const thMonthDots = ['', 'ม.ค', 'ก.พ', 'มี.ค', 'เม.ย', 'พ.ค', 'มิ.ย', 'ก.ค', 'ส.ค', 'ก.ย', 'ต.ค', 'พ.ย', 'ธ.ค'];
+      const targetM1 = thMonthShorts[mNum] || 'กค';
+      const targetM2 = thMonthDots[mNum] || 'ก.ค';
+
+      const found = wb.SheetNames.find(s => {
+        const lower = s.toLowerCase();
+        return lower.includes(targetM1) || lower.includes(targetM2) || lower.includes(String(mNum));
+      });
       if (found) sheetName = found;
     }
     const ws = wb.Sheets[sheetName];
@@ -988,11 +998,12 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
     let totalAR = 0;
 
     let isFile1Format = false;
-    for (let i = 0; i < Math.min(10, rows.length); i++) {
+    let startRowIdx = 3;
+    for (let i = 0; i < Math.min(15, rows.length); i++) {
       const rStr = (rows[i] || []).join(' ');
-      if (rStr.includes('สถานที่') || rStr.includes('ค้างตั้งแต่') || rStr.includes('อัตราค่าเช่า') || rStr.includes('ยอดหนี้') || rStr.includes('ค้างชำระ')) {
+      if (rStr.includes('สถานที่') || rStr.includes('ค้างตั้งแต่') || rStr.includes('อัตราค่าเช่า') || rStr.includes('ยอดหนี้') || rStr.includes('ค้างชำระ') || rStr.includes('ลำดับ')) {
         isFile1Format = true;
-        break;
+        startRowIdx = i + 1;
       }
     }
 
@@ -1017,7 +1028,7 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
     db.prepare("DELETE FROM port_ledgers WHERE branch_id = ? AND period = ?").run(targetBranch, targetPeriod);
 
     if (isFile1Format) {
-      rows.slice(3).forEach(row => {
+      rows.slice(startRowIdx).forEach(row => {
         const itemNo = row[0];
         const colB = (row[1] || '').toString().trim();
         const colC = (row[2] || '').toString().trim();
