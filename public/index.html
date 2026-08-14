@@ -4341,7 +4341,8 @@ async function submitExcelImport() {
         if (ledgerPeriodInp) ledgerPeriodInp.value = period;
         if (ledgerPeriodLbl) ledgerPeriodLbl.textContent = periodText;
 
-        // 3. Reload and re-render all data immediately
+        // 3. Switch view tab to Port Ledger and reload all data immediately
+        if (typeof showTab === 'function') showTab('portLedger');
         if (typeof loadBranches === 'function') await loadBranches();
         if (typeof loadPortLedger === 'function') await loadPortLedger();
         if (typeof loadContracts === 'function') await loadContracts();
