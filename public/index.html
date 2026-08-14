@@ -943,8 +943,11 @@
       💡 <b>คำแนะนำ:</b> ระบุวันที่รับชำระเงิน เลขที่ใบเสร็จรับเงิน และจำนวนเงินรับชำระจริง เพื่อส่งข้อมูลรอส่วนกลางอนุมัติตัดยอดหนี้ในระบบ
     </div>
 
-    <div style="display:flex; gap:10px; margin-bottom:12px;">
-      <input type="text" id="lp_search_name" placeholder="ค้นหาชื่อลูกหนี้ / ผู้เช่า..." oninput="filterLedgerPayItems()" style="flex:1; padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border-line);">
+    <div style="display:flex; gap:10px; margin-bottom:12px; align-items:center; flex-wrap:wrap;">
+      <input type="text" id="lp_search_name" placeholder="🔍 ค้นหาชื่อลูกหนี้ / ผู้เช่า..." oninput="filterLedgerPayItems()" style="flex:1; min-width:240px; padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border-line);">
+      <button type="button" class="ghost sm" onclick="fillAllPayDatesWithToday()" style="font-size:11.5px; font-weight:700; color:#0284c7; border-color:#bae6fd; background:#f0f9ff;">
+        📅 ใส่วันที่วันนี้ (พ.ศ.) ให้ทุกแถว
+      </button>
     </div>
 
     <div style="max-height:55vh; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:14px;">
@@ -1053,7 +1056,30 @@
   </div>
 </div>
 
-<div id="toast"></div>
+<!-- Thai BE Modal Row DatePicker Popup -->
+<div id="modalRowDatePickerPopup" style="display:none; position:fixed; z-index:999999; background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.25); padding:14px; width:280px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <button type="button" onclick="changeModalRowMonth(-1)" class="sm ghost" style="padding:3px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">◀</button>
+    <div style="display:flex; gap:6px; align-items:center;">
+      <select id="mrdpMonthSel" onchange="renderModalRowCalendar()" style="padding:4px 6px; font-size:12px; font-weight:700; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; color:#1e293b; cursor:pointer;">
+      </select>
+      <select id="mrdpYearSel" onchange="renderModalRowCalendar()" style="padding:4px 6px; font-size:12px; font-weight:700; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; color:#1e293b; cursor:pointer;">
+      </select>
+    </div>
+    <button type="button" onclick="changeModalRowMonth(1)" class="sm ghost" style="padding:3px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">▶</button>
+  </div>
+
+  <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px; padding:4px 0; border-bottom:1px solid #f1f5f9;">
+    <span style="color:#ef4444;">อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span style="color:#2563eb;">ส</span>
+  </div>
+
+  <div id="mrdpDaysGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center; font-size:12px;"></div>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:11px;">
+    <button type="button" onclick="selectModalRowToday()" class="sm act" style="padding:4px 10px; font-size:11px; background:#0284c7; color:#fff; border-radius:6px; font-weight:700;">วันนี้ (พ.ศ.)</button>
+    <button type="button" onclick="closeModalRowDatePicker()" class="sm ghost" style="padding:4px 8px; font-size:11px;">ปิด</button>
+  </div>
+</div>
 
 <footer>
   <div>ระบบติดตามหนี้เช่า (Lease Receivables Tracker) · ความปลอดภัยระดับองค์กร</div>
@@ -3522,7 +3548,16 @@ function filterLedgerPayItems() {
           <div style="color:#b91c1c; font-weight:700;">${fmt(r.bg_total)}</div>
           ${rateVal > 0 ? `<div class="muted" style="font-size:10px;">(อัตรา ${fmt(rateVal)})</div>` : ''}
         </td>
-        <td class="c"><input type="date" class="lp-date" value="${curDate}" style="width:130px; font-size:12px; padding:4px;"></td>
+        <td class="c">
+          <div style="position:relative; display:inline-flex; align-items:center;">
+            <button type="button" class="lp-date-btn" onclick="openModalRowDatePicker(this, event)" style="background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; border-radius:6px; padding:4px 8px; font-weight:700; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all 0.15s; width:135px; justify-content:space-between;" title="คลิกเพื่อเลือกวันที่ในรูปแบบ พ.ศ.">
+              <span>📅</span>
+              <span class="lp-date-label">${fmtTHDate(curDate, 'slash')}</span>
+              <span style="font-size:8px; color:#64748b;">▼</span>
+            </button>
+            <input type="hidden" class="lp-date" value="${curDate}">
+          </div>
+        </td>
         <td class="c"><input type="text" class="lp-rcpt" value="${curRcpt}" placeholder="ระบุเลขที่ใบเสร็จ" style="width:140px; font-size:12px; padding:4px;"></td>
         <td class="r"><input type="number" class="lp-amt" value="${curAmt}" placeholder="0" style="width:120px; font-size:12px; padding:4px; text-align:right; font-weight:700; color:#0284c7;"></td>
       </tr>
@@ -3782,9 +3817,177 @@ function exportLedgerCSV() {
   a.click();
 }
 
+// ==========================================
+//  ระบบปฏิทินเลือกวันที่ในแถวโมดัล พ.ศ. (Modal Row Thai DatePicker)
+// ==========================================
+let activeDateRowBtn = null;
+let mrdpState = {
+  yearBE: 2569,
+  month: 7,
+  day: 14
+};
+
+const thaiMonthsFullNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+function initModalRowDatePicker() {
+  const ySel = document.getElementById('mrdpYearSel');
+  const mSel = document.getElementById('mrdpMonthSel');
+  if (ySel) {
+    let opts = '';
+    const currentBE = new Date().getFullYear() + 543;
+    for (let y = currentBE - 15; y <= currentBE + 10; y++) {
+      opts += `<option value="${y}">${y}</option>`;
+    }
+    ySel.innerHTML = opts;
+  }
+  if (mSel) {
+    let opts = '';
+    thaiMonthsFullNames.forEach((m, idx) => {
+      opts += `<option value="${idx}">${m}</option>`;
+    });
+    mSel.innerHTML = opts;
+  }
+}
+
+function openModalRowDatePicker(btn, evt) {
+  if (evt) evt.stopPropagation();
+  activeDateRowBtn = btn;
+  const container = btn.closest('div');
+  const hiddenInput = container?.querySelector('.lp-date');
+  const curIso = hiddenInput?.value || today();
+
+  const parts = curIso.split('-');
+  if (parts.length === 3) {
+    mrdpState.yearBE = parseInt(parts[0], 10) + 543;
+    mrdpState.month = parseInt(parts[1], 10) - 1;
+    mrdpState.day = parseInt(parts[2], 10);
+  }
+
+  const ySel = document.getElementById('mrdpYearSel');
+  const mSel = document.getElementById('mrdpMonthSel');
+  if (ySel) ySel.value = mrdpState.yearBE;
+  if (mSel) mSel.value = mrdpState.month;
+
+  renderModalRowCalendar();
+
+  const popup = document.getElementById('modalRowDatePickerPopup');
+  if (popup) {
+    const rect = btn.getBoundingClientRect();
+    popup.style.top = (rect.bottom + 4) + 'px';
+    popup.style.left = Math.max(10, rect.left - 40) + 'px';
+    popup.style.display = 'block';
+  }
+}
+
+function closeModalRowDatePicker() {
+  const popup = document.getElementById('modalRowDatePickerPopup');
+  if (popup) popup.style.display = 'none';
+  activeDateRowBtn = null;
+}
+
+function changeModalRowMonth(delta) {
+  let m = parseInt(document.getElementById('mrdpMonthSel').value) + delta;
+  let y = parseInt(document.getElementById('mrdpYearSel').value);
+  if (m < 0) {
+    m = 11;
+    y--;
+  } else if (m > 11) {
+    m = 0;
+    y++;
+  }
+  document.getElementById('mrdpYearSel').value = y;
+  document.getElementById('mrdpMonthSel').value = m;
+  renderModalRowCalendar();
+}
+
+function renderModalRowCalendar() {
+  const ySel = document.getElementById('mrdpYearSel');
+  const mSel = document.getElementById('mrdpMonthSel');
+  if (!ySel || !mSel) return;
+  const yearBE = parseInt(ySel.value);
+  const month = parseInt(mSel.value);
+  const grid = document.getElementById('mrdpDaysGrid');
+  if (!grid) return;
+
+  const yearAD = yearBE - 543;
+  const firstDay = new Date(yearAD, month, 1).getDay(); // 0 = Sunday
+  const daysInMonth = new Date(yearAD, month + 1, 0).getDate();
+
+  let html = '';
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isSelected = (mrdpState.yearBE === yearBE && mrdpState.month === month && mrdpState.day === d);
+    const btnBg = isSelected ? '#0284c7' : 'transparent';
+    const btnColor = isSelected ? '#ffffff' : '#1e293b';
+    const fontW = isSelected ? '800' : '600';
+
+    html += `
+      <button type="button" onclick="selectModalRowDay(${yearBE}, ${month}, ${d})"
+              style="padding:5px 0; border:none; border-radius:6px; background:${btnBg}; color:${btnColor}; font-weight:${fontW}; font-size:12px; cursor:pointer; transition:all 0.1s;"
+              onmouseenter="if(!${isSelected}) this.style.background='#e0f2fe';"
+              onmouseleave="if(!${isSelected}) this.style.background='transparent';">
+        ${d}
+      </button>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
+function selectModalRowDay(yearBE, month, day) {
+  if (activeDateRowBtn) {
+    const container = activeDateRowBtn.closest('div');
+    const hiddenInput = container?.querySelector('.lp-date');
+    const labelSpan = activeDateRowBtn.querySelector('.lp-date-label');
+
+    const yearAD = yearBE - 543;
+    const mm = String(month + 1).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    const isoDate = `${yearAD}-${mm}-${dd}`;
+
+    if (hiddenInput) hiddenInput.value = isoDate;
+    if (labelSpan) labelSpan.textContent = fmtTHDate(isoDate, 'slash');
+  }
+  closeModalRowDatePicker();
+}
+
+function selectModalRowToday() {
+  const d = new Date();
+  const yearBE = d.getFullYear() + 543;
+  const month = d.getMonth();
+  const day = d.getDate();
+  selectModalRowDay(yearBE, month, day);
+}
+
+function fillAllPayDatesWithToday() {
+  const d = new Date();
+  const yearBE = d.getFullYear() + 543;
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const isoDate = `${d.getFullYear()}-${mm}-${dd}`;
+  const slashText = fmtTHDate(isoDate, 'slash');
+
+  document.querySelectorAll('#ledgerPayModalBody .lp-date').forEach(inp => inp.value = isoDate);
+  document.querySelectorAll('#ledgerPayModalBody .lp-date-label').forEach(lbl => lbl.textContent = slashText);
+  toast(`ตั้งวันที่รับชำระทุกรายการเป็น ${slashText} เรียบร้อยแล้ว`);
+}
+
+document.addEventListener('click', function(e) {
+  const mrdp = document.getElementById('modalRowDatePickerPopup');
+  if (mrdp && mrdp.style.display !== 'none') {
+    if (!mrdp.contains(e.target) && (!activeDateRowBtn || !activeDateRowBtn.contains(e.target))) {
+      closeModalRowDatePicker();
+    }
+  }
+});
+
 // ตั้งค่าปฏิทิน พ.ศ. ภาษาไทย
 initThaiDatePicker();
 initThaiMonthPicker();
+initModalRowDatePicker();
 
 // ฟังก์ชันสลับโหมดมืด/สว่าง
 function toggleTheme() {
