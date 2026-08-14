@@ -1198,20 +1198,23 @@
       <div>
         <label style="font-size:12px; font-weight:700; color:var(--navy); display:block; margin-bottom:4px;">🏢 หน่วยงาน / สาขาเป้าหมาย:</label>
         <select id="importBranchSelect" style="width:100%; padding:8px 10px; font-size:12.5px; border-radius:8px; border:1px solid var(--border-line); background:var(--bg-card); color:var(--text-body); font-weight:600;">
-          <option value="C-22">สำนักงานท่าเทียบเรือประมงสงขลา 2 (ท่าสะอ้าน)</option>
-          <option value="C-21">สำนักงานท่าเทียบเรือประมงสงขลา 1 (หัวพญานาค)</option>
-          <option value="C-20">สำนักงานท่าเทียบเรือประมงภูเก็ต</option>
-          <option value="C-19">สำนักงานท่าเทียบเรือประมงระนอง</option>
-          <option value="C-17">สำนักงานท่าเทียบเรือประมงชุมพร</option>
-          <option value="C-16">สำนักงานท่าเทียบเรือประมงหัวหิน</option>
-          <option value="C-15">สำนักงานท่าเทียบเรือประมงปราณบุรี</option>
-          <option value="C-13">สำนักงานท่าเทียบเรือประมงสุราษฎร์ธานี</option>
-          <option value="C-08">สำนักงานท่าเทียบเรือประมงปัตตานี</option>
-          <option value="C-07">สำนักงานท่าเทียบเรือประมงสตูล</option>
-          <option value="C-04">สำนักงานท่าเทียบเรือประมงสมุทรสงคราม</option>
-          <option value="C-03">สำนักงานท่าเทียบเรือประมงสมุทรสาคร</option>
-          <option value="C-02">สำนักงานตลาดทะเลไทย (สมุทรสาคร)</option>
-          <option value="C-01">สำนักงานใหญ่ (ส่วนกลาง)</option>
+          <option value="C-02">C-02: สำนักงานสะพานปลากรุงเทพ (สป.กท.)</option>
+          <option value="C-03">C-03: สำนักงานสะพานปลาสมุทรปราการ (สป.สป.)</option>
+          <option value="C-04">C-04: สำนักงานสะพานปลาสมุทรสาคร (สป.สค.)</option>
+          <option value="C-07">C-07: สำนักงานท่าเทียบเรือประมงตราด (ทร.ตร.)</option>
+          <option value="C-08">C-08: สำนักงานท่าเทียบเรือประมงอ่างศิลา (ทร.อศ)</option>
+          <option value="C-10">C-10: สำนักงานท่าเทียบเรือประมงหัวหิน (ทร.หห.)</option>
+          <option value="C-12">C-12: สำนักงานท่าเทียบเรือประมงชุมพร (ทร.ชพ.)</option>
+          <option value="C-13">C-13: สำนักงานท่าเทียบเรือประมงหลังสวน (ทร.ลส.)</option>
+          <option value="C-14">C-14: สำนักงานท่าเทียบเรือประมงสุราษฎร์ธานี (ทร.สฎ)</option>
+          <option value="C-15">C-15: สำนักงานสะพานปลานครศรีธรรมราช (สป.นศ.)</option>
+          <option value="C-16">C-16: สำนักงานท่าเทียบเรือประมงสงขลา 1 (ทร.สข.1)</option>
+          <option value="C-17">C-17: สำนักงานท่าเทียบเรือประมงปัตตานี (ทร.ปน.)</option>
+          <option value="C-18">C-18: สำนักงานท่าเทียบเรือประมงนราธิวาส (ทร.นธ.)</option>
+          <option value="C-19">C-19: สำนักงานท่าเทียบเรือประมงระนอง (ทร.รน.)</option>
+          <option value="C-20">C-20: สำนักงานท่าเทียบเรือประมงภูเก็ต (ทร.ภก.)</option>
+          <option value="C-21">C-21: สำนักงานท่าเทียบเรือประมงสตูล (ทร.สต.)</option>
+          <option value="C-22" selected>C-22: สำนักงานท่าเทียบเรือประมงสงขลา 2 (ทร.สข.2)</option>
         </select>
       </div>
       <div>
@@ -4211,19 +4214,32 @@ function onImportFileSelected(e) {
 
     const branchSel = document.getElementById('importBranchSelect');
     if (branchSel) {
-      if (file.name.includes('สงขลา 2') || file.name.includes('C-22') || file.name.includes('C22')) branchSel.value = 'C-22';
-      else if (file.name.includes('สงขลา 1') || file.name.includes('C-21') || file.name.includes('C21')) branchSel.value = 'C-21';
-      else if (file.name.includes('ภูเก็ต') || file.name.includes('C-20') || file.name.includes('C20')) branchSel.value = 'C-20';
-      else if (file.name.includes('ชุมพร') || file.name.includes('C-17') || file.name.includes('C17')) branchSel.value = 'C-17';
-      else if (file.name.includes('ระนอง') || file.name.includes('C-19') || file.name.includes('C19')) branchSel.value = 'C-19';
-      else if (file.name.includes('หัวหิน') || file.name.includes('C-16') || file.name.includes('C16')) branchSel.value = 'C-16';
-      else if (file.name.includes('ปราณบุรี') || file.name.includes('C-15') || file.name.includes('C15')) branchSel.value = 'C-15';
-      else if (file.name.includes('สุราษฎร์') || file.name.includes('C-13') || file.name.includes('C13')) branchSel.value = 'C-13';
-      else if (file.name.includes('ปัตตานี') || file.name.includes('C-08') || file.name.includes('C08')) branchSel.value = 'C-08';
-      else if (file.name.includes('สตูล') || file.name.includes('C-07') || file.name.includes('C07')) branchSel.value = 'C-07';
-      else if (file.name.includes('สมุทรสงคราม') || file.name.includes('C-04') || file.name.includes('C04')) branchSel.value = 'C-04';
-      else if (file.name.includes('สมุทรสาคร') || file.name.includes('C-03') || file.name.includes('C03')) branchSel.value = 'C-03';
-      else if (file.name.includes('ตลาดทะเลไทย') || file.name.includes('สมุทรปราการ') || file.name.includes('C-02') || file.name.includes('C02')) branchSel.value = 'C-02';
+      // 1. ตรวจจับตามรูปแบบ c02_1, c03_1, c17_2, c21_3 ฯลฯ
+      const cMatch = file.name.match(/c(\d{2})/i);
+      if (cMatch) {
+        const codeNum = cMatch[1];
+        const targetVal = `C-${codeNum}`;
+        const opt = Array.from(branchSel.options).find(o => o.value === targetVal);
+        if (opt) branchSel.value = targetVal;
+      } else {
+        // 2. ตรวจจับตามข้อความชื่อท่า
+        if (file.name.includes('สงขลา 2') || file.name.includes('C-22')) branchSel.value = 'C-22';
+        else if (file.name.includes('สงขลา 1') || file.name.includes('C-16') || file.name.includes('C-21')) branchSel.value = 'C-16';
+        else if (file.name.includes('ภูเก็ต') || file.name.includes('C-20')) branchSel.value = 'C-20';
+        else if (file.name.includes('ระนอง') || file.name.includes('C-19')) branchSel.value = 'C-19';
+        else if (file.name.includes('นราธิวาส') || file.name.includes('C-18')) branchSel.value = 'C-18';
+        else if (file.name.includes('ปัตตานี') || file.name.includes('C-17')) branchSel.value = 'C-17';
+        else if (file.name.includes('นครศรี') || file.name.includes('C-15')) branchSel.value = 'C-15';
+        else if (file.name.includes('สุราษฎร์') || file.name.includes('C-14')) branchSel.value = 'C-14';
+        else if (file.name.includes('หลังสวน') || file.name.includes('C-13')) branchSel.value = 'C-13';
+        else if (file.name.includes('ชุมพร') || file.name.includes('C-12')) branchSel.value = 'C-12';
+        else if (file.name.includes('หัวหิน') || file.name.includes('C-10')) branchSel.value = 'C-10';
+        else if (file.name.includes('อ่างศิลา') || file.name.includes('C-08')) branchSel.value = 'C-08';
+        else if (file.name.includes('ตราด') || file.name.includes('C-07')) branchSel.value = 'C-07';
+        else if (file.name.includes('สมุทรสาคร') || file.name.includes('C-04')) branchSel.value = 'C-04';
+        else if (file.name.includes('สมุทรปราการ') || file.name.includes('C-03')) branchSel.value = 'C-03';
+        else if (file.name.includes('กรุงเทพ') || file.name.includes('สป.กท.') || file.name.includes('C-02')) branchSel.value = 'C-02';
+      }
     }
   }
 }
