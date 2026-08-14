@@ -7,12 +7,14 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const cron = require('node-cron');
+const XLSX = require('xlsx');
 const { db, audit } = require('./db');
 const A = require('./aging');
 const { generateToken, authenticateToken, requireRole } = require('./auth');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use((req, res, next) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.setHeader('Pragma', 'no-cache');
@@ -954,6 +956,194 @@ app.post('/api/port-ledgers/roll-forward', authenticateToken, requireRole(['admi
     audit(req.user.username, 'roll-forward', 'port_ledgers', branchId, `Rolled forward ${rolledCount} items from ${currentPeriod} to ${nextPeriod}`);
     res.json({ ok: true, currentPeriod, nextPeriod, rolledCount });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ========== EXCEL IMPORT ENDPOINT ==========
+app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'manager', 'cashier', 'billing']), (req, res) => {
+  try {
+    const { branch_id, period, file_base64, file_name } = req.body;
+    if (!file_base64) {
+      return res.status(400).json({ error: 'ไม่พบข้อมูลไฟล์ที่อัปโหลด' });
+    }
+
+    const buffer = Buffer.from(file_base64.replace(/^data:.*?;base64,/, ''), 'base64');
+    const wb = XLSX.read(buffer, { type: 'buffer' });
+    
+    // Auto-detect sheet
+    let sheetName = wb.SheetNames[0];
+    if (period) {
+      const found = wb.SheetNames.find(s => s.toLowerCase().includes('กค') || s.toLowerCase().includes('ก.ค.'));
+      if (found) sheetName = found;
+    }
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+    const targetBranch = branch_id || 'C-22';
+    const targetPeriod = period || '2026-07';
+
+    let currentCategory = 'ค่าเช่าอาคารและที่ดิน';
+    let importedCount = 0;
+    let totalAR = 0;
+
+    let isFile1Format = false;
+    for (let i = 0; i < Math.min(10, rows.length); i++) {
+      const rStr = (rows[i] || []).join(' ');
+      if (rStr.includes('สถานที่') || rStr.includes('ค้างตั้งแต่') || rStr.includes('อัตราค่าเช่า') || rStr.includes('ยอดหนี้') || rStr.includes('ค้างชำระ')) {
+        isFile1Format = true;
+        break;
+      }
+    }
+
+    const insCust = db.prepare("INSERT OR IGNORE INTO customers(id,name,tax_id,address) VALUES(?,?,?,?)");
+    const insContract = db.prepare(`INSERT OR REPLACE INTO contracts
+      (id,branch_id,customer_id,unit,rent_monthly,service_monthly,start_date,end_date,due_day,deposit,deposit_balance,penalty_rate,risk_tier,stamp_duty_paid)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,1)`);
+    const insInvoice = db.prepare(`INSERT OR REPLACE INTO invoices
+      (id,contract_id,period,issue_date,due_date,rent_amt,service_amt,vat_amt,total,paid,status)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?)`);
+    const insLedger = db.prepare(`
+      INSERT INTO port_ledgers (
+        branch_id, period, contract_id, customer_name, category_name, location_detail, rate_amount,
+        bg_overdue_from, bg_periods, bg_overdue_months, bg_amount, bg_vat, bg_total,
+        pay_date, pay_receipt_no, pay_amount,
+        ed_overdue_from, ed_periods, ed_overdue_months, ed_amount, ed_vat, ed_total,
+        status
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    `);
+
+    // Clean existing port_ledgers for this branch and period to prevent duplicates
+    db.prepare("DELETE FROM port_ledgers WHERE branch_id = ? AND period = ?").run(targetBranch, targetPeriod);
+
+    if (isFile1Format) {
+      rows.slice(3).forEach(row => {
+        const itemNo = row[0];
+        const colB = (row[1] || '').toString().trim();
+        const colC = (row[2] || '').toString().trim();
+        const rate = parseFloat(row[3]) || 0;
+        const overdueFrom = (row[4] || '').toString().trim();
+        const duePeriods = parseInt(row[5]) || 0;
+        const overdueAgeMonths = parseInt(row[6]) || 0;
+        const arAmount = parseFloat(row[7]) || 0;
+        const vatAmount = parseFloat(row[8]) || 0;
+        const totalAmount = parseFloat(row[9]) || 0;
+
+        const payDate = (row[10] || '').toString().trim();
+        const payReceiptNo = (row[11] || '').toString().trim();
+        const payAmount = parseFloat(row[12]) || 0;
+
+        if (!colB) return;
+
+        if (!itemNo && colB && !colB.includes('รวม') && arAmount === 0 && totalAmount === 0) {
+          currentCategory = colB;
+          return;
+        }
+
+        if ((typeof itemNo === 'number' || (typeof itemNo === 'string' && itemNo.match(/^\d+$/))) && colB && !colB.includes('รวม')) {
+          importedCount++;
+          const custId = `CU-${targetBranch.replace('-', '')}-${String(importedCount).padStart(4, '0')}`;
+          const contractId = `${targetBranch}-CT-${String(importedCount).padStart(4, '0')}`;
+          const invoiceId = `INV-${targetBranch.replace('-', '')}-${String(importedCount).padStart(4, '0')}`;
+
+          const bgTot = totalAmount > 0 ? totalAmount : arAmount;
+          const bgAmt = arAmount > 0 ? arAmount : parseFloat((bgTot / 1.07).toFixed(2));
+          const bgVat = vatAmount > 0 ? vatAmount : parseFloat((bgTot - bgAmt).toFixed(2));
+
+          const paid = payAmount;
+          const edTot = Math.max(0, bgTot - paid);
+          const edAmt = parseFloat((edTot / 1.07).toFixed(2));
+          const edVat = parseFloat((edTot - edAmt).toFixed(2));
+          const edFrom = edTot > 0 ? overdueFrom : '';
+          const edPeriods = edTot > 0 ? duePeriods : 0;
+          const edMonths = edTot > 0 ? overdueAgeMonths : 0;
+
+          let status = 'unpaid';
+          if (paid >= bgTot && bgTot > 0) status = 'paid';
+          else if (paid > 0) status = 'partial';
+          else if (bgTot === 0) status = 'paid';
+
+          const fullUnit = colC ? `${currentCategory} (${colC})` : currentCategory;
+          insCust.run(custId, colB, '0994000160000', `ส่วนงาน ${targetBranch} (${fullUnit})`);
+
+          let riskTier = 'ต่ำ';
+          if (overdueAgeMonths > 6 || bgTot > 100000) riskTier = 'สูง';
+          else if (overdueAgeMonths > 1 || bgTot > 20000) riskTier = 'กลาง';
+
+          insContract.run(contractId, targetBranch, custId, fullUnit, rate || bgTot, Math.round((rate || bgTot) * 0.07), '2025-01-01', '2027-12-31', 5, bgTot * 2, bgTot * 2, 1.5, riskTier);
+
+          if (bgTot > 0) {
+            insInvoice.run(invoiceId, contractId, targetPeriod, '2026-06-25', '2026-07-05', bgAmt, 0, bgVat, bgTot, paid, status);
+            totalAR += bgTot;
+          }
+
+          insLedger.run(
+            targetBranch, targetPeriod, contractId, colB, currentCategory, colC, rate,
+            overdueFrom, duePeriods, overdueAgeMonths, bgAmt, bgVat, bgTot,
+            payDate, payReceiptNo, paid,
+            edFrom, edPeriods, edMonths, edAmt, edVat, edTot,
+            status
+          );
+        }
+      });
+    } else {
+      let contractSeq = 0;
+      rows.slice(5).forEach(row => {
+        const invCode = row[0];
+        const tenantName = (row[1] || '').toString().trim();
+        const unit = (row[2] || '').toString().trim();
+        const rent = parseFloat(row[3]) || 0;
+        const arAmt = parseFloat(row[4]) || 0;
+        const dueSerial = row[5];
+        const daysOverdue = parseInt(row[6]) || 0;
+
+        if (!tenantName || !unit || tenantName.includes('รวม') || tenantName.includes('ทั้งหมด')) return;
+
+        contractSeq++;
+        importedCount++;
+        const custId = `CU-${targetBranch.replace('-', '')}-${String(contractSeq).padStart(4, '0')}`;
+        const contractId = `${targetBranch}-CT-${String(contractSeq).padStart(4, '0')}`;
+        const invoiceId = invCode ? String(invCode).trim() : `INV-${targetBranch.replace('-', '')}-${String(contractSeq).padStart(4, '0')}`;
+
+        insCust.run(custId, tenantName, '01055' + String(1000000 + contractSeq), `ส่วนงาน ${targetBranch}`);
+
+        let riskTier = 'ต่ำ';
+        if (arAmt > 200000 || daysOverdue > 90) riskTier = 'สูง';
+        else if (arAmt > 30000 || daysOverdue > 30) riskTier = 'กลาง';
+
+        insContract.run(contractId, targetBranch, custId, unit, rent, Math.round(rent * 0.1), '2024-01-01', '2027-12-31', 5, rent * 3, rent * 3, 1.5, riskTier);
+
+        const rentAmt = Math.round((arAmt / 1.07) * 100) / 100;
+        const vatAmt = Math.round((arAmt - rentAmt) * 100) / 100;
+        const overdueMonths = Math.floor(daysOverdue / 30);
+
+        if (arAmt > 0) {
+          insInvoice.run(invoiceId, contractId, targetPeriod, '2026-05-25', '2026-06-25', rentAmt, 0, vatAmt, arAmt, 0, 'open');
+          totalAR += arAmt;
+        }
+
+        insLedger.run(
+          targetBranch, targetPeriod, contractId, tenantName, 'ค่าเช่าอาคารและที่ดิน', unit, rent,
+          targetPeriod, 1, overdueMonths, rentAmt, vatAmt, arAmt,
+          '', '', 0,
+          targetPeriod, 1, overdueMonths, rentAmt, vatAmt, arAmt,
+          arAmt === 0 ? 'paid' : 'unpaid'
+        );
+      });
+    }
+
+    audit(req.user.username, 'import-excel-ledger', 'port_ledgers', targetBranch, `Imported ${importedCount} debtor records from ${file_name || 'Excel'} (Total AR = ${totalAR})`);
+    res.json({
+      ok: true,
+      count: importedCount,
+      totalAR,
+      branch_id: targetBranch,
+      period: targetPeriod,
+      format: isFile1Format ? 'ข้อมูลท่า (3 ส่วนแบบสงขลา 2)' : 'Provision Matrix',
+      message: `นำเข้าข้อมูลสำเร็จ ${importedCount} รายการ (ยอดหนี้รวม ${totalAR.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท)`
+    });
+  } catch (err) {
+    console.error('Import error:', err);
     res.status(500).json({ error: err.message });
   }
 });

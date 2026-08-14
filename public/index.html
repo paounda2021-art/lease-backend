@@ -845,6 +845,10 @@
   <section id="contracts" class="tab">
     <div class="toolbar">
       <button class="act" id="addContractBtn" onclick="openContract()">+ เพิ่มสัญญา</button>
+      <button class="ghost" onclick="openExcelImportModal()" style="font-weight:700; color:#0369a1; border-color:#bae6fd; background:#f0f9ff; display:inline-flex; align-items:center; gap:4px;">
+        <span>📥</span>
+        <span>นำเข้า Excel</span>
+      </button>
       <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ สร้างใบแจ้งหนี้งวดถัดไปทุกสัญญา</button>
       <input id="cSearch" placeholder="ค้นหาผู้เช่า/ยูนิต..." oninput="renderContracts()" style="margin-left:auto; width:220px;">
     </div>
@@ -922,6 +926,10 @@
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <input id="portLedgerSearch" placeholder="ค้นหาผู้เช่า / ทะเบียน / ยูนิต..." oninput="renderPortLedgerTable()" style="width:220px; font-size:12.5px;">
+        <button class="ghost sm" onclick="openExcelImportModal()" style="font-weight:700; color:#0369a1; border-color:#bae6fd; background:#f0f9ff; display:inline-flex; align-items:center; gap:4px;">
+          <span>📥</span>
+          <span>นำเข้า Excel</span>
+        </button>
         <button class="ghost sm" onclick="exportLedgerCSV()" style="font-weight:600;">📥 ส่งออก Excel</button>
       </div>
     </div>
@@ -1160,6 +1168,79 @@
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <span class="muted" style="font-size:11.5px;">💡 เมื่อกดอนุมัติ ระบบจะตัดยอดหนี้และปรับปรุงยอดยกไปของลูกหนี้ให้ทันที</span>
       <button class="sm ghost" onclick="closePendingApprovalModal()" style="padding:6px 16px;">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+</div>
+
+<!-- โมดัล นำเข้าข้อมูลทะเบียนคุมลูกหนี้จาก Excel (Excel Import Modal) -->
+<div class="modal-bg" id="excelImportModal" style="z-index:1200;">
+  <div class="modal" style="max-width:700px; width:95%; padding:24px; border-radius:18px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-line); padding-bottom:10px;">
+      <h3 style="margin:0; color:var(--navy); display:flex; align-items:center; gap:8px;">
+        <span>📥</span>
+        <span>นำเข้าข้อมูลทะเบียนคุมลูกหนี้จากไฟล์ Excel</span>
+      </h3>
+      <button class="sm ghost" onclick="closeExcelImportModal()" style="font-size:16px;">✕</button>
+    </div>
+
+    <!-- Explanation box about File 1, 2, 3 -->
+    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:12.5px; line-height:1.6; color:#1e3a8a;">
+      <div style="font-weight:800; margin-bottom:4px; font-size:13px;">📌 ข้อแนะนำโครงสร้างไฟล์ที่ต้องใช้:</div>
+      <ul style="margin:0; padding-left:18px;">
+        <li><b>ไฟล์ข้อมูลท่ารายสาขา (เหมือนไฟล์ 1.ข้อมูลท่า สงขลา 2):</b> มีข้อมูลครบถ้วน 3 ส่วน (ลูกหนี้, หมวดหมู่ GL, ทะเบียน/มิเตอร์/ยูนิต, อัตราเช่า, ค้างยกมา, รับชำระ, ยอดยกไป) <i>*หากต้องการเพิ่มสาขาอื่น ให้ใช้ไฟล์รูปแบบนี้สำหรับสาขานั้นๆ</i></li>
+        <li><b>ไฟล์อายุหนี้รวม (ไฟล์ 2):</b> ใช้สำหรับรายงานสรุป Aging ภาพรวม 17 หน่วยงาน</li>
+        <li><b>ไฟล์รูปแบบสรุปรายงาน (ไฟล์ 3):</b> ใช้สำหรับจัดทำรายงานสรุปตามหมวดหมู่ผังบัญชี GL</li>
+        <li>💡 <b>ข้อสรุป:</b> <b style="color:#0369a1;">ไม่ต้องเพิ่มไฟล์ประเภทอื่นอีก!</b> เพียงเลือกไฟล์ข้อมูลท่าของสาขาที่ต้องการ (เช่น <code>1.ข้อมูลท่า ภูเก็ต.xlsx</code> หรือ <code>1.ข้อมูลท่า ชุมพร.xlsx</code>) ก็สามารถนำเข้าได้ครบถ้วนสมบูรณ์ทันที</li>
+      </ul>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--navy); display:block; margin-bottom:4px;">🏢 หน่วยงาน / สาขาเป้าหมาย:</label>
+        <select id="importBranchSelect" style="width:100%; padding:8px 10px; font-size:12.5px; border-radius:8px; border:1px solid var(--border-line); background:var(--bg-card); color:var(--text-body); font-weight:600;">
+          <option value="C-22">สำนักงานท่าเทียบเรือประมงสงขลา 2 (ท่าสะอ้าน)</option>
+          <option value="C-21">สำนักงานท่าเทียบเรือประมงสงขลา 1 (หัวพญานาค)</option>
+          <option value="C-20">สำนักงานท่าเทียบเรือประมงภูเก็ต</option>
+          <option value="C-19">สำนักงานท่าเทียบเรือประมงระนอง</option>
+          <option value="C-17">สำนักงานท่าเทียบเรือประมงชุมพร</option>
+          <option value="C-16">สำนักงานท่าเทียบเรือประมงหัวหิน</option>
+          <option value="C-15">สำนักงานท่าเทียบเรือประมงปราณบุรี</option>
+          <option value="C-13">สำนักงานท่าเทียบเรือประมงสุราษฎร์ธานี</option>
+          <option value="C-08">สำนักงานท่าเทียบเรือประมงปัตตานี</option>
+          <option value="C-07">สำนักงานท่าเทียบเรือประมงสตูล</option>
+          <option value="C-04">สำนักงานท่าเทียบเรือประมงสมุทรสงคราม</option>
+          <option value="C-03">สำนักงานท่าเทียบเรือประมงสมุทรสาคร</option>
+          <option value="C-02">สำนักงานตลาดทะเลไทย (สมุทรสาคร)</option>
+          <option value="C-01">สำนักงานใหญ่ (ส่วนกลาง)</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px; font-weight:700; color:var(--navy); display:block; margin-bottom:4px;">📅 งวดประมวลผล (Period):</label>
+        <input type="month" id="importPeriod" value="2026-07" style="width:100%; padding:7px 10px; font-size:12.5px; border-radius:8px; border:1px solid var(--border-line); background:var(--bg-card); color:var(--text-body); font-weight:600;">
+      </div>
+    </div>
+
+    <!-- Upload Dropzone -->
+    <div style="border:2px dashed #94a3b8; border-radius:12px; padding:24px; text-align:center; background:#f8fafc; margin-bottom:14px; cursor:pointer;" onclick="document.getElementById('importExcelFile').click()">
+      <span style="font-size:32px;">📁</span>
+      <div style="font-weight:700; color:var(--navy); font-size:14px; margin-top:6px;">คลิกเพื่อเลือกไฟล์ Excel หรือลากไฟล์มาวางที่นี่</div>
+      <div class="muted" style="font-size:11.5px; margin-top:4px;">รองรับไฟล์นามสกุล .xlsx, .xls</div>
+      <input type="file" id="importExcelFile" accept=".xlsx,.xls" onchange="onImportFileSelected(event)" style="display:none;">
+    </div>
+
+    <!-- Selected File Info -->
+    <div id="importFileInfo" style="display:none; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12.5px; color:#166534; font-weight:700;">📄 <span id="importFileName">-</span></span>
+        <span id="importFileSize" class="badge" style="background:#dcfce7; color:#15803d; font-size:11px;">0 KB</span>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px; align-items:center;">
+      <button type="button" class="sm ghost" onclick="closeExcelImportModal()" style="padding:6px 14px;">ยกเลิก</button>
+      <button type="button" id="submitImportBtn" class="sm act" onclick="submitExcelImport()" style="background:#0284c7; font-weight:700; padding:6px 18px;">
+        🚀 เริ่มนำเข้าข้อมูล
+      </button>
     </div>
   </div>
 </div>
@@ -4091,6 +4172,126 @@ document.addEventListener('click', function(e) {
     }
   }
 });
+
+// ==========================================
+//  ระบบนำเข้าไฟล์ Excel ทะเบียนคุมหนี้ (Excel Import Controller)
+// ==========================================
+function openExcelImportModal() {
+  const curBranch = document.getElementById('branchSelect')?.value || 'C-22';
+  const branchSel = document.getElementById('importBranchSelect');
+  if (branchSel) branchSel.value = (curBranch !== 'all' ? curBranch : 'C-22');
+  
+  const curPeriod = document.getElementById('portLedgerPeriod')?.value || '2026-07';
+  const periodInp = document.getElementById('importPeriod');
+  if (periodInp) periodInp.value = curPeriod;
+
+  const fileInput = document.getElementById('importExcelFile');
+  if (fileInput) fileInput.value = '';
+  const fileInfo = document.getElementById('importFileInfo');
+  if (fileInfo) fileInfo.style.display = 'none';
+
+  const modal = document.getElementById('excelImportModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeExcelImportModal() {
+  const modal = document.getElementById('excelImportModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function onImportFileSelected(e) {
+  const file = e.target.files[0];
+  const infoEl = document.getElementById('importFileInfo');
+  const nameEl = document.getElementById('importFileName');
+  const sizeEl = document.getElementById('importFileSize');
+  if (file && infoEl) {
+    nameEl.textContent = file.name;
+    sizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
+    infoEl.style.display = 'block';
+
+    const branchSel = document.getElementById('importBranchSelect');
+    if (branchSel) {
+      if (file.name.includes('สงขลา 2') || file.name.includes('C-22') || file.name.includes('C22')) branchSel.value = 'C-22';
+      else if (file.name.includes('สงขลา 1') || file.name.includes('C-21') || file.name.includes('C21')) branchSel.value = 'C-21';
+      else if (file.name.includes('ภูเก็ต') || file.name.includes('C-20') || file.name.includes('C20')) branchSel.value = 'C-20';
+      else if (file.name.includes('ชุมพร') || file.name.includes('C-17') || file.name.includes('C17')) branchSel.value = 'C-17';
+      else if (file.name.includes('ระนอง') || file.name.includes('C-19') || file.name.includes('C19')) branchSel.value = 'C-19';
+      else if (file.name.includes('หัวหิน') || file.name.includes('C-16') || file.name.includes('C16')) branchSel.value = 'C-16';
+      else if (file.name.includes('ปราณบุรี') || file.name.includes('C-15') || file.name.includes('C15')) branchSel.value = 'C-15';
+      else if (file.name.includes('สุราษฎร์') || file.name.includes('C-13') || file.name.includes('C13')) branchSel.value = 'C-13';
+      else if (file.name.includes('ปัตตานี') || file.name.includes('C-08') || file.name.includes('C08')) branchSel.value = 'C-08';
+      else if (file.name.includes('สตูล') || file.name.includes('C-07') || file.name.includes('C07')) branchSel.value = 'C-07';
+      else if (file.name.includes('สมุทรสงคราม') || file.name.includes('C-04') || file.name.includes('C04')) branchSel.value = 'C-04';
+      else if (file.name.includes('สมุทรสาคร') || file.name.includes('C-03') || file.name.includes('C03')) branchSel.value = 'C-03';
+      else if (file.name.includes('ตลาดทะเลไทย') || file.name.includes('สมุทรปราการ') || file.name.includes('C-02') || file.name.includes('C02')) branchSel.value = 'C-02';
+    }
+  }
+}
+
+async function submitExcelImport() {
+  const fileInput = document.getElementById('importExcelFile');
+  const file = fileInput?.files[0];
+  if (!file) {
+    toast('กรุณาเลือกไฟล์ Excel ที่ต้องการนำเข้า');
+    return;
+  }
+
+  const branch_id = document.getElementById('importBranchSelect')?.value || 'C-22';
+  const period = document.getElementById('importPeriod')?.value || '2026-07';
+
+  const btn = document.getElementById('submitImportBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ กำลังนำเข้าข้อมูล...';
+  }
+
+  try {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const base64 = e.target.result;
+      try {
+        const res = await api('/import/excel-ledger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            branch_id,
+            period,
+            file_base64: base64,
+            file_name: file.name
+          })
+        });
+
+        toast(res.message || 'นำเข้าข้อมูลสำเร็จ');
+        closeExcelImportModal();
+        
+        // Update selected branch to the newly imported branch
+        const mainBranchSel = document.getElementById('branchSelect');
+        if (mainBranchSel) {
+          mainBranchSel.value = branch_id;
+          if (typeof onBranchChange === 'function') onBranchChange();
+        }
+        if (typeof loadPortLedger === 'function') await loadPortLedger();
+        if (typeof loadContracts === 'function') await loadContracts();
+        if (typeof loadInvoices === 'function') await loadInvoices();
+        if (typeof loadAll === 'function') await loadAll();
+      } catch (err) {
+        toast(err.message || 'เกิดข้อผิดพลาดในการนำเข้าไฟล์');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = '🚀 เริ่มนำเข้าข้อมูล';
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  } catch (err) {
+    toast(err.message || 'เกิดข้อผิดพลาดในการอ่านไฟล์');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🚀 เริ่มนำเข้าข้อมูล';
+    }
+  }
+}
 
 // ตั้งค่าปฏิทิน พ.ศ. ภาษาไทย
 initThaiDatePicker();
