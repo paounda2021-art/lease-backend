@@ -76,7 +76,7 @@ const nextPeriod = '2026-07';
 let grandTotalCount = 0;
 let grandTotalAR = 0;
 
-const files = fs.readdirSync(__dirname).filter(f => f.match(/^c\d{2}_1-06\.(xlsx|xls)$/i)).sort();
+const files = fs.readdirSync(__dirname).filter(f => f.match(/^c08_1-06\.(xlsx|xls)$/i)).sort();
 
 files.forEach(fileName => {
   const match = fileName.match(/^(c\d{2})_1-06\.(xlsx|xls)$/i);

@@ -9,7 +9,8 @@ function generateToken(user) {
       id: user.id,
       username: user.username,
       role: user.role,
-      fullname: user.fullname
+      fullname: user.fullname,
+      branch_id: user.branch_id
     },
     JWT_SECRET,
     { expiresIn: '8h' } // อายุการใช้งาน 8 ชั่วโมง

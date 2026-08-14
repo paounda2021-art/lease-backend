@@ -21,8 +21,18 @@ app.use((req, res, next) => {
   res.setHeader('Expires', '0');
   next();
 });
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname));
+const staticOptions = {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+    }
+  }
+};
+app.use(express.static(path.join(__dirname, 'public'), staticOptions));
+app.use(express.static(__dirname, staticOptions));
 
 const PORT = process.env.PORT || 3000;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -685,7 +695,10 @@ app.post('/api/jobs/daily', authenticateToken, requireRole('manager'), (req, res
 // ========== PORT LEDGER ROUTES (ทะเบียนคุมรับชำระและยอดยกไป 3 ส่วน) ==========
 app.get('/api/port-ledgers', authenticateToken, (req, res) => {
   try {
-    const branchId = req.query.branch_id || 'C-12';
+    let branchId = req.query.branch_id || 'C-12';
+    if (req.user.role === 'branch' && req.user.branch_id) {
+      branchId = req.user.branch_id;
+    }
     const period = req.query.period || '2026-07';
     let sql = "SELECT * FROM port_ledgers";
     const params = [];
@@ -728,6 +741,21 @@ app.get('/api/port-ledgers', authenticateToken, (req, res) => {
       };
     });
     res.json(updatedRows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// แก้ไขอัตราค่าเช่า (Admin/Manager)
+app.put('/api/port-ledgers/:id/rate', authenticateToken, requireRole(['admin', 'manager', 'branch']), (req, res) => {
+  try {
+    const id = req.params.id;
+    const rate = parseFloat(req.body.rate_amount);
+    if (isNaN(rate) || rate < 0) return res.status(400).json({ error: 'อัตราค่าเช่าไม่ถูกต้อง' });
+    
+    db.prepare('UPDATE port_ledgers SET rate_amount=? WHERE id=?').run(rate, id);
+    audit(req.user.username, 'update-rate', 'port_ledgers', id, `Updated rate_amount to ${rate}`);
+    res.json({ ok: true, rate_amount: rate });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -808,7 +836,7 @@ app.get('/api/port-ledgers/pending-approval', authenticateToken, (req, res) => {
 });
 
 // 2. ส่วนกลางอนุมัติตัดยอดชำระเงินจริง (Central Approval & Settlement)
-app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin', 'manager', 'cashier']), (req, res) => {
+app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin', 'manager', 'cashier', 'branch']), (req, res) => {
   try {
     const body = req.body || {};
     const ids = body.ids; // Array of IDs to approve
@@ -857,7 +885,7 @@ app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin
 });
 
 // 3. ตัดยอดรับชำระเงินทันที (สำหรับ Admin/Manager/Cashier Direct Pay)
-app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'admin', 'manager', 'billing']), (req, res) => {
+app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'admin', 'manager', 'billing', 'branch']), (req, res) => {
   try {
     const { id, pay_date, pay_receipt_no, pay_amount } = req.body;
     if (!id) return res.status(400).json({ error: 'ไม่ระบุรหัสรายการ' });
@@ -899,7 +927,7 @@ app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'ad
 });
 
 // 2. ยกยอดยกไปตั้งต้นงวดเดือนถัดไป (Roll Forward to Next Period)
-app.post('/api/port-ledgers/roll-forward', authenticateToken, requireRole(['admin', 'manager', 'billing']), (req, res) => {
+app.post('/api/port-ledgers/roll-forward', authenticateToken, requireRole(['admin', 'manager', 'billing', 'branch']), (req, res) => {
   try {
     const branchId = req.body.branch_id || 'C-12';
     const currentPeriod = req.body.period || '2026-07';
