@@ -547,6 +547,13 @@
     <h1>ระบบติดตามหนี้เช่า <span class="sub">Backend + SQLite</span></h1>
   </div>
   <div class="flex" style="align-items:center">
+    <!-- Notification Button for Pending Payment Approvals -->
+    <button id="pendingApprovalNavBtn" onclick="openPendingApprovalModal()" class="sm" title="รายการรับชำระเงินที่รอตรวจสอบและอนุมัติตัดยอด" style="border:none; background:rgba(255,255,255,0.18); color:#fff; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.2s; position:relative;">
+      <span style="font-size:14px;">🔔</span>
+      <span>รอตรวจสอบ</span>
+      <span id="pendingApprovalBadge" style="background:#ef4444; color:#fff; font-weight:800; font-size:11px; padding:1px 7px; border-radius:12px; display:none; box-shadow:0 0 6px rgba(239,68,68,0.8);">0</span>
+    </button>
+
     <!-- Theme Toggle Switcher -->
     <button id="themeToggleBtn" onclick="toggleTheme()" class="sm" style="border: none; background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
       <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">โหมดมืด</span>
@@ -971,36 +978,79 @@
   </div>
 </div>
 
-<!-- โมดัล ส่วนกลางตรวจสอบและอนุมัติตัดยอดชำระเงิน -->
-<div class="modal-bg" id="approveModal" style="z-index:1100;">
-  <div class="modal" style="max-width:900px; width:95%; padding:20px; border-radius:16px;">
-    <h3 style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-      <span>✅ ส่วนกลางอนุมัติตัดยอดชำระเงิน (Central Approval)</span>
-      <button class="sm ghost" onclick="closeApproveModal()">✕</button>
-    </h3>
-    <div style="background:#fef3c7; border:1px solid #fde68a; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:12.5px; color:#92400e;">
-      ⚠️ <b>คำเตือน:</b> การอนุมัติจะทำการตัดยอดหนี้และปรับปรุงยอดยกไป (โซนสีเขียว) ในฐานข้อมูลจริง
+<!-- โมดัล แจ้งเตือนและอนุมัติยอดรับชำระเงิน (Pending Approval Notification & Modal) -->
+<div class="modal-bg" id="pendingApprovalModal" style="z-index:1150;">
+  <div class="modal" style="max-width:1100px; width:95%; padding:22px; border-radius:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; border-bottom:1px solid var(--border-line); padding-bottom:10px;">
+      <div>
+        <h3 style="margin:0; color:var(--navy); display:flex; align-items:center; gap:8px;">
+          <span>🔔</span>
+          <span>รายการรับชำระเงินที่รอส่วนกลางตรวจสอบและอนุมัติ</span>
+          <span class="badge" style="background:#fee2e2; color:#be123c; font-size:12px; font-weight:800;" id="pendingStatCountBadge">0 รายการ</span>
+        </h3>
+        <div class="muted" style="font-size:12px; margin-top:3px;">
+          ตรวจสอบรายการรับชำระเงินที่ส่งมาจากสาขา/ส่วนงาน และกดอนุมัติตัดยอดหนี้ในระบบ
+        </div>
+      </div>
+      <button class="sm ghost" onclick="closePendingApprovalModal()" style="font-size:16px; padding:2px 8px;">✕</button>
     </div>
+
+    <!-- Summary Stats Bar -->
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:14px;">
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:8px 12px;">
+        <span style="font-size:11px; color:#1e40af; font-weight:600;">📦 รายการรออนุมัติ</span>
+        <div style="font-size:16px; font-weight:800; color:#1e3a8a;"><span id="pendingStatCount">0</span> รายการ</div>
+      </div>
+      <div style="background:#fefce8; border:1px solid #fef08a; border-radius:8px; padding:8px 12px;">
+        <span style="font-size:11px; color:#854d0e; font-weight:600;">💰 ยอดเงินรอตัดหนี้รวม</span>
+        <div style="font-size:16px; font-weight:800; color:#713f12;"><span id="pendingStatTotal">0.00</span> บาท</div>
+      </div>
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:8px 12px;">
+        <span style="font-size:11px; color:#166534; font-weight:600;">🏢 ครอบคลุมหน่วยงาน</span>
+        <div style="font-size:16px; font-weight:800; color:#14532d;"><span id="pendingStatBranches">0</span> แห่ง</div>
+      </div>
+    </div>
+
+    <!-- Filter & Action Toolbar -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:10px; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:240px;">
+        <input type="text" id="pendingApprovalSearch" placeholder="🔍 ค้นหาชื่อลูกหนี้ / เลขที่ใบเสร็จ / หน่วยงาน / ยูนิต..." oninput="renderPendingApprovalList()" style="width:100%; padding:6px 12px; font-size:12.5px; border-radius:8px; border:1px solid var(--border-line);">
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button id="pendingBulkApproveBtn" type="button" class="sm act" onclick="bulkApprovePending()" style="background:#16a34a; font-weight:700; display:none; align-items:center; gap:4px; padding:6px 14px;">
+          ✅ อนุมัติที่เลือก
+        </button>
+      </div>
+    </div>
+
+    <!-- Table of Pending Approvals -->
     <div style="max-height:50vh; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:14px;">
       <table style="width:100%; font-size:12px; border-collapse:collapse;">
         <thead>
-          <tr style="background:#f8fafc; color:var(--navy);">
-            <th style="width:40px;" class="c">ลำดับ</th>
-            <th style="min-width:180px;">รายชื่อลูกหนี้</th>
-            <th style="width:100px;" class="c">วันที่รับเงิน</th>
+          <tr style="background:#f8fafc; color:var(--navy); position:sticky; top:0; z-index:5; border-bottom:2px solid #cbd5e1;">
+            <th style="width:30px;" class="c"><input type="checkbox" onchange="toggleAllPendingCheck(this)"></th>
+            <th style="width:35px;" class="c">ลำดับ</th>
+            <th style="min-width:130px;">หน่วยงาน/สาขา</th>
+            <th style="width:100px;" class="c">วดป. รับเงิน</th>
+            <th style="min-width:170px;">รายชื่อลูกหนี้</th>
+            <th style="min-width:120px;">สถานที่ตั้ง / ยูนิต</th>
             <th style="width:120px;" class="c">เลขที่ใบเสร็จ</th>
-            <th style="width:110px;" class="r">ยอดชำระ</th>
-            <th style="width:110px;" class="c">ผู้ขออนุมัติ</th>
-            <th style="width:80px;" class="c">อนุมัติ</th>
+            <th style="width:110px;" class="r">ยอดชำระ (บาท)</th>
+            <th style="width:110px;" class="r">ยอดยกมา (บาท)</th>
+            <th style="width:110px;" class="r">ยอดคงเหลือ (บาท)</th>
+            <th style="width:100px;" class="c">ผู้ส่งยอด</th>
+            <th style="width:90px;" class="c">การดำเนินการ</th>
           </tr>
         </thead>
-        <tbody id="approveModalBody">
-          <!-- Items populated dynamically -->
+        <tbody id="pendingApprovalBody">
+          <!-- Populated dynamically -->
         </tbody>
       </table>
     </div>
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
-      <button class="sm ghost" onclick="closeApproveModal()">ปิดหน้าต่าง</button>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="muted" style="font-size:11.5px;">💡 เมื่อกดอนุมัติ ระบบจะตัดยอดหนี้และปรับปรุงยอดยกไปของลูกหนี้ให้ทันที</span>
+      <button class="sm ghost" onclick="closePendingApprovalModal()" style="padding:6px 16px;">ปิดหน้าต่าง</button>
     </div>
   </div>
 </div>
@@ -1631,6 +1681,7 @@ async function loadAll() {
     if (dbstat) dbstat.textContent = 'เชื่อมต่อฐานข้อมูล';
     
     renderAll();
+    checkPendingApprovals();
   } catch (e) {
     console.error(e);
     if (e.message !== 'กรุณาเข้าสู่ระบบใหม่') {
@@ -3508,13 +3559,160 @@ async function savePendingPay() {
     });
     closeLedgerPayModal();
     toast(res.message || 'บันทึกข้อมูลสำเร็จ รอส่วนกลางตรวจสอบ');
+    await checkPendingApprovals();
     await loadPortLedger();
   } catch (err) {
     toast(err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
   }
 }
 
-async function approveSinglePayment(id) {
+// ==========================================
+//  ระบบแจ้งเตือนและอนุมัติยอดรับชำระ (Pending Approval Notification & Modal)
+// ==========================================
+let pendingApprovalData = [];
+
+async function checkPendingApprovals() {
+  try {
+    const res = await api('/port-ledgers/pending-approval');
+    const items = res?.items || [];
+    pendingApprovalData = items;
+
+    const count = items.length;
+    const badge = document.getElementById('pendingApprovalBadge');
+    if (badge) {
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  } catch (err) {
+    console.warn('checkPendingApprovals error:', err);
+  }
+}
+
+async function openPendingApprovalModal() {
+  const modal = document.getElementById('pendingApprovalModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  await renderPendingApprovalList();
+}
+
+function closePendingApprovalModal() {
+  const modal = document.getElementById('pendingApprovalModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function openApproveModal() {
+  openPendingApprovalModal();
+}
+
+function closeApproveModal() {
+  closePendingApprovalModal();
+}
+
+async function renderPendingApprovalList() {
+  const body = document.getElementById('pendingApprovalBody');
+  if (!body) return;
+
+  try {
+    const res = await api('/port-ledgers/pending-approval');
+    pendingApprovalData = res?.items || [];
+  } catch (err) {
+    console.error('Failed to load pending approvals:', err);
+  }
+
+  const q = (document.getElementById('pendingApprovalSearch')?.value || '').toLowerCase().trim();
+  const filtered = pendingApprovalData.filter(r => {
+    const name = (r.customer_name || '').toLowerCase();
+    const rcpt = (r.pay_receipt_no || '').toLowerCase();
+    const branch = (r.branch_name || r.branch_id || '').toLowerCase();
+    const unit = (r.unit_no || r.location_detail || '').toLowerCase();
+    return !q || name.includes(q) || rcpt.includes(q) || branch.includes(q) || unit.includes(q);
+  });
+
+  const totalSum = filtered.reduce((s, r) => s + (parseFloat(r.pay_amount) || 0), 0);
+  const branchSet = new Set(filtered.map(r => r.branch_id));
+
+  // Update Summary Stats
+  const countEl = document.getElementById('pendingStatCount');
+  const countBadge = document.getElementById('pendingStatCountBadge');
+  const sumEl = document.getElementById('pendingStatTotal');
+  const brEl = document.getElementById('pendingStatBranches');
+  if (countEl) countEl.textContent = filtered.length;
+  if (countBadge) countBadge.textContent = `${filtered.length} รายการ`;
+  if (sumEl) sumEl.textContent = fmt(totalSum);
+  if (brEl) brEl.textContent = branchSet.size;
+
+  if (!filtered.length) {
+    body.innerHTML = `
+      <tr>
+        <td colspan="12" class="c" style="padding:32px; color:#64748b; font-size:13px;">
+          🎉 <b>ไม่มีรายการรับชำระที่รอการตรวจสอบ</b><br>
+          <span style="font-size:11.5px; margin-top:4px; display:inline-block;">ทุกรายการได้รับการตรวจสอบและอนุมัติตัดยอดเรียบร้อยแล้ว</span>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach((r, idx) => {
+    const pAmt = parseFloat(r.pay_amount) || 0;
+    const bgTot = parseFloat(r.bg_total) || 0;
+    const edTot = Math.max(0, bgTot - pAmt);
+    const branchText = r.branch_name ? `${r.branch_name}` : (r.branch_id || '-');
+    const locText = r.unit_no || r.location_detail || '-';
+
+    html += `
+      <tr style="border-bottom:1px solid #e2e8f0; font-size:12px;">
+        <td class="c"><input type="checkbox" class="pending-chk" value="${r.id}" onchange="updatePendingCheckSummary()"></td>
+        <td class="c"><b>${idx + 1}</b></td>
+        <td><span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">${branchText}</span></td>
+        <td class="c" style="color:#854d0e; font-weight:600;">${r.pay_date ? fmtTHDate(r.pay_date) : '-'}</td>
+        <td>
+          <b style="color:var(--navy);">${r.customer_name}</b>
+          ${r.category_name ? `<div class="muted" style="font-size:10px;">${r.category_name}</div>` : ''}
+        </td>
+        <td><span class="muted">${locText}</span></td>
+        <td class="c" style="font-weight:700; color:#854d0e;">${r.pay_receipt_no || '-'}</td>
+        <td class="r num" style="color:#854d0e; font-weight:800; background:#fef9c3;">${fmt(pAmt)}</td>
+        <td class="r num">${fmt(bgTot)}</td>
+        <td class="r num" style="color:#15803d; font-weight:700; background:#f0fdf4;">${fmt(edTot)}</td>
+        <td class="c muted" style="font-size:11px;">${r.pay_requested_by || 'เจ้าหน้าที่สาขา'}</td>
+        <td class="c">
+          <button type="button" class="sm act" style="padding:4px 10px; font-size:11px; background:#16a34a; font-weight:700; white-space:nowrap;" onclick="approvePendingItem(${r.id})">
+            ✅ อนุมัติ
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  body.innerHTML = html;
+  updatePendingCheckSummary();
+}
+
+function toggleAllPendingCheck(master) {
+  document.querySelectorAll('.pending-chk').forEach(c => c.checked = master.checked);
+  updatePendingCheckSummary();
+}
+
+function updatePendingCheckSummary() {
+  const selected = document.querySelectorAll('.pending-chk:checked');
+  const bulkBtn = document.getElementById('pendingBulkApproveBtn');
+  if (bulkBtn) {
+    if (selected.length > 0) {
+      bulkBtn.style.display = 'inline-flex';
+      bulkBtn.textContent = `✅ อนุมัติที่เลือก (${selected.length} รายการ)`;
+    } else {
+      bulkBtn.style.display = 'none';
+    }
+  }
+}
+
+async function approvePendingItem(id) {
   if (!confirm('ยืนยันการอนุมัติตัดยอดชำระเงินสำหรับรายการนี้หรือไม่?')) return;
   try {
     const res = await api('/port-ledgers/approve-pay', {
@@ -3523,20 +3721,39 @@ async function approveSinglePayment(id) {
       body: JSON.stringify({ ids: [id] })
     });
     toast(res.message || 'อนุมัติตัดยอดชำระเงินเรียบร้อยแล้ว');
-    await loadPortLedger();
+    await checkPendingApprovals();
+    await renderPendingApprovalList();
+    if (typeof loadPortLedger === 'function') await loadPortLedger();
   } catch (err) {
     toast(err.message || 'เกิดข้อผิดพลาดในการอนุมัติ');
   }
 }
 
-function openApproveModal() {
-  const modal = document.getElementById('approveModal');
-  if (modal) modal.style.display = 'flex';
+async function bulkApprovePending() {
+  const selected = Array.from(document.querySelectorAll('.pending-chk:checked')).map(c => parseInt(c.value));
+  if (!selected.length) {
+    toast('กรุณาเลือกรายการที่ต้องการอนุมัติ');
+    return;
+  }
+  if (!confirm(`ยืนยันการอนุมัติตัดยอดชำระเงินพร้อมกัน ${selected.length} รายการหรือไม่?`)) return;
+
+  try {
+    const res = await api('/port-ledgers/approve-pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: selected })
+    });
+    toast(res.message || `อนุมัติสำเร็จ ${selected.length} รายการ`);
+    await checkPendingApprovals();
+    await renderPendingApprovalList();
+    if (typeof loadPortLedger === 'function') await loadPortLedger();
+  } catch (err) {
+    toast(err.message || 'เกิดข้อผิดพลาดในการอนุมัติ');
+  }
 }
 
-function closeApproveModal() {
-  const modal = document.getElementById('approveModal');
-  if (modal) modal.style.display = 'none';
+async function approveSinglePayment(id) {
+  await approvePendingItem(id);
 }
 
 async function rollForwardLedger() {

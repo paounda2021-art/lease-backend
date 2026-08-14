@@ -782,6 +782,29 @@ app.post('/api/port-ledgers/save-pending-pay', authenticateToken, (req, res) => 
   }
 });
 
+// 1.1 ดึงรายการรับชำระที่รอส่วนกลางตรวจสอบและอนุมัติ (Pending Approval Items & Counter)
+app.get('/api/port-ledgers/pending-approval', authenticateToken, (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT p.*, b.name as branch_name, b.region as branch_region
+      FROM port_ledgers p
+      LEFT JOIN branches b ON p.branch_id = b.id
+      WHERE p.pay_status = 'pending_approval'
+      ORDER BY p.id DESC
+    `).all();
+
+    const result = rows.map(r => ({
+      ...r,
+      unit_no: r.location_detail || r.unit_no || '',
+      rate: r.rate_amount !== undefined ? r.rate_amount : (r.rate || 0)
+    }));
+
+    res.json({ count: result.length, items: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 2. ส่วนกลางอนุมัติตัดยอดชำระเงินจริง (Central Approval & Settlement)
 app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin', 'manager', 'cashier']), (req, res) => {
   try {
