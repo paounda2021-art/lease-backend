@@ -587,16 +587,16 @@ app.get('/api/reports/fee-breakdown', authenticateToken, (req, res) => {
       const u = (unitName || '').toString();
       if (u.includes('4600200') || u.includes('สัตว์น้ำ')) return 'ค่าธรรมเนียมสัตว์น้ำผ่านท่า (GL 4600200)';
       if (u.includes('4600300') || u.includes('รถ')) return 'ค่าธรรมเนียมรถผ่านท่า (GL 4600300)';
-      if (u.includes('4600400') || u.includes('น้ำแข็ง')) return 'ค่าธรรมเนียมน้ำแข็งผ่านท่า (GL 4600400)';
+      if (u.includes('4600400') || u.includes('น้ำแข็ง') || u.includes('เครื่องโม่')) return 'ค่าธรรมเนียมน้ำแข็งผ่านท่า (GL 4600400)';
       if (u.includes('4600500') || u.includes('น้ำมัน')) return 'ค่าธรรมเนียมน้ำมันผ่านท่า (GL 4600500)';
       if (u.includes('4600600') || u.includes('เครื่องชั่ง')) return 'ค่าธรรมเนียมใช้เครื่องชั่ง (GL 4600600)';
-      if (u.includes('4600700') || u.includes('ใช้สถานที่')) return 'ค่าธรรมเนียมใช้สถานที่ (GL 4600700)';
+      if (u.includes('4600700') || u.includes('ใช้สถานที่') || u.includes('ต่ออายุ')) return 'ค่าธรรมเนียมใช้สถานที่ (GL 4600700)';
       if (u.includes('4700200') || u.includes('น้ำประปา') || u.includes('ค่าน้ำ') || u.includes('ซีเวลท์')) return 'ค่าจำหน่ายน้ำประปา (GL 4700200)';
       if (u.includes('4700300') || u.includes('ไฟฟ้า') || u.includes('ค่าไฟ')) return 'ค่าจำหน่ายไฟฟ้า (GL 4700300)';
       if (u.includes('4701420') || u.includes('สุขาภิบาล')) return 'ค่าสุขาภิบาล (GL 4701420)';
-      if (u.includes('ภาษีโรงเรือน')) return 'ค่าภาษีโรงเรือนที่ดินและสิ่งปลูกสร้าง';
-      if (u.includes('รับสภาพหนี้') || u.includes('ปรับโครงสร้าง') || u.includes('สืบหาหลักทรัพย์') || u.includes('ส่งฟ้อง')) return 'ลูกหนี้ปรับโครงสร้างหนี้ / ดำเนินคดี';
-      if (u.includes('ตลาด') || u.includes('แผง') || u.includes('ล็อค') || u.includes('แพปลา')) return 'ค่าบริการตลาด / แพปลา / แผงค้า';
+      if (u.includes('4600100') || u.includes('ตลาด') || u.includes('แผง') || u.includes('ล็อค') || u.includes('แพปลา')) return 'ค่าบริการตลาด / แพปลา / แผงค้า (GL 4600100)';
+      if (u.includes('ภาษีโรงเรือน') || u.includes('สิ่งปลูกสร้าง') || u.includes('เบ็ดเตล็ด')) return 'ค่าภาษีโรงเรือนและที่ดิน / เบ็ดเตล็ด';
+      if (u.includes('รับสภาพหนี้') || u.includes('ปรับโครงสร้าง') || u.includes('สืบหาหลักทรัพย์') || u.includes('ส่งฟ้อง') || u.includes('ดำเนินคดี')) return 'ลูกหนี้ปรับโครงสร้างหนี้ / ดำเนินคดี';
       return 'ค่าเช่าอาคารและที่ดิน (GL 4700400)';
     }
 
@@ -605,26 +605,27 @@ app.get('/api/reports/fee-breakdown', authenticateToken, (req, res) => {
       'ค่าธรรมเนียมสัตว์น้ำผ่านท่า (GL 4600200)',
       'ค่าธรรมเนียมรถผ่านท่า (GL 4600300)',
       'ค่าธรรมเนียมน้ำแข็งผ่านท่า (GL 4600400)',
+      'ค่าธรรมเนียมน้ำมันผ่านท่า (GL 4600500)',
       'ค่าธรรมเนียมใช้เครื่องชั่ง (GL 4600600)',
       'ค่าธรรมเนียมใช้สถานที่ (GL 4600700)',
       'ค่าจำหน่ายน้ำประปา (GL 4700200)',
       'ค่าจำหน่ายไฟฟ้า (GL 4700300)',
       'ค่าสุขาภิบาล (GL 4701420)',
-      'ค่าบริการตลาด / แพปลา / แผงค้า',
-      'ค่าภาษีโรงเรือนที่ดินและสิ่งปลูกสร้าง',
+      'ค่าบริการตลาด / แพปลา / แผงค้า (GL 4600100)',
+      'ค่าภาษีโรงเรือนและที่ดิน / เบ็ดเตล็ด',
       'ลูกหนี้ปรับโครงสร้างหนี้ / ดำเนินคดี'
     ];
 
     const map = {};
     categories.forEach(c => {
-      map[c] = { category: c, count: 0, total_ar: 0, b1: 0, b2: 0, b3: 0, b4: 0, b5: 0 };
+      map[c] = { category: c, count: 0, total_ar: 0, cur: 0, b1: 0, b2: 0, b3: 0, b4: 0, b5: 0, b6: 0 };
     });
 
     let grandTotal = 0;
     invs.forEach(i => {
       const cat = categorizeUnit(i.unit);
       if (!map[cat]) {
-        map[cat] = { category: cat, count: 0, total_ar: 0, b1: 0, b2: 0, b3: 0, b4: 0, b5: 0 };
+        map[cat] = { category: cat, count: 0, total_ar: 0, cur: 0, b1: 0, b2: 0, b3: 0, b4: 0, b5: 0, b6: 0 };
       }
       const out = A.outstanding(i);
       const b = A.bucketOf(i.due_date, asOf);
@@ -633,20 +634,21 @@ app.get('/api/reports/fee-breakdown', authenticateToken, (req, res) => {
       grandTotal += out;
 
       if (b) {
-        if (b.key === 'cur' || b.key === 'b1') map[cat].b1 += out;
+        if (b.key === 'cur') map[cat].cur += out;
+        else if (b.key === 'b1') map[cat].b1 += out;
         else if (b.key === 'b2') map[cat].b2 += out;
-        else if (b.key === 'b3' || b.key === 'b4') map[cat].b3 += out;
-        else if (b.key === 'b5') map[cat].b4 += out;
-        else if (b.key === 'b6') map[cat].b5 += out;
+        else if (b.key === 'b3') map[cat].b3 += out;
+        else if (b.key === 'b4') map[cat].b4 += out;
+        else if (b.key === 'b5') map[cat].b5 += out;
+        else if (b.key === 'b6') map[cat].b6 += out;
       }
     });
 
-    const result = Object.values(map)
-      .filter(r => r.count > 0 || r.total_ar > 0)
-      .map(r => ({
-        ...r,
-        pct: grandTotal > 0 ? parseFloat((r.total_ar / grandTotal * 100).toFixed(2)) : 0
-      }));
+    // ส่งออกรายการครบทุกหมวดหมู่ GL (12+ หมวด) เสมอ
+    const result = Object.values(map).map(r => ({
+      ...r,
+      pct: grandTotal > 0 ? parseFloat((r.total_ar / grandTotal * 100).toFixed(2)) : 0
+    }));
 
     res.json({ asOf, branchId: branchId || 'all', grandTotal, categories: result });
   } catch (err) {
@@ -711,6 +713,10 @@ app.get('/api/port-ledgers', authenticateToken, (req, res) => {
       const edMonths = edTot > 0 ? (r.bg_overdue_months || 0) : 0;
       return {
         ...r,
+        unit_no: r.location_detail || r.unit_no || '',
+        location_detail: r.location_detail || r.unit_no || '',
+        rate: (r.rate_amount !== undefined && r.rate_amount !== null) ? r.rate_amount : (r.rate || 0),
+        rate_amount: (r.rate_amount !== undefined && r.rate_amount !== null) ? r.rate_amount : (r.rate || 0),
         ed_amount: edAmt,
         ed_vat: edVat,
         ed_total: edTot,

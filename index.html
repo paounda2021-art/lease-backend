@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ระบบติดตามหนี้เช่า · Lease Receivables Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --navy: #0f172a;
@@ -246,21 +247,16 @@
     body {
       font-size: 13px;
     }
-  /* Mobile Responsive Design Enhancements */
-  @media (max-width: 768px) {
-    body {
-      font-size: 13px;
-    }
     header {
-      padding: 12px 14px;
+      padding: 12px 16px;
       flex-direction: column;
       align-items: stretch;
       text-align: center;
-      gap: 10px;
+      gap: 8px;
     }
     header h1 {
       justify-content: center;
-      font-size: 17px;
+      font-size: 18px;
     }
     header .flex {
       justify-content: center;
@@ -277,15 +273,6 @@
       flex-wrap: wrap;
       gap: 8px;
     }
-    #branchSelect {
-      width: 100% !important;
-      max-width: 100% !important;
-      font-size: 13px;
-    }
-    #branchCardsGrid {
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
-      gap: 10px !important;
-    }
     
     /* Horizontal scrollable navigation tabs on mobile */
     nav {
@@ -293,36 +280,36 @@
       flex-wrap: nowrap;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
+      scrollbar-width: none; /* Firefox */
     }
     nav::-webkit-scrollbar {
-      display: none;
+      display: none; /* Chrome, Safari, Opera */
     }
     nav button {
-      padding: 12px 14px;
+      padding: 12px 12px;
       font-size: 13px;
-      flex: 0 0 auto;
+      flex: 0 0 auto; /* Prevent tabs from shrinking */
     }
     
     main {
-      padding: 10px;
+      padding: 12px;
     }
     .cards {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
+      grid-template-columns: 1fr; /* Single column on mobile */
+      gap: 12px;
+      margin-bottom: 16px;
     }
     .card {
-      padding: 12px 14px;
+      padding: 12px 16px;
     }
     .card .val {
-      font-size: 20px;
+      font-size: 22px;
     }
     
     .panel {
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      overflow-x: auto;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      overflow-x: auto; /* Enable horizontal scrolling for tables inside panels */
       -webkit-overflow-scrolling: touch;
     }
     .panel h2 {
@@ -332,12 +319,7 @@
       gap: 4px;
     }
     
-    /* Tables horizontal scroll touch optimization */
-    table {
-      min-width: 600px;
-    }
-    
-    /* Toolbars & Controls */
+    /* Responsive forms and toolbars */
     .toolbar {
       flex-direction: column;
       align-items: stretch;
@@ -354,17 +336,17 @@
     
     /* Modals mobile optimization */
     .modal {
-      width: 95%;
-      max-width: 95%;
+      width: 100%;
+      max-width: 100%;
       padding: 16px;
-      border-radius: 14px;
-      max-height: 92vh;
+      border-radius: 12px;
     }
     .grid2 {
       grid-template-columns: 1fr;
       gap: 8px;
     }
     
+    /* Age rows stack on mobile */
     .agerow {
       grid-template-columns: 1fr;
       gap: 4px;
@@ -380,15 +362,6 @@
     }
     .agerow .muted {
       text-align: left !important;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .cards {
-      grid-template-columns: 1fr;
-    }
-    #branchCardsGrid {
-      grid-template-columns: 1fr !important;
     }
   }
 
@@ -547,19 +520,23 @@
     
     <div class="fg">
       <label>ชื่อผู้ใช้งาน (Username)</label>
-      <input id="loginUser" placeholder="เช่น natmaytinee.j" style="padding: 11px;">
+      <input id="loginUser" placeholder="เช่น admin, billing, cashier, manager" style="padding: 11px;">
     </div>
     <div class="fg" style="margin-top: 12px;">
       <label>รหัสผ่าน (Password)</label>
-      <input id="loginPass" type="password" placeholder="รหัสพนักงาน 8 หลัก" style="padding: 11px;" onkeyup="if(event.key==='Enter')submitLogin()">
+      <input id="loginPass" type="password" placeholder="••••••••" style="padding: 11px;" onkeyup="if(event.key==='Enter')submitLogin()">
     </div>
     
     <div id="loginErr" style="color: var(--red); font-size: 12.5px; margin: 12px 0; font-weight: 600; text-align: center; min-height: 18px;"></div>
     
     <button class="act" onclick="submitLogin()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 8px;">เข้าสู่ระบบ</button>
     
-    <div style="margin-top: 24px; text-align: center; font-size: 11.5px; color: var(--muted-color); border-top: 1px solid var(--border-line); padding-top: 14px;">
-      @ 2026 องค์การสะพานปลา By สำนักงานเทคโนโลยีสารสนเทศ
+    <div style="margin-top: 24px; padding: 12px; background: var(--grey); border-radius: 8px; border: 1px solid var(--border-line); font-size: 11.5px; line-height: 1.6; color: var(--muted-color);">
+      <b>ข้อมูลผู้ใช้จำลองสำหรับทดสอบ (รหัสผ่าน: password123):</b><br>
+      • <span style="font-weight:600; color:var(--accent);">admin</span> : เข้าใช้งานได้ทุกฟังก์ชัน<br>
+      • <span style="font-weight:600; color:var(--accent);">billing</span> : จัดการสัญญาและออกใบแจ้งหนี้<br>
+      • <span style="font-weight:600; color:var(--accent);">cashier</span> : บันทึกรับเงิน และหักเงินประกัน<br>
+      • <span style="font-weight:600; color:var(--accent);">manager</span> : อนุมัติส่งฟ้อง ตัดหนี้สูญ และปรับสำรอง
     </div>
   </div>
 </div>
@@ -575,7 +552,40 @@
       <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">โหมดมืด</span>
     </button>
     <div class="db"><span class="dbdot" id="dbdot"></span><span id="dbstat">เชื่อมต่อฐานข้อมูล</span></div>
-    <div class="asof">ณ วันที่ <input type="date" id="asof" onchange="loadAll()"></div>
+    <div class="asof" style="position:relative;">
+      <span style="font-weight:600; color:rgba(255,255,255,0.9);">ณ วันที่</span>
+      <button id="asofBtn" type="button" onclick="toggleThaiDatePicker()" style="background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; border-radius:8px; padding:5px 12px; font-weight:700; font-size:12.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+        <span>📅</span>
+        <span id="asofLabel">14 สิงหาคม 2569</span>
+        <span style="font-size:9px; color:#64748b;">▼</span>
+      </button>
+      <input type="hidden" id="asof">
+
+      <!-- Thai BE Date Picker Popup -->
+      <div id="thDatePickerPopup" style="display:none; position:absolute; top:calc(100% + 6px); right:0; z-index:99999; background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.2); padding:14px; width:290px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <button type="button" onclick="changeDatePickerMonth(-1)" class="sm ghost" style="padding:3px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">◀</button>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <select id="dpMonthSel" onchange="renderDatePickerCalendar()" style="padding:4px 6px; font-size:12px; font-weight:700; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; color:#1e293b; cursor:pointer;">
+            </select>
+            <select id="dpYearSel" onchange="renderDatePickerCalendar()" style="padding:4px 6px; font-size:12px; font-weight:700; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; color:#1e293b; cursor:pointer;">
+            </select>
+          </div>
+          <button type="button" onclick="changeDatePickerMonth(1)" class="sm ghost" style="padding:3px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">▶</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; font-size:11px; font-weight:700; color:#64748b; margin-bottom:6px; padding:4px 0; border-bottom:1px solid #f1f5f9;">
+          <span style="color:#ef4444;">อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span style="color:#2563eb;">ส</span>
+        </div>
+
+        <div id="dpDaysGrid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; text-align:center; font-size:12px;"></div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:11px;">
+          <button type="button" onclick="selectTodayDatePicker()" class="sm act" style="padding:4px 10px; font-size:11px; background:#0284c7; color:#fff; border-radius:6px; font-weight:700;">วันนี้ (พ.ศ.)</button>
+          <button type="button" onclick="closeThaiDatePicker()" class="sm ghost" style="padding:4px 8px; font-size:11px;">ปิด</button>
+        </div>
+      </div>
+    </div>
     
     <!-- User Logged-in Info -->
     <div id="userInfo" style="display: none;">
@@ -592,6 +602,7 @@
     <button data-tab="invoices" onclick="showTab('invoices',this)">ลูกหนี้/ใบแจ้งหนี้</button>
     <button data-tab="aging" onclick="showTab('aging',this)">Aging &amp; สำรอง</button>
     <button data-tab="dunning" onclick="showTab('dunning',this)">ทวงถาม/ฟ้อง</button>
+    <button data-tab="portLedger" onclick="showTab('portLedger',this)">ทะเบียนคุมรับชำระ/ยอดยกไป</button>
     <button data-tab="audit" onclick="showTab('audit',this)">ประวัติการแก้ไข</button>
   </div>
   <div style="display: flex; align-items: center; gap: 8px; margin-left: auto; padding: 6px 0;">
@@ -614,7 +625,7 @@
     <div class="cards" id="kpiCards"></div>
 
     <!-- Multi-Branch Cards Grid (17 Branches) -->
-    <div class="panel" id="multiBranchGridPanel" style="display:none; margin-top:20px;">
+    <div class="panel" id="multiBranchGridPanel" style="margin-top:20px;">
       <div class="flex" style="align-items:center; justify-content:space-between; margin-bottom:12px;">
         <h2 style="margin:0;">🏢 สถานะบริหารลูกหนี้ 17 หน่วยงาน (สะพานปลา &amp; ท่าเทียบเรือประมง)</h2>
         <span class="muted" style="font-size:12px;">💡 คลิกที่หน่วยงานเพื่อดูหน้ารวมรายละเอียดและจัดการลูกหนี้</span>
@@ -622,18 +633,101 @@
       <div id="branchCardsGrid" style="display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap:12px;"></div>
     </div>
 
-    <!-- Multi-Branch Comparison Table -->
-    <div class="panel" id="multiBranchTablePanel" style="display:none; margin-top:16px;">
-      <h2>📊 ตารางเปรียบเทียบการบริหารหนี้รายหน่วยงาน (17 ส่วนงาน)</h2>
-      <div style="overflow-x:auto;">
+    <!-- Multi-Branch Comparison Panel with Chart & Table Views -->
+    <div class="panel" id="multiBranchTablePanel" style="margin-top:16px;">
+      <div class="flex" style="align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h2 style="margin:0;">📊 เปรียบเทียบการบริหารหนี้รายหน่วยงาน (17 ส่วนงาน)</h2>
+        <div style="display:flex; gap:6px; background:var(--bg-body); padding:3px; border-radius:8px; border:1px solid var(--border-line);">
+          <button id="branchViewChartBtn" type="button" class="sm act" onclick="switchBranchView('chart')" style="font-size:11.5px; padding:4px 12px; border-radius:6px; font-weight:700;">📊 มุมมองกราฟ</button>
+          <button id="branchViewTableBtn" type="button" class="sm ghost" onclick="switchBranchView('table')" style="font-size:11.5px; padding:4px 12px; border-radius:6px; font-weight:700;">📋 มุมมองตาราง</button>
+        </div>
+      </div>
+
+      <!-- Chart View -->
+      <div id="branchChartView" style="display:block;">
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-top:8px;">
+          <!-- Horizontal Bar Chart for 17 Branches -->
+          <div style="background:var(--bg-card); padding:14px; border-radius:10px; border:1px solid var(--border-line);">
+            <div style="font-size:12.5px; font-weight:700; color:var(--navy); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+              <span>📊 กราฟเปรียบเทียบยอดลูกหนี้รวม vs ค้างชำระ (17 หน่วยงาน)</span>
+              <span class="muted" style="font-size:11px;">💡 คลิกที่แท่งกราฟเพื่อดูหน้ารวมของหน่วยงานนั้น</span>
+            </div>
+            <div style="position:relative; height:420px;">
+              <canvas id="branchCompareChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Risk Distribution Donut Chart -->
+          <div style="background:var(--bg-card); padding:14px; border-radius:10px; border:1px solid var(--border-line); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="font-size:12.5px; font-weight:700; color:var(--navy); margin-bottom:10px;">
+                🍩 สัดส่วนระดับความเสี่ยงของหน่วยงาน
+              </div>
+              <div style="position:relative; height:260px;">
+                <canvas id="branchRiskDonutChart"></canvas>
+              </div>
+            </div>
+            <div id="branchRiskSummaryStats" style="margin-top:12px; font-size:11.5px; display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table View -->
+      <div id="branchTableView" style="display:none; overflow-x:auto; margin-top:8px;">
         <table id="branchCompareTable"></table>
+      </div>
+    </div>
+
+    <!-- GL Fee Breakdown Panel with Chart & Table Views -->
+    <div class="panel" id="feeBreakdownPanel" style="margin-top:16px;">
+      <div class="flex" style="align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <h2 style="margin:0;">📊 รายการสรุปยอดลูกหนี้แยกตามประเภทค่าธรรมเนียมและค่าเช่า (12 หมวดหมู่ GL)</h2>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <div style="display:flex; gap:6px; background:var(--bg-body); padding:3px; border-radius:8px; border:1px solid var(--border-line);">
+            <button id="feeViewChartBtn" type="button" class="sm act" onclick="switchFeeView('chart')" style="font-size:11.5px; padding:4px 12px; border-radius:6px; font-weight:700;">📊 มุมมองกราฟ</button>
+            <button id="feeViewTableBtn" type="button" class="sm ghost" onclick="switchFeeView('table')" style="font-size:11.5px; padding:4px 12px; border-radius:6px; font-weight:700;">📋 มุมมองตาราง</button>
+          </div>
+          <input id="feeSearch" placeholder="ค้นหาประเภทค่า..." oninput="renderFeeBreakdownTable()" style="padding:4px 8px; font-size:12px; border-radius:6px; border:1px solid var(--border-line); width:160px;">
+          <button class="ghost sm" onclick="exportFeeBreakdownCSV()" style="font-size:11px;">📥 ส่งออก Excel</button>
+        </div>
+      </div>
+
+      <!-- Chart View -->
+      <div id="feeChartView" style="display:block;">
+        <div style="display:grid; grid-template-columns: 1fr 1.8fr; gap:16px; margin-top:8px;">
+          <!-- Donut Chart of GL Fee Share -->
+          <div style="background:var(--bg-card); padding:14px; border-radius:10px; border:1px solid var(--border-line);">
+            <div style="font-size:12.5px; font-weight:700; color:var(--navy); margin-bottom:10px;">
+              🍩 สัดส่วนยอดหนี้คงค้างตามหมวดหมู่ GL
+            </div>
+            <div style="position:relative; height:380px;">
+              <canvas id="feeDonutChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Horizontal Stacked Bar Chart by Aging -->
+          <div style="background:var(--bg-card); padding:14px; border-radius:10px; border:1px solid var(--border-line);">
+            <div style="font-size:12.5px; font-weight:700; color:var(--navy); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+              <span>📊 โครงสร้างอายุหนี้แยกตามหมวดหมู่ GL (Aging Stacked)</span>
+              <span class="muted" style="font-size:11px;">(หน่วย: บาท)</span>
+            </div>
+            <div style="position:relative; height:380px;">
+              <canvas id="feeAgingBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table View -->
+      <div id="feeTableView" style="display:none; overflow-x:auto; margin-top:8px;">
+        <table id="feeBreakdownTable" style="font-size:12px;"></table>
       </div>
     </div>
 
     <!-- Single Branch Detailed Dashboard Views -->
     <div id="singleBranchDetailsPanel">
-      <div class="panel"><h2>โครงสร้างอายุหนี้ (AR Aging)</h2><div id="agingBars"></div><div class="legend" id="agingLegend"></div></div>
-      <div class="flex">
+      <div class="panel" style="margin-top:16px;"><h2>โครงสร้างอายุหนี้ (AR Aging)</h2><div id="agingBars"></div><div class="legend" id="agingLegend"></div></div>
+      <div class="flex" style="margin-top:16px; gap:16px;">
         <div class="panel" style="flex:1;min-width:300px"><h2>ลูกหนี้เสี่ยงสูงสุด</h2><table id="topOverdue"></table></div>
         <div class="panel" style="flex:1;min-width:300px"><h2>สรุปสำรอง (Provision)</h2><table id="provSummary"></table></div>
       </div>
@@ -643,7 +737,7 @@
   <section id="contracts" class="tab">
     <div class="toolbar">
       <button class="act" id="addContractBtn" onclick="openContract()">+ เพิ่มสัญญา</button>
-      <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ ออกใบแจ้งหนี้งวดถัดไป <span id="selectedContractsCount" style="color:var(--accent); font-weight:700;"></span></button>
+      <button class="ghost" id="genInvoicesBtn" onclick="genAll()">⚙ สร้างใบแจ้งหนี้งวดถัดไปทุกสัญญา</button>
       <input id="cSearch" placeholder="ค้นหาผู้เช่า/ยูนิต..." oninput="renderContracts()" style="margin-left:auto; width:220px;">
     </div>
     <div class="panel"><table id="contractTable"></table></div>
@@ -673,6 +767,68 @@
     <div class="note"><b>เกณฑ์กฎกระทรวง 186:</b> &gt;2ล้าน=ฟ้อง+บังคับคดีไม่มีทรัพย์ · 2แสน–2ล้าน=ศาลรับฟ้อง · ≤2แสน=ทวงถาม≥2ครั้ง+บอร์ดอนุมัติ</div>
     <div class="panel" style="overflow:auto"><table id="dunTable"></table></div>
   </section>
+
+  <section id="portLedger" class="tab">
+    <div class="toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-weight:700; color:var(--navy);">งวดประมวลผล:</span>
+        <div style="position:relative; display:inline-flex; align-items:center;">
+          <button id="portLedgerPeriodBtn" type="button" onclick="toggleThaiMonthPicker()" style="background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; border-radius:6px; padding:4px 12px; font-weight:700; font-size:12.5px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+            <span>📅</span>
+            <span id="portLedgerPeriodLabel">กรกฎาคม 2569</span>
+            <span style="font-size:9px; color:#64748b;">▼</span>
+          </button>
+          <input type="hidden" id="portLedgerPeriod" value="2026-07">
+
+          <!-- Thai BE Month Picker Popup -->
+          <div id="thMonthPickerPopup" style="display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:99999; background:#ffffff; color:#1e293b; border:1px solid #cbd5e1; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.2); padding:14px; width:280px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid #f1f5f9;">
+              <button type="button" onclick="changeMonthPickerYear(-1)" class="sm ghost" style="padding:3px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">◀</button>
+              <select id="mpYearSel" onchange="renderMonthPickerGrid()" style="padding:4px 8px; font-size:13px; font-weight:800; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; color:#1e293b; cursor:pointer;">
+              </select>
+              <button type="button" onclick="changeMonthPickerYear(1)" class="sm ghost" style="padding:3px 8px; border-radius:6px; cursor:pointer; font-weight:bold;">▶</button>
+            </div>
+
+            <div id="mpMonthsGrid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;"></div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:8px; border-top:1px solid #e2e8f0; font-size:11px;">
+              <button type="button" onclick="selectCurrentMonthPicker()" class="sm act" style="padding:4px 8px; font-size:11px; background:#0284c7; color:#fff; border-radius:6px; font-weight:700;">เดือนนี้ (พ.ศ.)</button>
+              <button type="button" onclick="closeThaiMonthPicker()" class="sm ghost" style="padding:4px 8px; font-size:11px;">ปิด</button>
+            </div>
+          </div>
+        </div>
+        <button class="act sm" onclick="openLedgerPayModal()" style="background:#0284c7; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+          <span>💵 บันทึกรับยอด (ทร.)</span>
+        </button>
+        <button class="ghost sm" onclick="rollForwardLedger()" style="border-color:#16a34a; color:#16a34a; font-weight:700;">
+          <span>🔄 ยกยอดค้างยกไปตั้งต้นงวดเดือนถัดไป</span>
+        </button>
+        <button class="act sm" id="ledgerPaySelectedBtn" onclick="openLedgerPayModal()" style="background:#16a34a; font-weight:700; display:none;">
+          💵 บันทึกรับยอดที่เลือก
+        </button>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <input id="portLedgerSearch" placeholder="ค้นหาผู้เช่า / ทะเบียน / ยูนิต..." oninput="renderPortLedgerTable()" style="width:220px; font-size:12.5px;">
+        <button class="ghost sm" onclick="exportLedgerCSV()" style="font-weight:600;">📥 ส่งออก Excel</button>
+      </div>
+    </div>
+
+    <div style="background:#fefce8; border:1px solid #fef08a; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:12px; color:#854d0e; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        📌 <b>ทะเบียนคุมรับชำระและยอดยกไป (3 ส่วน):</b> 
+        <span style="color:#b91c1c;">🔴 ข้อมูลตั้งต้นยกมา</span> &rightarrow; 
+        <span style="color:#854d0e;">🟡 รับชำระตัดยอดอัตโนมัติ</span> &rightarrow; 
+        <span style="color:#15803d;">🟢 ยอดค้างยกไปตั้งต้นงวดใหม่</span>
+      </div>
+      <div id="portLedgerCountText" style="font-weight:700; color:#713f12;"></div>
+    </div>
+
+    <div class="panel" style="overflow:auto; max-height:75vh; padding:0;">
+      <table id="portLedgerTable" style="font-size:12px; border-collapse:collapse; width:100%;">
+        <!-- Populated dynamically by renderPortLedgerTable() -->
+      </table>
+    </div>
+  </section>
   
   <section id="audit" class="tab">
     <div class="panel"><h2>ประวัติการแก้ไข (Audit Trail) <span class="hint">ธุรกรรมและการกระทำสำคัญที่บันทึกโดยผู้ใช้อย่างถาวร</span></h2><table id="auditTable"></table></div>
@@ -699,18 +855,6 @@
 
 <!-- โมดัล การเงิน & อนุมัติ -->
 <div class="modal-bg" id="pModal"><div class="modal"><h3 id="pTitle">จัดการ</h3><div id="pBody"></div></div></div>
-
-<!-- โมดัล ยืนยันออกใบแจ้งหนี้งวดถัดไป -->
-<div class="modal-bg" id="genInvoiceModal">
-  <div class="modal" style="max-width: 480px;">
-    <h3 style="margin-bottom:12px;">⚙ ยืนยันออกใบแจ้งหนี้งวดถัดไป</h3>
-    <div id="genInvoiceModalBody" style="line-height:1.6; margin:16px 0; color:var(--text-body);"></div>
-    <div class="flex" style="justify-content: flex-end; gap:10px; margin-top:20px;">
-      <button class="act" id="genInvoiceConfirmBtn" onclick="confirmGenInvoices()">ยืนยันสร้างใบแจ้งหนี้</button>
-      <button class="sm" onclick="closeM('genInvoiceModal')">ยกเลิก</button>
-    </div>
-  </div>
-</div>
 
 <!-- โมดัล พิมพ์หนังสือทวงถามหนี้ (Preview & Configuration) -->
 <div class="modal-bg" id="letterModal" style="z-index: 1000;">
@@ -782,14 +926,90 @@
   </div>
 </div>
 
-<!-- คอนเทนเนอร์จริงสำหรับสั่งพิมพ์ (พิมพ์ซ่อนอยู่ในหน้าเว็บ) -->
-<div id="printLetterContainer" style="display: none;"></div>
+<!-- โมดัล บันทึกข้อมูลการรับชำระหนี้ (ทร.) -->
+<div class="modal-bg" id="ledgerPayModal" style="z-index:1100;">
+  <div class="modal" style="max-width:950px; width:95%; padding:20px; border-radius:16px;">
+    <h3 style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+      <span>💵 บันทึกข้อมูลการรับชำระหนี้ (ทะเบียนคุมรับชำระ ทร.)</span>
+      <button class="sm ghost" onclick="closeLedgerPayModal()">✕</button>
+    </h3>
+
+    <div style="background:#e0f2fe; border:1px solid #bae6fd; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:12.5px; color:#0369a1;">
+      💡 <b>คำแนะนำ:</b> ระบุวันที่รับชำระเงิน เลขที่ใบเสร็จรับเงิน และจำนวนเงินรับชำระจริง เพื่อส่งข้อมูลรอส่วนกลางอนุมัติตัดยอดหนี้ในระบบ
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:12px;">
+      <input type="text" id="lp_search_name" placeholder="ค้นหาชื่อลูกหนี้ / ผู้เช่า..." oninput="filterLedgerPayItems()" style="flex:1; padding:6px 12px; font-size:13px; border-radius:8px; border:1px solid var(--border-line);">
+    </div>
+
+    <div style="max-height:55vh; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:14px;">
+      <table style="width:100%; font-size:12px; border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f8fafc; color:var(--navy); position:sticky; top:0; z-index:5;">
+            <th style="width:40px;" class="c">ลำดับ</th>
+            <th style="min-width:180px;">รายชื่อลูกหนี้</th>
+            <th style="min-width:120px;">ยูนิต/สถานที่</th>
+            <th style="width:110px;" class="r">ยอดยกมา (บาท)</th>
+            <th style="width:140px;" class="c">วันที่รับชำระ</th>
+            <th style="width:150px;" class="c">เลขที่ใบเสร็จ</th>
+            <th style="width:130px;" class="r">จำนวนเงินรับชำระ</th>
+          </tr>
+        </thead>
+        <tbody id="ledgerPayModalBody">
+          <!-- Items will be populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:12px; color:var(--muted-color);">💡 ปุ่มสีฟ้าคือการส่งยอดรอส่วนกลางตรวจสอบ</span>
+      <div style="display:flex; gap:8px;">
+        <button class="sm ghost" onclick="closeLedgerPayModal()">ยกเลิก</button>
+        <button class="act" onclick="savePendingPay()" style="background:#0284c7; font-weight:700;">💾 บันทึกยอด (รอส่วนกลางตรวจสอบ)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- โมดัล ส่วนกลางตรวจสอบและอนุมัติตัดยอดชำระเงิน -->
+<div class="modal-bg" id="approveModal" style="z-index:1100;">
+  <div class="modal" style="max-width:900px; width:95%; padding:20px; border-radius:16px;">
+    <h3 style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+      <span>✅ ส่วนกลางอนุมัติตัดยอดชำระเงิน (Central Approval)</span>
+      <button class="sm ghost" onclick="closeApproveModal()">✕</button>
+    </h3>
+    <div style="background:#fef3c7; border:1px solid #fde68a; padding:10px 14px; border-radius:8px; margin-bottom:14px; font-size:12.5px; color:#92400e;">
+      ⚠️ <b>คำเตือน:</b> การอนุมัติจะทำการตัดยอดหนี้และปรับปรุงยอดยกไป (โซนสีเขียว) ในฐานข้อมูลจริง
+    </div>
+    <div style="max-height:50vh; overflow-y:auto; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:14px;">
+      <table style="width:100%; font-size:12px; border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f8fafc; color:var(--navy);">
+            <th style="width:40px;" class="c">ลำดับ</th>
+            <th style="min-width:180px;">รายชื่อลูกหนี้</th>
+            <th style="width:100px;" class="c">วันที่รับเงิน</th>
+            <th style="width:120px;" class="c">เลขที่ใบเสร็จ</th>
+            <th style="width:110px;" class="r">ยอดชำระ</th>
+            <th style="width:110px;" class="c">ผู้ขออนุมัติ</th>
+            <th style="width:80px;" class="c">อนุมัติ</th>
+          </tr>
+        </thead>
+        <tbody id="approveModalBody">
+          <!-- Items populated dynamically -->
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="sm ghost" onclick="closeApproveModal()">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+</div>
 
 <div id="toast"></div>
 
 <footer>
   <div>ระบบติดตามหนี้เช่า (Lease Receivables Tracker) · ความปลอดภัยระดับองค์กร</div>
-  <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">@ 2026 องค์การสะพานปลา By สำนักงานเทคโนโลยีสารสนเทศ</div>
+  <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">@2026 องค์การสะพานปลา (อสป.) สงวนลิขสิทธิ์</div>
 </footer>
 
 <script>
@@ -799,6 +1019,359 @@ const BK = [['cur','ยังไม่ครบกำหนด','#22c55e'],['b1'
 const fmt = n => Math.round(n || 0).toLocaleString('en-US');
 const asof = () => document.getElementById('asof').value;
 
+// ==========================================
+//  ระบบแปลงวันเวลาประเทศไทย (ICT / พ.ศ.)
+// ==========================================
+function fmtTHDate(dateIso, mode = 'short') {
+  if (!dateIso) return '-';
+  let d;
+  if (typeof dateIso === 'string' && dateIso.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [y, m, day] = dateIso.split('-').map(Number);
+    d = new Date(y, m - 1, day);
+  } else {
+    d = new Date(dateIso);
+  }
+  if (isNaN(d.getTime())) return dateIso;
+
+  const thaiMonthsShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+  const thaiMonthsFull = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  
+  const day = d.getDate();
+  const yearBE = d.getFullYear() + 543;
+
+  if (mode === 'full') {
+    return `${day} ${thaiMonthsFull[d.getMonth()]} ${yearBE}`;
+  } else if (mode === 'slash') {
+    const dd = String(day).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}/${yearBE}`;
+  }
+  return `${day} ${thaiMonthsShort[d.getMonth()]} ${yearBE}`;
+}
+
+function fmtTHDateTime(tsStr) {
+  if (!tsStr) return '-';
+  let isoStr = tsStr;
+  if (typeof tsStr === 'string' && tsStr.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)) {
+    isoStr = tsStr.replace(' ', 'T') + 'Z';
+  }
+  const d = new Date(isoStr);
+  if (isNaN(d.getTime())) return tsStr;
+
+  try {
+    return d.toLocaleString('th-TH-u-ca-buddhist', {
+      timeZone: 'Asia/Bangkok',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  } catch (e) {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const thaiMonthsShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${dd} ${thaiMonthsShort[d.getMonth()]} ${d.getFullYear() + 543} ${hh}:${mm}:${ss}`;
+  }
+}
+
+function updateAsOfTHDisplay() {
+  const lbl = document.getElementById('asofLabel');
+  if (lbl && asof()) {
+    lbl.textContent = fmtTHDate(asof(), 'full');
+  }
+}
+
+// ==========================================
+//  ระบบปฏิทินเลือกวันที่แสดงผล พ.ศ. (Thai BE DatePicker)
+// ==========================================
+let dpState = {
+  yearBE: 2569,
+  month: 7,
+  day: 14
+};
+
+function initThaiDatePicker() {
+  const d = new Date();
+  dpState.yearBE = d.getFullYear() + 543;
+  dpState.month = d.getMonth();
+  dpState.day = d.getDate();
+  
+  const ySel = document.getElementById('dpYearSel');
+  if (ySel) {
+    let opts = '';
+    const currentBE = new Date().getFullYear() + 543;
+    for (let y = currentBE - 15; y <= currentBE + 10; y++) {
+      opts += `<option value="${y}">${y}</option>`;
+    }
+    ySel.innerHTML = opts;
+  }
+
+  const mSel = document.getElementById('dpMonthSel');
+  if (mSel) {
+    const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+    mSel.innerHTML = months.map((m, idx) => `<option value="${idx}">${m}</option>`).join('');
+  }
+
+  setDatePickerValue(dpState.yearBE, dpState.month, dpState.day, false);
+}
+
+function setDatePickerValue(yearBE, month, day, triggerLoad = true) {
+  dpState.yearBE = yearBE;
+  dpState.month = month;
+  dpState.day = day;
+
+  const yearAD = yearBE - 543;
+  const mm = String(month + 1).padStart(2, '0');
+  const dd = String(day).padStart(2, '0');
+  const isoStr = `${yearAD}-${mm}-${dd}`;
+
+  const asofInput = document.getElementById('asof');
+  if (asofInput) asofInput.value = isoStr;
+
+  const monthsFull = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  const lbl = document.getElementById('asofLabel');
+  if (lbl) {
+    lbl.textContent = `${day} ${monthsFull[month]} ${yearBE}`;
+  }
+
+  if (triggerLoad) {
+    loadAll();
+  }
+}
+
+function renderDatePickerCalendar() {
+  const ySel = document.getElementById('dpYearSel');
+  const mSel = document.getElementById('dpMonthSel');
+  if (!ySel || !mSel) return;
+
+  const yearBE = parseInt(ySel.value);
+  const month = parseInt(mSel.value);
+  const yearAD = yearBE - 543;
+
+  const firstDayIndex = new Date(yearAD, month, 1).getDay();
+  const daysInMonth = new Date(yearAD, month + 1, 0).getDate();
+
+  const grid = document.getElementById('dpDaysGrid');
+  if (!grid) return;
+
+  let html = '';
+  for (let i = 0; i < firstDayIndex; i++) {
+    html += `<div></div>`;
+  }
+
+  const selectedISO = document.getElementById('asof').value;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dISO = `${yearAD}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const isSelected = (dISO === selectedISO);
+
+    const btnBg = isSelected ? '#0284c7' : 'transparent';
+    const btnColor = isSelected ? '#ffffff' : '#1e293b';
+    const fontW = isSelected ? '700' : '500';
+
+    html += `
+      <button type="button" onclick="selectDatePickerDay(${yearBE}, ${month}, ${d})" 
+              style="padding:6px 0; border:none; border-radius:6px; background:${btnBg}; color:${btnColor}; font-weight:${fontW}; font-size:12px; cursor:pointer; transition:all 0.15s;"
+              onmouseenter="if(!${isSelected}) this.style.background='#f1f5f9'" 
+              onmouseleave="if(!${isSelected}) this.style.background='transparent'">
+        ${d}
+      </button>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
+function toggleThaiDatePicker() {
+  const pop = document.getElementById('thDatePickerPopup');
+  if (!pop) return;
+  const isHidden = (pop.style.display === 'none' || !pop.style.display);
+  if (isHidden) {
+    document.getElementById('dpYearSel').value = dpState.yearBE;
+    document.getElementById('dpMonthSel').value = dpState.month;
+    renderDatePickerCalendar();
+    pop.style.display = 'block';
+  } else {
+    pop.style.display = 'none';
+  }
+}
+
+function closeThaiDatePicker() {
+  const pop = document.getElementById('thDatePickerPopup');
+  if (pop) pop.style.display = 'none';
+}
+
+function changeDatePickerMonth(delta) {
+  let m = parseInt(document.getElementById('dpMonthSel').value) + delta;
+  let y = parseInt(document.getElementById('dpYearSel').value);
+  if (m < 0) {
+    m = 11;
+    y--;
+  } else if (m > 11) {
+    m = 0;
+    y++;
+  }
+  document.getElementById('dpYearSel').value = y;
+  document.getElementById('dpMonthSel').value = m;
+  renderDatePickerCalendar();
+}
+
+function selectDatePickerDay(yearBE, month, day) {
+  setDatePickerValue(yearBE, month, day, true);
+  closeThaiDatePicker();
+}
+
+function selectTodayDatePicker() {
+  const d = new Date();
+  const yearBE = d.getFullYear() + 543;
+  const month = d.getMonth();
+  const day = d.getDate();
+  setDatePickerValue(yearBE, month, day, true);
+  closeThaiDatePicker();
+}
+
+document.addEventListener('click', function(e) {
+  const container = document.querySelector('.asof');
+  if (container && !container.contains(e.target)) {
+    closeThaiDatePicker();
+  }
+  const mpContainer = document.getElementById('portLedgerPeriodBtn')?.parentElement;
+  if (mpContainer && !mpContainer.contains(e.target)) {
+    closeThaiMonthPicker();
+  }
+});
+
+// ==========================================
+//  ระบบเลือกเดือน/งวด พ.ศ. ภาษาไทย (Thai BE MonthPicker)
+// ==========================================
+let mpState = {
+  yearBE: 2569,
+  month: 6 // 0-indexed: 6 = กรกฎาคม (July)
+};
+
+const thaiMonthsNames = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+];
+
+function initThaiMonthPicker() {
+  const curPeriod = document.getElementById('portLedgerPeriod')?.value || '2026-07';
+  const parts = curPeriod.split('-');
+  if (parts.length === 2) {
+    mpState.yearBE = parseInt(parts[0], 10) + 543;
+    mpState.month = parseInt(parts[1], 10) - 1;
+  }
+
+  const ySel = document.getElementById('mpYearSel');
+  if (ySel) {
+    let opts = '';
+    const currentBE = new Date().getFullYear() + 543;
+    for (let y = currentBE - 15; y <= currentBE + 10; y++) {
+      opts += `<option value="${y}">${y}</option>`;
+    }
+    ySel.innerHTML = opts;
+    ySel.value = mpState.yearBE;
+  }
+
+  setMonthPickerValue(mpState.yearBE, mpState.month, false);
+}
+
+function setMonthPickerValue(yearBE, month, triggerLoad = true) {
+  mpState.yearBE = yearBE;
+  mpState.month = month;
+
+  const yearAD = yearBE - 543;
+  const mm = String(month + 1).padStart(2, '0');
+  const periodISO = `${yearAD}-${mm}`;
+
+  const periodInput = document.getElementById('portLedgerPeriod');
+  if (periodInput) periodInput.value = periodISO;
+
+  const lbl = document.getElementById('portLedgerPeriodLabel');
+  if (lbl) {
+    lbl.textContent = `${thaiMonthsNames[month]} ${yearBE}`;
+  }
+
+  if (triggerLoad) {
+    loadPortLedger();
+  }
+}
+
+function renderMonthPickerGrid() {
+  const ySel = document.getElementById('mpYearSel');
+  if (!ySel) return;
+  const yearBE = parseInt(ySel.value);
+  const grid = document.getElementById('mpMonthsGrid');
+  if (!grid) return;
+
+  const selectedPeriod = document.getElementById('portLedgerPeriod')?.value || '';
+  const selectedYearAD = yearBE - 543;
+
+  let html = '';
+  thaiMonthsNames.forEach((mName, idx) => {
+    const periodISO = `${selectedYearAD}-${String(idx + 1).padStart(2, '0')}`;
+    const isSelected = (periodISO === selectedPeriod);
+
+    const btnBg = isSelected ? '#0284c7' : '#f8fafc';
+    const btnColor = isSelected ? '#ffffff' : '#1e293b';
+    const btnBorder = isSelected ? '#0284c7' : '#cbd5e1';
+    const fontW = isSelected ? '700' : '600';
+
+    html += `
+      <button type="button" onclick="selectMonthPickerMonth(${yearBE}, ${idx})"
+              style="padding:8px 4px; border:1px solid ${btnBorder}; border-radius:8px; background:${btnBg}; color:${btnColor}; font-weight:${fontW}; font-size:12px; cursor:pointer; transition:all 0.15s;"
+              onmouseenter="if(!${isSelected}) { this.style.background='#e0f2fe'; this.style.borderColor='#7dd3fc'; }"
+              onmouseleave="if(!${isSelected}) { this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1'; }">
+        ${mName}
+      </button>
+    `;
+  });
+
+  grid.innerHTML = html;
+}
+
+function toggleThaiMonthPicker() {
+  const pop = document.getElementById('thMonthPickerPopup');
+  if (!pop) return;
+  const isHidden = (pop.style.display === 'none' || !pop.style.display);
+  if (isHidden) {
+    document.getElementById('mpYearSel').value = mpState.yearBE;
+    renderMonthPickerGrid();
+    pop.style.display = 'block';
+  } else {
+    pop.style.display = 'none';
+  }
+}
+
+function closeThaiMonthPicker() {
+  const pop = document.getElementById('thMonthPickerPopup');
+  if (pop) pop.style.display = 'none';
+}
+
+function changeMonthPickerYear(delta) {
+  let y = parseInt(document.getElementById('mpYearSel').value) + delta;
+  document.getElementById('mpYearSel').value = y;
+  renderMonthPickerGrid();
+}
+
+function selectMonthPickerMonth(yearBE, month) {
+  setMonthPickerValue(yearBE, month, true);
+  closeThaiMonthPicker();
+}
+
+function selectCurrentMonthPicker() {
+  const d = new Date();
+  const yearBE = d.getFullYear() + 543;
+  const month = d.getMonth();
+  setMonthPickerValue(yearBE, month, true);
+  closeThaiMonthPicker();
+}
+
 function toast(m) {
   const t = document.getElementById('toast');
   t.textContent = m;
@@ -807,13 +1380,15 @@ function toast(m) {
 }
 
 function onBranchChange() {
-  showTab('dash');
+  const bVal = document.getElementById('branchSelect')?.value || 'all';
+  localStorage.setItem('selectedBranch', bVal);
   loadAll();
 }
 
 function selectBranch(bId) {
   const sel = document.getElementById('branchSelect');
   if (sel) sel.value = bId;
+  localStorage.setItem('selectedBranch', bId);
   showTab('dash');
   loadAll();
 }
@@ -825,13 +1400,13 @@ async function loadBranches() {
     
     const sel = document.getElementById('branchSelect');
     if (sel) {
-      const curr = sel.value || 'all';
+      const savedBranch = localStorage.getItem('selectedBranch') || sel.value || 'all';
       let optHtml = '<option value="all">🏢 ภาพรวมทั้งหมด 17 หน่วยงาน</option>';
       (D.branches || []).forEach(b => {
         optHtml += `<option value="${b.id}">${b.name} (${b.region})</option>`;
       });
       sel.innerHTML = optHtml;
-      sel.value = curr;
+      sel.value = savedBranch;
     }
 
     const cb = document.getElementById('c_branch');
@@ -866,6 +1441,7 @@ function renderAll() {
   }
 
   if (D.dash) renderKPI();
+  if (D.feeReport) renderFeeBreakdownTable();
   if (D.aging) renderBars();
   if (D.invoices) renderTop();
   if (D.prov) renderProvSummary();
@@ -874,11 +1450,16 @@ function renderAll() {
   if (D.prov) renderMatrix();
   if (D.aging) renderAgingByC();
   if (D.invoices) renderDun();
+  loadPortLedger();
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.role === 'admin' || user.role === 'manager') {
+  if (user.role === 'admin' || user.role === 'manager' || user.role === 'viewer') {
     loadAudit();
   }
+
+  // คืนค่าแท็บเดิมที่เปิดค้างไว้ก่อน Refresh
+  const curTab = window.location.hash.replace('#', '') || localStorage.getItem('activeTab') || 'dash';
+  showTab(curTab);
 }
 
 // ฟังก์ชันดึงข้อมูล API ที่ผูก JWT Token ใน Header อัตโนมัติ
@@ -930,31 +1511,29 @@ function hideLoginModal(user) {
 }
 
 function applyRolePermissions(user) {
-  const role = user ? user.role : '';
-  const isBilling = (role === 'admin' || role === 'billing');
-  const isCashier = (role === 'admin' || role === 'cashier');
-  const isManager = (role === 'admin' || role === 'manager');
-  const isViewer = (role === 'viewer');
+  const isBilling = (user.role === 'admin' || user.role === 'billing');
+  const isCashier = (user.role === 'admin' || user.role === 'cashier');
+  const isManager = (user.role === 'admin' || user.role === 'manager');
   
   document.getElementById('addContractBtn').style.display = isBilling ? '' : 'none';
   document.getElementById('genInvoicesBtn').style.display = isBilling ? '' : 'none';
   document.getElementById('saveRatesBtn').style.display = isManager ? '' : 'none';
   document.getElementById('runJobBtn').style.display = isManager ? '' : 'none';
   
-  const billingTabs = ['dash', 'contracts', 'invoices', 'aging'];
-  const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning'];
-  const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
-  const viewerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'audit'];
+  const billingTabs = ['dash', 'contracts', 'invoices', 'aging', 'portLedger'];
+  const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning', 'portLedger'];
+  const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'portLedger', 'audit'];
+  const viewerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'portLedger', 'audit'];
   
   document.querySelectorAll('nav button').forEach(btn => {
     const tabName = btn.getAttribute('data-tab');
-    if (role === 'admin' || role === 'viewer') {
+    if (user.role === 'admin' || user.role === 'viewer') {
       btn.style.display = 'block';
-    } else if (role === 'billing' && billingTabs.includes(tabName)) {
+    } else if (user.role === 'billing' && billingTabs.includes(tabName)) {
       btn.style.display = 'block';
-    } else if (role === 'cashier' && cashierTabs.includes(tabName)) {
+    } else if (user.role === 'cashier' && cashierTabs.includes(tabName)) {
       btn.style.display = 'block';
-    } else if (role === 'manager' && managerTabs.includes(tabName)) {
+    } else if (user.role === 'manager' && managerTabs.includes(tabName)) {
       btn.style.display = 'block';
     } else {
       btn.style.display = 'none';
@@ -1008,92 +1587,198 @@ async function loadAll() {
   }
   
   try {
-    const user = JSON.parse(localStorage.getItem('user'));
+    updateAsOfTHDisplay();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
     hideLoginModal(user);
     
     // โหลดข้อมูล 17 หน่วยงานเสมอ
-    await loadBranches();
+    await loadBranches().catch(e => console.warn('loadBranches error:', e));
 
     const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
     const q = '?asof=' + asof() + (selectedBranch !== 'all' ? '&branch_id=' + selectedBranch : '');
     const cQuery = selectedBranch !== 'all' ? '?branch_id=' + selectedBranch : '';
 
+    const safeApi = path => api(path).catch(e => { console.warn('API error for ' + path, e); return null; });
+
     const promises = [
-      api('/dashboard' + q),
-      api('/contracts' + cQuery),
-      api('/invoices' + q)
+      safeApi('/dashboard' + q),
+      safeApi('/contracts' + cQuery),
+      safeApi('/invoices' + q),
+      safeApi('/reports/fee-breakdown' + q),
+      safeApi('/aging' + q),
+      safeApi('/provision' + q),
+      safeApi('/provision/rates')
     ];
     
-    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing' || user.role === 'viewer') {
-      promises.push(api('/aging' + q));
-    } else {
-      promises.push(Promise.resolve(null));
-    }
-
-    if (user.role === 'admin' || user.role === 'manager' || user.role === 'viewer') {
-      promises.push(api('/provision' + q));
-    } else {
-      promises.push(Promise.resolve(null));
-    }
-
-    if (user.role === 'admin' || user.role === 'manager' || user.role === 'billing' || user.role === 'viewer') {
-      promises.push(api('/provision/rates'));
-    } else {
-      promises.push(Promise.resolve(null));
-    }
+    const [dash, contracts, invoices, feeReport, aging, prov, rates] = await Promise.all(promises);
+    D = {
+      ...D,
+      dash: dash || D.dash,
+      contracts: contracts || D.contracts || [],
+      invoices: invoices || D.invoices || [],
+      feeReport: feeReport || D.feeReport,
+      aging: aging || D.aging,
+      prov: prov || D.prov,
+      rates: rates || D.rates || {}
+    };
     
-    const [dash, contracts, invoices, aging, prov, rates] = await Promise.all(promises);
-    D = { ...D, dash, contracts, invoices, aging, prov, rates };
-    
-    document.getElementById('dbdot').style.background = '#22c55e';
-    document.getElementById('dbdot').style.boxShadow = '0 0 8px #22c55e';
-    document.getElementById('dbstat').textContent = 'เชื่อมต่อฐานข้อมูล';
+    const dbdot = document.getElementById('dbdot');
+    const dbstat = document.getElementById('dbstat');
+    if (dbdot) {
+      dbdot.style.background = '#22c55e';
+      dbdot.style.boxShadow = '0 0 8px #22c55e';
+    }
+    if (dbstat) dbstat.textContent = 'เชื่อมต่อฐานข้อมูล';
     
     renderAll();
   } catch (e) {
     console.error(e);
     if (e.message !== 'กรุณาเข้าสู่ระบบใหม่') {
-      document.getElementById('dbdot').style.background = '#ef4444';
-      document.getElementById('dbdot').style.boxShadow = '0 0 8px #ef4444';
-      document.getElementById('dbstat').textContent = 'โหลดข้อมูลไม่สมบูรณ์';
+      const dbdot = document.getElementById('dbdot');
+      const dbstat = document.getElementById('dbstat');
+      if (dbdot) {
+        dbdot.style.background = '#ef4444';
+        dbdot.style.boxShadow = '0 0 8px #ef4444';
+      }
+      if (dbstat) dbstat.textContent = 'โหลดข้อมูลไม่สมบูรณ์';
     }
   }
 }
 
-function renderAll() {
-  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
-  const banner = document.getElementById('singleBranchBanner');
-  const multiGrid = document.getElementById('multiBranchGridPanel');
-  const multiTable = document.getElementById('multiBranchTablePanel');
+function renderFeeBreakdownTable() {
+  if (!D.feeReport || !D.feeReport.categories) return;
+  const tbl = document.getElementById('feeBreakdownTable');
+  if (!tbl) return;
+  const q = (document.getElementById('feeSearch')?.value || '').toLowerCase().trim();
 
-  if (selectedBranch === 'all') {
-    banner.style.display = 'none';
-    multiGrid.style.display = 'block';
-    multiTable.style.display = 'block';
-    renderMultiBranchGrid();
-    renderMultiBranchTable();
-  } else {
-    banner.style.display = 'flex';
-    const brInfo = (D.branches || []).find(b => b.id === selectedBranch);
-    document.getElementById('singleBranchTitle').textContent = brInfo ? `${brInfo.name} (${brInfo.region})` : selectedBranch;
-    multiGrid.style.display = 'none';
-    multiTable.style.display = 'none';
-  }
+  let list = D.feeReport.categories.filter(r => {
+    const name = (r.category || r.category_name || r.label || '').toLowerCase();
+    return !q || name.includes(q);
+  });
 
-  if (D.dash) renderKPI();
-  if (D.aging) renderBars();
-  if (D.invoices) renderTop();
-  if (D.prov) renderProvSummary();
-  if (D.contracts) renderContracts();
-  if (D.invoices) renderInvoices();
-  if (D.prov) renderMatrix();
-  if (D.aging) renderAgingByC();
-  if (D.invoices) renderDun();
-  
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.role === 'admin' || user.role === 'manager' || user.role === 'viewer') {
-    loadAudit();
-  }
+  // เรียงลำดับจากยอดหนี้ค้างมากไปน้อย และต่อด้วยหมวดที่ยังไม่มียอดหนี้คงค้าง
+  list.sort((a, b) => {
+    const totA = a.total_ar || a.total || 0;
+    const totB = b.total_ar || b.total || 0;
+    if (totA === 0 && totB === 0) return 0;
+    if (totA === 0) return 1;
+    if (totB === 0) return -1;
+    return totB - totA;
+  });
+
+  const maxTotal = Math.max(...list.map(r => r.total_ar || r.total || 0), 1);
+  const grandTotalSum = list.reduce((sum, r) => sum + (r.total_ar || r.total || 0), 0);
+
+  let h = `
+    <thead>
+      <tr style="background:#f8fafc; font-size:12px; color:var(--navy);">
+        <th style="width:40px; padding:8px 6px;" class="c">ลำดับ</th>
+        <th style="min-width:200px; padding:8px 6px;">รหัสบัญชี &amp; หมวดหมู่ค่าธรรมเนียม / ค่าเช่า</th>
+        <th style="width:110px; padding:8px 6px;" class="r">ยังไม่ครบกำหนด</th>
+        <th style="width:110px; padding:8px 6px;" class="r">1–30 วัน</th>
+        <th style="width:110px; padding:8px 6px;" class="r">31–60 วัน</th>
+        <th style="width:110px; padding:8px 6px;" class="r">61–90 วัน</th>
+        <th style="width:110px; padding:8px 6px;" class="r">91–180 วัน</th>
+        <th style="width:110px; padding:8px 6px;" class="r">181–365 วัน</th>
+        <th style="width:110px; padding:8px 6px;" class="r">เกิน 365 วัน</th>
+        <th style="width:130px; padding:8px 6px;" class="r">รวมหนี้ค้างสุทธิ</th>
+        <th style="width:75px; padding:8px 6px;" class="c">สัดส่วน</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+
+  let grandCur = 0, grandB1 = 0, grandB2 = 0, grandB3 = 0, grandB4 = 0, grandB5 = 0, grandB6 = 0, grandTotal = 0;
+
+  list.forEach((r, idx) => {
+    const name = r.category || r.category_name || r.label || 'ไม่ระบุหมวดหมู่';
+    const cur = r.cur || 0;
+    const b1 = r.b1 || 0;
+    const b2 = r.b2 || 0;
+    const b3 = r.b3 || 0;
+    const b4 = r.b4 || 0;
+    const b5 = r.b5 || 0;
+    const b6 = r.b6 || 0;
+    const tot = r.total_ar || r.total || 0;
+
+    grandCur += cur;
+    grandB1 += b1;
+    grandB2 += b2;
+    grandB3 += b3;
+    grandB4 += b4;
+    grandB5 += b5;
+    grandB6 += b6;
+    grandTotal += tot;
+
+    const pctVal = grandTotalSum > 0 ? ((tot / grandTotalSum) * 100) : 0;
+    const pct = pctVal.toFixed(1);
+    const ratio = tot > 0 ? (tot / maxTotal) : 0;
+
+    // คำนวณเฉดสีเข้มไปอ่อนตามสัดส่วนยอดเงิน (Heatmap dynamic shading from dark to light)
+    let cellBg = 'transparent', cellText = '#334155', cellFontWeight = '600';
+    if (tot > 0) {
+      if (ratio >= 0.5) {
+        // เข้มสุด (Highest) - Deep Rose/Red
+        cellBg = `rgba(225, 29, 72, ${0.18 + ratio * 0.22})`;
+        cellText = '#881337';
+        cellFontWeight = '800';
+      } else if (ratio >= 0.2) {
+        // เข้มปานกลาง (Medium High) - Warm Coral/Orange
+        cellBg = `rgba(249, 115, 22, ${0.15 + ratio * 0.15})`;
+        cellText = '#7c2d12';
+        cellFontWeight = '700';
+      } else if (ratio >= 0.05) {
+        // ปานกลาง (Medium) - Amber/Yellow
+        cellBg = `rgba(245, 158, 11, ${0.12 + ratio * 0.12})`;
+        cellText = '#78350f';
+        cellFontWeight = '700';
+      } else {
+        // อ่อน (Low) - Light Soft Blue
+        cellBg = 'rgba(59, 130, 246, 0.08)';
+        cellText = '#1e3a8a';
+        cellFontWeight = '600';
+      }
+    } else {
+      cellText = '#94a3b8';
+    }
+
+    h += `
+      <tr style="border-bottom:1px solid #e2e8f0; background:${idx % 2 === 0 ? '#fff' : '#f8fafc'};">
+        <td class="c"><b>${idx + 1}</b></td>
+        <td><b style="color:var(--navy);">${name}</b></td>
+        <td class="r num" style="color:#166534;">${cur > 0 ? fmt(cur) : '-'}</td>
+        <td class="r num" style="color:#1d4ed8;">${b1 > 0 ? fmt(b1) : '-'}</td>
+        <td class="r num" style="color:#854d0e;">${b2 > 0 ? fmt(b2) : '-'}</td>
+        <td class="r num" style="color:#c2410c;">${b3 > 0 ? fmt(b3) : '-'}</td>
+        <td class="r num" style="color:#dc2626;">${b4 > 0 ? fmt(b4) : '-'}</td>
+        <td class="r num" style="color:#991b1b;">${b5 > 0 ? fmt(b5) : '-'}</td>
+        <td class="r num" style="color:#7f1d1d; font-weight:700;">${b6 > 0 ? fmt(b6) : '-'}</td>
+        <td class="r num" style="font-weight:${cellFontWeight}; color:${cellText}; background:${cellBg};">${fmt(tot)}</td>
+        <td class="c" style="font-weight:${cellFontWeight}; color:${cellText}; background:${cellBg};">${pct}%</td>
+      </tr>
+    `;
+  });
+
+  h += `
+    </tbody>
+    <tfoot>
+      <tr style="background:#f1f5f9; font-weight:bold; font-size:12.5px; border-top:2px solid #cbd5e1;">
+        <td colspan="2" class="r" style="padding:8px;"><b>รวมหนี้ค้างชำระทั้งหมด (Grand Total)</b></td>
+        <td class="r num" style="color:#166534;"><b>${fmt(grandCur)}</b></td>
+        <td class="r num" style="color:#1d4ed8;"><b>${fmt(grandB1)}</b></td>
+        <td class="r num" style="color:#854d0e;"><b>${fmt(grandB2)}</b></td>
+        <td class="r num" style="color:#c2410c;"><b>${fmt(grandB3)}</b></td>
+        <td class="r num" style="color:#dc2626;"><b>${fmt(grandB4)}</b></td>
+        <td class="r num" style="color:#991b1b;"><b>${fmt(grandB5)}</b></td>
+        <td class="r num" style="color:#7f1d1d;"><b>${fmt(grandB6)}</b></td>
+        <td class="r num" style="color:#be123c; font-size:13.5px; font-weight:800; background:#fecdd3;"><b>${fmt(grandTotal)}</b></td>
+        <td class="c"><b>100%</b></td>
+      </tr>
+    </tfoot>
+  `;
+
+  tbl.innerHTML = h;
+  renderFeeCharts();
 }
 
 function renderMultiBranchGrid() {
@@ -1171,6 +1856,351 @@ function renderMultiBranchTable() {
     `;
   });
   tbl.innerHTML = h;
+  renderBranchCharts();
+}
+
+function switchBranchView(mode) {
+  const chartView = document.getElementById('branchChartView');
+  const tableView = document.getElementById('branchTableView');
+  const chartBtn = document.getElementById('branchViewChartBtn');
+  const tableBtn = document.getElementById('branchViewTableBtn');
+  if (mode === 'chart') {
+    if (chartView) chartView.style.display = 'block';
+    if (tableView) tableView.style.display = 'none';
+    if (chartBtn) { chartBtn.className = 'sm act'; }
+    if (tableBtn) { tableBtn.className = 'sm ghost'; }
+    renderBranchCharts();
+  } else {
+    if (chartView) chartView.style.display = 'none';
+    if (tableView) tableView.style.display = 'block';
+    if (chartBtn) { chartBtn.className = 'sm ghost'; }
+    if (tableBtn) { tableBtn.className = 'sm act'; }
+  }
+}
+
+function switchFeeView(mode) {
+  const chartView = document.getElementById('feeChartView');
+  const tableView = document.getElementById('feeTableView');
+  const chartBtn = document.getElementById('feeViewChartBtn');
+  const tableBtn = document.getElementById('feeViewTableBtn');
+  if (mode === 'chart') {
+    if (chartView) chartView.style.display = 'block';
+    if (tableView) tableView.style.display = 'none';
+    if (chartBtn) { chartBtn.className = 'sm act'; }
+    if (tableBtn) { tableBtn.className = 'sm ghost'; }
+    renderFeeCharts();
+  } else {
+    if (chartView) chartView.style.display = 'none';
+    if (tableView) tableView.style.display = 'block';
+    if (chartBtn) { chartBtn.className = 'sm ghost'; }
+    if (tableBtn) { tableBtn.className = 'sm act'; }
+  }
+}
+
+// ==========================================
+//  ระบบสร้างกราฟสถิติบริหารหนี้ (Chart.js Visualization)
+// ==========================================
+let branchCompareChartInstance = null;
+let branchRiskDonutChartInstance = null;
+let feeDonutChartInstance = null;
+let feeAgingBarChartInstance = null;
+
+function renderBranchCharts() {
+  if (typeof Chart === 'undefined' || !D.branches || !D.branches.length) return;
+  const isDark = document.body.classList.contains('dark');
+  const textColor = isDark ? '#cbd5e1' : '#334155';
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+  // 1. Horizontal Compare Bar Chart
+  const ctxCompare = document.getElementById('branchCompareChart')?.getContext('2d');
+  if (ctxCompare) {
+    if (branchCompareChartInstance) {
+      branchCompareChartInstance.destroy();
+    }
+
+    const sortedBranches = [...D.branches].sort((a, b) => b.totalAR - a.totalAR);
+    const labels = sortedBranches.map(b => b.name);
+    const totalARs = sortedBranches.map(b => b.totalAR);
+    const overdues = sortedBranches.map(b => b.overdue);
+    const provisions = sortedBranches.map(b => b.provision);
+
+    branchCompareChartInstance = new Chart(ctxCompare, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'ยอดลูกหนี้รวม (Total AR)',
+            data: totalARs,
+            backgroundColor: '#0284c7',
+            borderRadius: 4
+          },
+          {
+            label: 'เกินกำหนดชำระ (Overdue)',
+            data: overdues,
+            backgroundColor: '#e11d48',
+            borderRadius: 4
+          },
+          {
+            label: 'ค่าเผื่อสำรอง (Provision)',
+            data: provisions,
+            backgroundColor: '#f59e0b',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (evt, elements) => {
+          if (elements.length > 0) {
+            const idx = elements[0].index;
+            const branch = sortedBranches[idx];
+            if (branch && branch.id) {
+              selectBranch(branch.id);
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: textColor, font: { family: 'Sarabun', size: 11, weight: 'bold' } }
+          },
+          tooltip: {
+            titleFont: { family: 'Sarabun', size: 12 },
+            bodyFont: { family: 'Sarabun', size: 12 },
+            callbacks: {
+              label: function(context) {
+                return ` ${context.dataset.label}: ${fmt(context.raw)} บาท`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: false,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'Sarabun', size: 10 },
+              callback: v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v
+            }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Sarabun', size: 11, weight: 'bold' } }
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Risk Distribution Donut Chart
+  const ctxRisk = document.getElementById('branchRiskDonutChart')?.getContext('2d');
+  if (ctxRisk) {
+    if (branchRiskDonutChartInstance) {
+      branchRiskDonutChartInstance.destroy();
+    }
+
+    let normalCount = 0, normalAR = 0;
+    let watchCount = 0, watchAR = 0;
+    let highCount = 0, highAR = 0;
+
+    D.branches.forEach(b => {
+      if (b.riskLevel === 'เสี่ยงสูง') {
+        highCount++;
+        highAR += b.totalAR;
+      } else if (b.riskLevel === 'เฝ้าระวัง') {
+        watchCount++;
+        watchAR += b.totalAR;
+      } else {
+        normalCount++;
+        normalAR += b.totalAR;
+      }
+    });
+
+    branchRiskDonutChartInstance = new Chart(ctxRisk, {
+      type: 'doughnut',
+      data: {
+        labels: ['ปกติ (ความเสี่ยงต่ำ)', 'เฝ้าระวัง (ความเสี่ยงปานกลาง)', 'เสี่ยงสูง'],
+        datasets: [{
+          data: [normalCount, watchCount, highCount],
+          backgroundColor: ['#22c55e', '#f59e0b', '#e11d48'],
+          borderWidth: 2,
+          borderColor: isDark ? '#1e293b' : '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '68%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: textColor, font: { family: 'Sarabun', size: 11 } }
+          },
+          tooltip: {
+            titleFont: { family: 'Sarabun', size: 12 },
+            bodyFont: { family: 'Sarabun', size: 12 },
+            callbacks: {
+              label: function(context) {
+                const total = normalCount + watchCount + highCount;
+                const count = context.raw;
+                const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                return ` ${context.label}: ${count} หน่วยงาน (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const statsEl = document.getElementById('branchRiskSummaryStats');
+    if (statsEl) {
+      statsEl.innerHTML = `
+        <div style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; padding:6px 4px;">
+          <div style="color:#15803d; font-weight:700; font-size:10.5px;">ปกติ</div>
+          <div style="font-size:13px; font-weight:800; color:#15803d;">${normalCount} แห่ง</div>
+          <div class="muted" style="font-size:9.5px;">${fmt(normalAR)} บ.</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:6px 4px;">
+          <div style="color:#b45309; font-weight:700; font-size:10.5px;">เฝ้าระวัง</div>
+          <div style="font-size:13px; font-weight:800; color:#b45309;">${watchCount} แห่ง</div>
+          <div class="muted" style="font-size:9.5px;">${fmt(watchAR)} บ.</div>
+        </div>
+        <div style="background:rgba(225,29,72,0.1); border:1px solid rgba(225,29,72,0.3); border-radius:8px; padding:6px 4px;">
+          <div style="color:#be123c; font-weight:700; font-size:10.5px;">เสี่ยงสูง</div>
+          <div style="font-size:13px; font-weight:800; color:#be123c;">${highCount} แห่ง</div>
+          <div class="muted" style="font-size:9.5px;">${fmt(highAR)} บ.</div>
+        </div>
+      `;
+    }
+  }
+}
+
+function renderFeeCharts() {
+  if (typeof Chart === 'undefined' || !D.feeReport || !D.feeReport.categories) return;
+  const isDark = document.body.classList.contains('dark');
+  const textColor = isDark ? '#cbd5e1' : '#334155';
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+
+  // แสดงเฉพาะหมวดหมู่ที่มียอดหนี้คงค้างในกราฟ (ไม่มีหนี้ไม่ต้องแสดง)
+  const activeCategories = D.feeReport.categories.filter(r => (r.total_ar || r.total || 0) > 0);
+  const chartCats = activeCategories.length ? activeCategories : [];
+
+  // 1. Fee Donut Chart (Proportion by GL Category)
+  const ctxFeeDonut = document.getElementById('feeDonutChart')?.getContext('2d');
+  if (ctxFeeDonut) {
+    if (feeDonutChartInstance) {
+      feeDonutChartInstance.destroy();
+    }
+
+    const data = chartCats.map(r => r.total_ar || r.total || 0);
+    const colors = [
+      '#e11d48', '#2563eb', '#f59e0b', '#10b981', '#8b5cf6',
+      '#06b6d4', '#ec4899', '#f97316', '#14b8a6', '#6366f1',
+      '#84cc16', '#a855f7', '#64748b'
+    ];
+
+    feeDonutChartInstance = new Chart(ctxFeeDonut, {
+      type: 'doughnut',
+      data: {
+        labels: chartCats.map(r => r.category),
+        datasets: [{
+          data: data,
+          backgroundColor: colors.slice(0, chartCats.length),
+          borderWidth: 2,
+          borderColor: isDark ? '#1e293b' : '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '58%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: textColor, font: { family: 'Sarabun', size: 10.5 }, boxWidth: 12 }
+          },
+          tooltip: {
+            titleFont: { family: 'Sarabun', size: 12 },
+            bodyFont: { family: 'Sarabun', size: 12 },
+            callbacks: {
+              label: function(context) {
+                const val = context.raw || 0;
+                const grand = D.feeReport.grandTotal || 1;
+                const pct = ((val / grand) * 100).toFixed(1);
+                return ` ${fmt(val)} บาท (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Stacked Aging Bar Chart by GL Category
+  const ctxFeeAging = document.getElementById('feeAgingBarChart')?.getContext('2d');
+  if (ctxFeeAging) {
+    if (feeAgingBarChartInstance) {
+      feeAgingBarChartInstance.destroy();
+    }
+
+    const labels = chartCats.map(r => r.category);
+
+    feeAgingBarChartInstance = new Chart(ctxFeeAging, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'ยังไม่ครบกำหนด', data: chartCats.map(r => r.cur || 0), backgroundColor: '#22c55e' },
+          { label: '1–30 วัน', data: chartCats.map(r => r.b1 || 0), backgroundColor: '#3b82f6' },
+          { label: '31–60 วัน', data: chartCats.map(r => r.b2 || 0), backgroundColor: '#eab308' },
+          { label: '61–90 วัน', data: chartCats.map(r => r.b3 || 0), backgroundColor: '#f97316' },
+          { label: '91–180 วัน', data: chartCats.map(r => r.b4 || 0), backgroundColor: '#ef4444' },
+          { label: '181–365 วัน', data: chartCats.map(r => r.b5 || 0), backgroundColor: '#b91c1c' },
+          { label: 'เกิน 365 วัน', data: chartCats.map(r => r.b6 || 0), backgroundColor: '#7f1d1d' }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: textColor, font: { family: 'Sarabun', size: 10 }, boxWidth: 12 }
+          },
+          tooltip: {
+            titleFont: { family: 'Sarabun', size: 12 },
+            bodyFont: { family: 'Sarabun', size: 12 },
+            callbacks: {
+              label: function(context) {
+                return ` ${context.dataset.label}: ${fmt(context.raw)} บาท`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'Sarabun', size: 10 },
+              callback: v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v
+            }
+          },
+          y: {
+            stacked: true,
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Sarabun', size: 10.5, weight: 'bold' } }
+          }
+        }
+      }
+    });
+  }
 }
 
 function renderKPI() {
@@ -1266,38 +2296,19 @@ function renderProvSummary() {
   document.getElementById('provSummary').innerHTML = h;
 }
 
-function toggleSelectAllContracts(master) {
-  document.querySelectorAll('.c-select').forEach(cb => {
-    cb.checked = master.checked;
-  });
-  updateSelectedContractsCount();
-}
-
-function updateSelectedContractsCount() {
-  const selected = document.querySelectorAll('.c-select:checked');
-  const countSpan = document.getElementById('selectedContractsCount');
-  if (countSpan) {
-    countSpan.textContent = selected.length > 0 ? `(เลือก ${selected.length} รายการ)` : '';
-  }
-}
-
 function renderContracts() {
   const q = (document.getElementById('cSearch').value || '').toLowerCase();
+  let h = '<tr><th>รหัสสัญญา</th><th>ผู้เช่า / เลขผู้เสียภาษี</th><th>ยูนิต</th><th class="r">ค่าเช่า/ด.</th><th class="r">บริการ/ด.</th><th class="r">เงินประกันคงเหลือ</th><th class="c">ความเสี่ยง</th><th class="r">ยอดหนี้ค้าง</th><th></th></tr>';
+  
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isBilling = (user.role === 'admin' || user.role === 'billing');
-
-  let h = `<tr>
-    ${isBilling ? '<th class="c" style="width:36px;"><input type="checkbox" id="selectAllContracts" onchange="toggleSelectAllContracts(this)"></th>' : ''}
-    <th>รหัสสัญญา</th><th>ผู้เช่า / เลขผู้เสียภาษี</th><th>ยูนิต</th><th class="r">ค่าเช่า/ด.</th><th class="r">บริการ/ด.</th><th class="r">เงินประกันคงเหลือ</th><th class="c">ความเสี่ยง</th><th class="r">ยอดหนี้ค้าง</th><th></th>
-  </tr>`;
   
   D.contracts.filter(c => !q || (c.tenant || '').toLowerCase().includes(q) || (c.unit || '').toLowerCase().includes(q) || (c.branch_name || '').toLowerCase().includes(q)).forEach(c => {
     const btnLabel = isBilling ? 'แก้ไข' : 'ดูสัญญา';
     h += `
       <tr>
-        ${isBilling ? `<td class="c"><input type="checkbox" class="c-select" value="${c.id}" onchange="updateSelectedContractsCount()"></td>` : ''}
         <td><b>${c.id}</b></td>
-        <td><b>${c.tenant}</b><div class="muted">${c.tax_id || '-'}</div></td>
+        <td><b>${c.tenant}</b><div class="muted">${c.tax_id || '-'} · ${fmtTHDate(c.start_date)} – ${fmtTHDate(c.end_date)}</div></td>
         <td><span class="badge" style="background:var(--light-blue); color:var(--blue); margin:0;">${c.unit || '-'}</span></td>
         <td class="r num">${fmt(c.rent_monthly)}</td>
         <td class="r num">${fmt(c.service_monthly)}</td>
@@ -1308,7 +2319,6 @@ function renderContracts() {
       </tr>`;
   });
   document.getElementById('contractTable').innerHTML = h;
-  updateSelectedContractsCount();
 }
 
 function renderInvoices() {
@@ -1349,7 +2359,7 @@ function renderInvoices() {
         <td><b>${i.id}</b></td>
         <td><b>${i.tenant}</b></td>
         <td class="c">${i.period}</td>
-        <td class="c">${i.due_date}</td>
+        <td class="c">${fmtTHDate(i.due_date)}</td>
         <td class="r num">${fmt(i.total)}</td>
         <td class="r num" style="color:${i.outstanding > 0 ? 'var(--red)' : '#64748b'}; font-weight:${i.outstanding > 0 ? '700' : '500'};">${i.outstanding > 0 ? fmt(i.outstanding) : '-'}</td>
         <td class="c font-weight:600; color:${i.days_overdue > 0 ? 'var(--red)' : '#64748b'};">${i.outstanding > 0 && i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
@@ -1419,7 +2429,7 @@ function renderDun() {
       <tr>
         <td><b>${i.id}</b></td>
         <td><b>${i.tenant}</b></td>
-        <td class="c">${i.due_date}</td>
+        <td class="c">${fmtTHDate(i.due_date)}</td>
         <td class="r num" style="color:var(--red);">${fmt(i.outstanding)}</td>
         <td class="c" style="color:var(--red); font-weight:600;">${i.days_overdue > 0 ? i.days_overdue + ' วัน' : '-'}</td>
         <td><span class="pill ${clsFor(i.action.code)}">${i.action.text}</span></td>
@@ -1436,7 +2446,7 @@ async function loadAudit() {
     a.slice(0, 60).forEach(r => {
       h += `
         <tr>
-          <td class="muted">${r.ts}</td>
+          <td class="muted">${fmtTHDateTime(r.ts)}</td>
           <td><span class="badge" style="background:var(--navy); color:#fff; margin:0;">${r.actor}</span></td>
           <td><b style="color:var(--accent);">${r.action}</b></td>
           <td><span class="badge">${r.entity}</span> <b>${r.entity_id}</b></td>
@@ -1581,52 +2591,10 @@ async function delContract() {
   }
 }
 
-let pendingGenMode = 'all';
-let pendingSelectedIds = [];
-
-function genAll() {
-  const selected = Array.from(document.querySelectorAll('.c-select:checked')).map(cb => cb.value);
-  const modalBody = document.getElementById('genInvoiceModalBody');
-  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
-  
-  if (selected.length > 0) {
-    pendingGenMode = 'selected';
-    pendingSelectedIds = selected;
-    modalBody.innerHTML = `
-      <div class="note" style="margin-bottom:12px;"><b>การสร้างใบแจ้งหนี้แบบระบุสัญญา:</b> คุณได้เลือกสัญญาเช่าจำนวน <b style="color:var(--accent); font-size:15px;">${selected.length} รายการ</b></div>
-      คุณต้องการออกใบแจ้งหนี้ประจำเดือนงวดถัดไปสำหรับ <b>${selected.length} สัญญาที่เลือก</b> นี้หรือไม่?
-    `;
-  } else {
-    pendingGenMode = 'all';
-    pendingSelectedIds = [];
-    const branchText = selectedBranch === 'all' ? 'ทุกส่วนงาน (17 หน่วยงาน)' : ('ส่วนงาน ' + selectedBranch);
-    modalBody.innerHTML = `
-      <div class="note" style="margin-bottom:12px;"><b>คำเตือน (ออกทุกสัญญา):</b> คุณยังไม่ได้เลือกสัญญาแบบระบุรายตัว</div>
-      คุณต้องการออกใบแจ้งหนี้ประจำเดือนงวดถัดไปสำหรับ <b>สัญญาเช่าทั้งหมดใน ${branchText}</b> หรือไม่?
-    `;
-  }
-  
-  document.getElementById('genInvoiceModal').classList.add('on');
-}
-
-async function confirmGenInvoices() {
-  closeM('genInvoiceModal');
-  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+async function genAll() {
   try {
-    let payload = {};
-    if (pendingGenMode === 'selected' && pendingSelectedIds.length > 0) {
-      payload = { contract_ids: pendingSelectedIds };
-    } else {
-      payload = { contract_id: 'all', branch_id: selectedBranch };
-    }
-    
-    const r = await api('/invoices/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    
-    toast('🎉 สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
+    const r = await api('/invoices/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contract_id: 'all' }) });
+    toast('สร้างใบแจ้งหนี้รายเดือนงวดใหม่สำเร็จ ' + r.made + ' รายการ');
     loadAll();
   } catch (e) {
     toast(e.message);
@@ -2158,6 +3126,7 @@ async function runJob() {
 }
 
 function showTab(id, btn) {
+  if (!id) id = 'dash';
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
   const el = document.getElementById(id);
   if (el) el.classList.add('on');
@@ -2168,20 +3137,441 @@ function showTab(id, btn) {
     const targetBtn = document.querySelector(`nav button[data-tab="${id}"]`);
     if (targetBtn) targetBtn.classList.add('active');
   }
+
+  // บันทึกแท็บที่กำลังเปิดอยู่ลงใน localStorage และ URL hash เพื่อให้รีเฟรชแล้วคงอยู่หน้าเดิม
+  localStorage.setItem('activeTab', id);
+  if (window.location.hash !== '#' + id) {
+    history.replaceState(null, null, '#' + id);
+  }
+
+  if (id === 'portLedger') {
+    loadPortLedger();
+  }
 }
 
-// ตั้งค่าวันที่เริ่มต้น (วันที่ปัจจุบัน)
-const _today = new Date();
-const _yyyy = _today.getFullYear();
-const _mm = String(_today.getMonth() + 1).padStart(2, '0');
-const _dd = String(_today.getDate()).padStart(2, '0');
-document.getElementById('asof').value = `${_yyyy}-${_mm}-${_dd}`;
+window.addEventListener('hashchange', () => {
+  const hashTab = window.location.hash.replace('#', '');
+  if (hashTab) showTab(hashTab);
+});
+
+// ========== PORT LEDGER FUNCTIONS ==========
+async function loadPortLedger() {
+  const branchId = document.getElementById('branchSelect')?.value || 'all';
+  const period = document.getElementById('portLedgerPeriod')?.value || '2026-07';
+
+  try {
+    const data = await api('/port-ledgers?branch_id=' + branchId + '&period=' + period);
+    D.portLedgers = data || [];
+    renderPortLedgerTable();
+  } catch (err) {
+    console.error('Error loading port ledgers:', err);
+  }
+}
+
+function renderPortLedgerTable() {
+  const tbl = document.getElementById('portLedgerTable');
+  if (!tbl) return;
+  
+  const searchQ = (document.getElementById('portLedgerSearch')?.value || '').toLowerCase().trim();
+  let list = (D.portLedgers || []).filter(r => {
+    const name = (r.customer_name || '').toLowerCase();
+    const unit = (r.unit_no || '').toLowerCase();
+    return !searchQ || name.includes(searchQ) || unit.includes(searchQ);
+  });
+
+  const totalItems = list.length;
+  document.getElementById('portLedgerCountText').textContent = `รายการที่ 1 - ${totalItems} จากทั้งหมด ${totalItems} รายการ`;
+
+  let totBgAmt = 0, totBgVat = 0, totBgTotal = 0;
+  let totPayAmt = 0;
+  let totEdAmt = 0, totEdVat = 0, totEdTotal = 0;
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isCentral = (user.role === 'admin' || user.role === 'manager' || user.role === 'cashier');
+
+  const thaiMonthsFull = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  let curPeriodText = "ประจำเดือน กรกฎาคม 2569";
+  if (typeof asof === 'function' && asof()) {
+    const dParts = asof().split('-');
+    if (dParts.length === 3) {
+      const mIdx = parseInt(dParts[1], 10) - 1;
+      const yBE = parseInt(dParts[0], 10) + 543;
+      curPeriodText = `ประจำเดือน ${thaiMonthsFull[mIdx] || 'กรกฎาคม'} ${yBE}`;
+    }
+  }
+
+  let h = `
+    <thead>
+      <!-- ส่วนหัวข้อเดือน/ปี ประจำงวด -->
+      <tr style="background:#f8fafc; border:1px solid #cbd5e1;">
+        <th colspan="22" class="c" style="padding:8px 0; font-size:13.5px; font-weight:800; color:#1e293b; letter-spacing:0.5px; border-bottom:2px solid #94a3b8; background:#f1f5f9;">
+          ${curPeriodText}
+        </th>
+      </tr>
+
+      <!-- แถวที่ 1: กลุ่มหัวข้อหลัก -->
+      <tr style="background:#f8fafc; font-size:11.5px; color:#1e293b; border-bottom:1px solid #cbd5e1;">
+        <th rowspan="3" style="width:30px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c"><input type="checkbox" onchange="toggleAllLedgerCheck(this)"></th>
+        <th rowspan="3" style="width:40px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">ลำดับ</th>
+        <th rowspan="3" style="min-width:170px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">รายชื่อ</th>
+        <th rowspan="3" style="min-width:130px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">สถานที่ตั้ง / ทะเบียน</th>
+        <th rowspan="3" style="width:85px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">อัตราค่าเช่า</th>
+
+        <!-- ค้างชำระยกมา (6 คอลัมน์) -->
+        <th colspan="6" class="c" style="background:#ffffff; border-right:2px solid #94a3b8; border-bottom:1px solid #cbd5e1; font-weight:800; padding:6px; font-size:12px;">
+          ค้างชำระยกมา
+        </th>
+
+        <!-- รับชำระ (4 คอลัมน์ สีเหลือง) -->
+        <th colspan="4" class="c" style="background:#fef08a; color:#713f12; border-right:2px solid #94a3b8; border-bottom:1px solid #cbd5e1; font-weight:800; padding:6px; font-size:12px;">
+          รับชำระ
+        </th>
+
+        <!-- ค้างชำระยกไป (6 คอลัมน์) -->
+        <th colspan="6" class="c" style="background:#ffffff; border-right:1px solid #cbd5e1; border-bottom:1px solid #cbd5e1; font-weight:800; padding:6px; font-size:12px;">
+          ค้างชำระยกไป
+        </th>
+
+        <th rowspan="3" style="width:85px; vertical-align:middle; border-bottom:2px solid #94a3b8;" class="c">การดำเนินการ</th>
+      </tr>
+
+      <!-- แถวที่ 2: หัวข้อย่อยและกลุ่มยอดหนี้ -->
+      <tr style="background:#f8fafc; font-size:11px; color:#334155; border-bottom:1px solid #cbd5e1;">
+        <!-- ค้างชำระยกมา -->
+        <th rowspan="2" style="width:75px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">ค้างตั้งแต่</th>
+        <th rowspan="2" style="width:45px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">งวด</th>
+        <th style="width:50px; padding:2px; border-right:1px solid #cbd5e1; border-bottom:1px solid #cbd5e1;" class="c">อายุ</th>
+        <th colspan="3" class="c" style="border-right:2px solid #94a3b8; border-bottom:1px solid #cbd5e1; font-weight:700;">ยอดหนี้</th>
+
+        <!-- รับชำระ -->
+        <th rowspan="2" style="width:80px; vertical-align:middle; background:#fef9c3; color:#713f12; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">วดป.</th>
+        <th rowspan="2" style="width:110px; vertical-align:middle; background:#fef9c3; color:#713f12; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">เลขที่ใบเสร็จ</th>
+        <th rowspan="2" style="width:95px; vertical-align:middle; background:#fef9c3; color:#713f12; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">จำนวนเงิน</th>
+        <th rowspan="2" style="width:90px; vertical-align:middle; background:#fef9c3; color:#713f12; border-right:2px solid #94a3b8; border-bottom:2px solid #94a3b8;" class="c">สถานะรับยอด</th>
+
+        <!-- ค้างชำระยกไป -->
+        <th rowspan="2" style="width:75px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">ค้างตั้งแต่</th>
+        <th rowspan="2" style="width:45px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">งวด</th>
+        <th style="width:50px; padding:2px; border-right:1px solid #cbd5e1; border-bottom:1px solid #cbd5e1;" class="c">อายุ</th>
+        <th colspan="3" class="c" style="border-right:1px solid #cbd5e1; border-bottom:1px solid #cbd5e1; font-weight:700;">ยอดหนี้</th>
+      </tr>
+
+      <!-- แถวที่ 3: หัวข้อยอดเงินย่อย (จำนวนเงิน, ภาษี, รวม) -->
+      <tr style="background:#f8fafc; font-size:11px; color:#475569; border-bottom:2px solid #94a3b8;">
+        <!-- ค้างชำระยกมา -->
+        <th style="width:50px; padding:2px; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">หนี้</th>
+        <th style="width:85px; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="r">จำนวนเงิน</th>
+        <th style="width:75px; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="r">ภาษี</th>
+        <th style="width:95px; border-right:2px solid #94a3b8; border-bottom:2px solid #94a3b8; font-weight:700;" class="r">รวม</th>
+
+        <!-- ค้างชำระยกไป -->
+        <th style="width:50px; padding:2px; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">หนี้</th>
+        <th style="width:85px; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="r">จำนวนเงิน</th>
+        <th style="width:75px; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="r">ภาษี</th>
+        <th style="width:95px; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8; font-weight:700;" class="r">รวม</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+
+  list.forEach((r, idx) => {
+    const bgAmt = r.bg_amount || 0;
+    const bgVat = r.bg_vat || 0;
+    const bgTot = r.bg_total || 0;
+    const payAmt = r.pay_amount || 0;
+    const edAmt = r.ed_amount || 0;
+    const edVat = r.ed_vat || 0;
+    const edTot = r.ed_total || 0;
+
+    totBgAmt += bgAmt;
+    totBgVat += bgVat;
+    totBgTotal += bgTot;
+    totPayAmt += payAmt;
+    totEdAmt += edAmt;
+    totEdVat += edVat;
+    totEdTotal += edTot;
+
+    const isPending = r.pay_status === 'pending_approval';
+    const isApproved = r.pay_status === 'approved';
+    const hasPayAmt = (r.pay_amount || 0) > 0;
+
+    let statusBadge = `<span class="badge" style="background:#f1f5f9; color:#64748b; font-size:10px;">ยังไม่บันทึก</span>`;
+    if (isPending) {
+      statusBadge = `<span class="badge" style="background:#fef3c7; color:#b45309; font-weight:700; font-size:10px;">⏳ รอส่วนกลางตรวจสอบ</span>`;
+    } else if (isApproved) {
+      statusBadge = `<span class="badge" style="background:#dcfce7; color:#15803d; font-weight:700; font-size:10px;">✓ อนุมัติตัดยอดแล้ว</span>`;
+    } else if (hasPayAmt) {
+      statusBadge = `<span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700; font-size:10px;">บันทึกยอดแล้ว</span>`;
+    }
+
+    const locName = r.location_detail || r.unit_no || '-';
+    const catName = r.category_name || '';
+    const rateVal = (r.rate_amount !== undefined && r.rate_amount !== null) ? r.rate_amount : (r.rate || 0);
+
+    h += `
+      <tr style="border-bottom:1px solid #e2e8f0; font-size:12px;">
+        <td class="c"><input type="checkbox" class="ledger-chk" value="${r.id}" onchange="updateLedgerCheckSummary()"></td>
+        <td class="c"><b>${idx + 1}</b></td>
+        <td>
+          <b style="color:var(--navy);">${r.customer_name}</b>
+          ${catName ? `<div class="muted" style="font-size:10px;">${catName}</div>` : ''}
+        </td>
+        <td><span class="muted">${locName}</span></td>
+        <td class="r num">${rateVal > 0 ? fmt(rateVal) : '-'}</td>
+
+        <td class="c" style="color:#b91c1c; border-right:1px solid #cbd5e1;">${r.bg_overdue_from ? fmtTHDate(r.bg_overdue_from) : '-'}</td>
+        <td class="c" style="border-right:1px solid #cbd5e1;">${r.bg_periods || '-'}</td>
+        <td class="c" style="border-right:1px solid #cbd5e1;">${r.bg_overdue_months || '-'}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${bgAmt > 0 ? fmt(bgAmt) : '-'}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${bgVat > 0 ? fmt(bgVat) : '-'}</td>
+        <td class="r num" style="color:#b91c1c; font-weight:700; background:#fff1f2; border-right:2px solid #94a3b8;">${bgTot > 0 ? fmt(bgTot) : '-'}</td>
+
+        <!-- รับชำระ (4 คอลัมน์ เติมสีเหลืองอ่อนนวลตาครบทุกช่อง) -->
+        <td class="c" style="background:#fffdf0; color:#854d0e; border-right:1px solid #fef08a;">${r.pay_date ? fmtTHDate(r.pay_date) : '-'}</td>
+        <td class="c" style="background:#fffdf0; color:#854d0e; font-weight:600; border-right:1px solid #fef08a;">${r.pay_receipt_no || '-'}</td>
+        <td class="r num" style="background:#fef9c3; color:#713f12; font-weight:800; border-right:1px solid #fef08a;">${payAmt > 0 ? fmt(payAmt) : '-'}</td>
+        <td class="c" style="background:#fffdf0; border-right:2px solid #94a3b8;">${statusBadge}</td>
+
+        <!-- ค้างชำระยกไป (6 คอลัมน์) -->
+        <td class="c" style="color:#15803d; border-right:1px solid #cbd5e1;">${r.ed_overdue_from ? fmtTHDate(r.ed_overdue_from) : '-'}</td>
+        <td class="c" style="border-right:1px solid #cbd5e1;">${r.ed_periods || '-'}</td>
+        <td class="c" style="border-right:1px solid #cbd5e1;">${r.ed_overdue_months || '-'}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${edAmt > 0 ? fmt(edAmt) : (bgTot > 0 || payAmt > 0 ? '0' : '-')}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${edVat > 0 ? fmt(edVat) : (bgTot > 0 || payAmt > 0 ? '0' : '-')}</td>
+        <td class="r num" style="color:${edTot > 0 ? '#15803d' : '#166534'}; font-weight:800; background:#f0fdf4; border-right:1px solid #cbd5e1;">${bgTot > 0 || payAmt > 0 ? fmt(edTot) : '-'}</td>
+
+        <td class="c">
+          ${isPending && isCentral ? `
+            <button class="sm act" style="padding:2px 8px; font-size:11px; background:#16a34a; font-weight:700;" onclick="approveSinglePayment(${r.id})">
+              ✅ อนุมัติ
+            </button>
+          ` : `
+            <button class="sm ${isApproved ? 'ghost' : 'act'}" style="padding:2px 6px; font-size:11px;" onclick="openLedgerPayModal('${encodeURIComponent(r.customer_name)}')">
+              ${isApproved ? '✓ อนุมัติแล้ว' : '💵 บันทึก'}
+            </button>
+          `}
+        </td>
+      </tr>
+    `;
+  });
+
+  h += `
+    </tbody>
+    <tfoot>
+      <tr style="background:#f1f5f9; font-weight:bold; font-size:12px; border-top:2px solid #cbd5e1;">
+        <td colspan="5" class="r" style="padding:8px;"><b>รวมทั้งสิ้น (${fmt(totalItems)} รายการ)</b></td>
+        
+        <td colspan="3" class="c" style="background:#fee2e2; color:#991b1b;"><b>ค้างยกมา</b></td>
+        <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmt(totBgAmt)}</b></td>
+        <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmt(totBgVat)}</b></td>
+        <td class="r num" style="background:#fca5a5; color:#7f1d1d; font-weight:800;"><b>${fmt(totBgTotal)}</b></td>
+
+        <td colspan="3" class="c" style="background:#fef9c3; color:#854d0e;"><b>รวมชำระ</b></td>
+        <td class="r num" style="background:#fde047; color:#713f12; font-weight:800;"><b>${fmt(totPayAmt)}</b></td>
+
+        <td colspan="3" class="c" style="background:#dcfce7; color:#166534;"><b>ค้างยกไป</b></td>
+        <td class="r num" style="background:#dcfce7; color:#166534;"><b>${fmt(totEdAmt)}</b></td>
+        <td class="r num" style="background:#dcfce7; color:#166534;"><b>${fmt(totEdVat)}</b></td>
+        <td class="r num" style="background:#86efac; color:#14532d; font-weight:800;"><b>${fmt(totEdTotal)}</b></td>
+
+        <td></td>
+      </tr>
+    </tfoot>
+  `;
+
+  tbl.innerHTML = h;
+  updateLedgerCheckSummary();
+}
+
+function updateLedgerCheckSummary() {
+  const chks = document.querySelectorAll('.ledger-chk:checked');
+  const count = chks.length;
+  let totalAmt = 0;
+  chks.forEach(chk => {
+    const id = parseInt(chk.value);
+    const item = (D.portLedgers || []).find(x => x.id === id);
+    if (item) totalAmt += (item.pay_amount || item.bg_total || 0);
+  });
+  const btn = document.getElementById('ledgerPaySelectedBtn');
+  if (btn) {
+    btn.style.display = count > 0 ? 'inline-flex' : 'none';
+    btn.textContent = `💵 บันทึกรับยอด (${count} รายการ - ${fmt(totalAmt)} บาท)`;
+  }
+}
+
+function toggleAllLedgerCheck(master) {
+  document.querySelectorAll('.ledger-chk').forEach(c => c.checked = master.checked);
+  updateLedgerCheckSummary();
+}
+
+const today = () => document.getElementById('asof')?.value || new Date().toISOString().split('T')[0];
+
+async function openLedgerPayModal(customerName) {
+  if (!D.portLedgers || !D.portLedgers.length) {
+    await loadPortLedger();
+  }
+  const decodedName = customerName ? decodeURIComponent(customerName) : '';
+  const searchInput = document.getElementById('lp_search_name');
+  if (searchInput) searchInput.value = decodedName;
+  
+  filterLedgerPayItems();
+  
+  const modal = document.getElementById('ledgerPayModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeLedgerPayModal() {
+  const modal = document.getElementById('ledgerPayModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function filterLedgerPayItems() {
+  const tbody = document.getElementById('ledgerPayModalBody');
+  if (!tbody) return;
+
+  const searchQ = (document.getElementById('lp_search_name')?.value || '').toLowerCase().trim();
+  const selectedBranch = document.getElementById('branchSelect')?.value || 'all';
+
+  let list = (D.portLedgers || []).filter(r => {
+    const nameMatch = !searchQ || (r.customer_name || '').toLowerCase().includes(searchQ);
+    const branchMatch = (selectedBranch === 'all' || r.branch_id === selectedBranch);
+    return nameMatch && branchMatch;
+  });
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="c muted" style="padding:20px;">ไม่พบรายการลูกหนี้ตรงตามเงื่อนไขค้นหา</td></tr>';
+    return;
+  }
+
+  let h = '';
+  list.forEach((r, idx) => {
+    const curDate = r.pay_date || today();
+    const curRcpt = r.pay_receipt_no || '';
+    const curAmt = r.pay_amount || r.bg_total || 0;
+
+    const locName = r.location_detail || r.unit_no || '-';
+    const catName = r.category_name || '';
+    const rateVal = (r.rate_amount !== undefined && r.rate_amount !== null) ? r.rate_amount : (r.rate || 0);
+
+    h += `
+      <tr data-id="${r.id}">
+        <td class="c"><b>${idx + 1}</b></td>
+        <td>
+          <b style="color:var(--navy);">${r.customer_name}</b>
+          ${catName ? `<div class="muted" style="font-size:10.5px;">${catName}</div>` : ''}
+        </td>
+        <td>
+          <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:600; font-size:11px;">${locName}</span>
+        </td>
+        <td class="r num">
+          <div style="color:#b91c1c; font-weight:700;">${fmt(r.bg_total)}</div>
+          ${rateVal > 0 ? `<div class="muted" style="font-size:10px;">(อัตรา ${fmt(rateVal)})</div>` : ''}
+        </td>
+        <td class="c"><input type="date" class="lp-date" value="${curDate}" style="width:130px; font-size:12px; padding:4px;"></td>
+        <td class="c"><input type="text" class="lp-rcpt" value="${curRcpt}" placeholder="ระบุเลขที่ใบเสร็จ" style="width:140px; font-size:12px; padding:4px;"></td>
+        <td class="r"><input type="number" class="lp-amt" value="${curAmt}" placeholder="0" style="width:120px; font-size:12px; padding:4px; text-align:right; font-weight:700; color:#0284c7;"></td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = h;
+}
+
+async function savePendingPay() {
+  const rows = document.querySelectorAll('#ledgerPayModalBody tr[data-id]');
+  const items = [];
+  rows.forEach(tr => {
+    const id = parseInt(tr.getAttribute('data-id'));
+    const pay_date = tr.querySelector('.lp-date')?.value || today();
+    const pay_receipt_no = tr.querySelector('.lp-rcpt')?.value || '';
+    const pay_amount = parseFloat(tr.querySelector('.lp-amt')?.value) || 0;
+    if (id) {
+      items.push({ id, pay_date, pay_receipt_no, pay_amount });
+    }
+  });
+
+  if (!items.length) {
+    toast('ไม่พบรายการที่ต้องการบันทึก');
+    return;
+  }
+
+  try {
+    const res = await api('/port-ledgers/save-pending-pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items })
+    });
+    closeLedgerPayModal();
+    toast(res.message || 'บันทึกข้อมูลสำเร็จ รอส่วนกลางตรวจสอบ');
+    await loadPortLedger();
+  } catch (err) {
+    toast(err.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+  }
+}
+
+async function approveSinglePayment(id) {
+  if (!confirm('ยืนยันการอนุมัติตัดยอดชำระเงินสำหรับรายการนี้หรือไม่?')) return;
+  try {
+    const res = await api('/port-ledgers/approve-pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [id] })
+    });
+    toast(res.message || 'อนุมัติตัดยอดชำระเงินเรียบร้อยแล้ว');
+    await loadPortLedger();
+  } catch (err) {
+    toast(err.message || 'เกิดข้อผิดพลาดในการอนุมัติ');
+  }
+}
+
+function openApproveModal() {
+  const modal = document.getElementById('approveModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeApproveModal() {
+  const modal = document.getElementById('approveModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function rollForwardLedger() {
+  if (!confirm('ยืนยันการยกยอดค้างยกไป (โซนสีเขียว) ไปตั้งต้นเป็นยอดยกมาของเดือนใหม่หรือไม่?')) return;
+  try {
+    const res = await api('/port-ledgers/roll-forward', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    toast(res.message || 'ยกยอดไปตั้งต้นเดือนถัดไปสำเร็จ');
+    await loadPortLedger();
+  } catch (err) {
+    toast(err.message || 'เกิดข้อผิดพลาดในการยกยอด');
+  }
+}
+
+function exportLedgerCSV() {
+  if (!D.portLedgers || !D.portLedgers.length) return;
+  let csv = '\uFEFF';
+  csv += 'ลำดับ,รายชื่อ,สถานที่ตั้ง,อัตราค่าเช่า,ค้างตั้งแต่,งวด,อายุ(ด.),จำนวนเงินยกมา,ภาษียกมา,รวมยกมา,วดป.รับชำระ,เลขที่ใบเสร็จ,จำนวนเงินชำระ,สถานะรับยอด,ค้างตั้งแต่ยกไป,งวดยกไป,อายุยกไป,จำนวนเงินยกไป,ภาษียกไป,รวมยกไป\n';
+  D.portLedgers.forEach((r, idx) => {
+    const loc = r.location_detail || r.unit_no || '';
+    const rateVal = (r.rate_amount !== undefined && r.rate_amount !== null) ? r.rate_amount : (r.rate || 0);
+    csv += `"${idx+1}","${r.customer_name}","${loc}","${rateVal}","${r.bg_overdue_from||''}","${r.bg_periods||''}","${r.bg_overdue_months||0}","${r.bg_amount||0}","${r.bg_vat||0}","${r.bg_total||0}","${r.pay_date||''}","${r.pay_receipt_no||''}","${r.pay_amount||0}","${r.pay_status||''}","${r.ed_overdue_from||''}","${r.ed_periods||''}","${r.ed_overdue_months||0}","${r.ed_amount||0}","${r.ed_vat||0}","${r.ed_total||0}"\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `port_ledger_${document.getElementById('branchSelect')?.value || 'all'}.csv`;
+  a.click();
+}
+
+// ตั้งค่าปฏิทิน พ.ศ. ภาษาไทย
+initThaiDatePicker();
+initThaiMonthPicker();
 
 // ฟังก์ชันสลับโหมดมืด/สว่าง
 function toggleTheme() {
   const isDark = document.body.classList.toggle('dark');
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   updateThemeUI(isDark);
+  renderBranchCharts();
+  renderFeeCharts();
 }
 
 function updateThemeUI(isDark) {
