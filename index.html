@@ -547,13 +547,6 @@
     <h1>ระบบติดตามหนี้เช่า <span class="sub">Backend + SQLite</span></h1>
   </div>
   <div class="flex" style="align-items:center">
-    <!-- Notification Button for Pending Payment Approvals -->
-    <button id="pendingApprovalNavBtn" onclick="openPendingApprovalModal()" class="sm" title="รายการรับชำระเงินที่รอตรวจสอบและอนุมัติตัดยอด" style="border:none; background:rgba(255,255,255,0.18); color:#fff; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:background 0.2s; position:relative;">
-      <span style="font-size:14px;">🔔</span>
-      <span>รอตรวจสอบ</span>
-      <span id="pendingApprovalBadge" style="background:#ef4444; color:#fff; font-weight:800; font-size:11px; padding:1px 7px; border-radius:12px; display:none; box-shadow:0 0 6px rgba(239,68,68,0.8);">0</span>
-    </button>
-
     <!-- Theme Toggle Switcher -->
     <button id="themeToggleBtn" onclick="toggleTheme()" class="sm" style="border: none; background: rgba(255,255,255,0.15); color: #fff; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
       <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">โหมดมืด</span>
@@ -809,6 +802,11 @@
         </button>
         <button class="ghost sm" onclick="rollForwardLedger()" style="border-color:#16a34a; color:#16a34a; font-weight:700;">
           <span>🔄 ยกยอดค้างยกไปตั้งต้นงวดเดือนถัดไป</span>
+        </button>
+        <button id="pendingApprovalNavBtn" type="button" onclick="openPendingApprovalModal()" class="act sm" style="background:#f59e0b; color:#fff; font-weight:700; display:inline-flex; align-items:center; gap:6px; border:none; padding:4px 12px; border-radius:6px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05);" title="รายการรับชำระเงินที่รอตรวจสอบและอนุมัติตัดยอด">
+          <span>🔔</span>
+          <span>รอตรวจสอบ</span>
+          <span id="pendingApprovalBadge" style="background:#dc2626; color:#fff; font-weight:800; font-size:11px; padding:1px 7px; border-radius:10px; display:none; box-shadow:0 0 4px rgba(220,38,38,0.5);">0</span>
         </button>
         <button class="act sm" id="ledgerPaySelectedBtn" onclick="openLedgerPayModal()" style="background:#16a34a; font-weight:700; display:none;">
           💵 บันทึกรับยอดที่เลือก
