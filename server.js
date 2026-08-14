@@ -1018,11 +1018,29 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
     if (headerRowIdx === -1) headerRowIdx = 4;
 
     function excelDateToISO(serial) {
-      if (!serial || isNaN(serial)) return `${targetPeriod}-05`;
-      const utc_days = Math.floor(serial - 25569);
-      const utc_value = utc_days * 86400;
-      const date_info = new Date(utc_value * 1000);
-      return date_info.toISOString().slice(0, 10);
+      if (!serial) return `${targetPeriod}-05`;
+      if (typeof serial === 'string') {
+        const s = serial.trim();
+        if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const parts = s.split('-');
+          let yr = parseInt(parts[0], 10);
+          if (yr > 2500) yr -= 543;
+          if (yr < 2000) yr = 2026;
+          return `${yr}-${parts[1]}-${parts[2]}`;
+        }
+        if (/[ก-๙]/.test(s)) return s; // Keep Thai date string
+        if (!isNaN(parseFloat(s))) serial = parseFloat(s);
+        else return s;
+      }
+      if (typeof serial === 'number') {
+        if (serial >= 36526 && serial <= 73050) {
+          const utc_days = Math.floor(serial - 25569);
+          const utc_value = utc_days * 86400;
+          const date_info = new Date(utc_value * 1000);
+          return date_info.toISOString().slice(0, 10);
+        }
+      }
+      return `${targetPeriod}-05`;
     }
 
     const insCust = db.prepare("INSERT OR IGNORE INTO customers(id,name,tax_id,address) VALUES(?,?,?,?)");

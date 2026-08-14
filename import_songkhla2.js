@@ -1,4 +1,4 @@
-const XLSX = require('c:/apps/lease-backend/node_modules/xlsx');
+const XLSX = require('xlsx');
 const path = require('path');
 const { db, audit } = require('./db');
 
@@ -6,7 +6,7 @@ console.log('========================================');
 console.log('Importing Songkhla 2 Exact GL Categories (1.ข้อมูลท่า สงขลา 2.xlsx)');
 console.log('========================================');
 
-const wb = XLSX.readFile('c:/apps/lease-backend/1.ข้อมูลท่า สงขลา 2.xlsx');
+const wb = XLSX.readFile(path.join(__dirname, '1.ข้อมูลท่า สงขลา 2.xlsx'));
 const sheet = wb.Sheets['กค.69'];
 const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 

@@ -1326,30 +1326,33 @@ const asof = () => document.getElementById('asof').value;
 //  ระบบแปลงวันเวลาประเทศไทย (ICT / พ.ศ.)
 // ==========================================
 function fmtTHDate(dateIso, mode = 'short') {
-  if (!dateIso) return '-';
-  let d;
-  if (typeof dateIso === 'string' && dateIso.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    const [y, m, day] = dateIso.split('-').map(Number);
-    d = new Date(y, m - 1, day);
-  } else {
-    d = new Date(dateIso);
-  }
-  if (isNaN(d.getTime())) return dateIso;
+  if (!dateIso || dateIso === '-') return '-';
+  if (typeof dateIso === 'string') {
+    const s = dateIso.trim();
+    if (!s) return '-';
+    // If it already contains Thai month characters (e.g. ส.ค., ก.ค., มิ.ย., ปี), return as is
+    if (/[ก-๙]/.test(s)) return s;
 
-  const thaiMonthsShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-  const thaiMonthsFull = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-  
-  const day = d.getDate();
-  const yearBE = d.getFullYear() + 543;
+    // Standard ISO YYYY-MM-DD
+    if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      let [y, m, day] = s.split('-').map(Number);
+      if (y > 2500) y -= 543;
+      if (y < 2000) y = 2026;
+      const thaiMonthsShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+      const thaiMonthsFull = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+      const yearBE = y + 543;
 
-  if (mode === 'full') {
-    return `${day} ${thaiMonthsFull[d.getMonth()]} ${yearBE}`;
-  } else if (mode === 'slash') {
-    const dd = String(day).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    return `${dd}/${mm}/${yearBE}`;
+      if (mode === 'full') {
+        return `${day} ${thaiMonthsFull[m - 1]} ${yearBE}`;
+      } else if (mode === 'slash') {
+        const dd = String(day).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        return `${dd}/${mm}/${yearBE}`;
+      }
+      return `${day} ${thaiMonthsShort[m - 1]} ${yearBE}`;
+    }
   }
-  return `${day} ${thaiMonthsShort[d.getMonth()]} ${yearBE}`;
+  return dateIso;
 }
 
 function fmtTHDateTime(tsStr) {
