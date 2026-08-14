@@ -997,14 +997,32 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
     let importedCount = 0;
     let totalAR = 0;
 
-    let isFile1Format = false;
-    let startRowIdx = 3;
+    let isSongkhla3Part = false;
+    let isMatrixFormat = false;
+    let headerRowIdx = -1;
+
     for (let i = 0; i < Math.min(15, rows.length); i++) {
       const rStr = (rows[i] || []).join(' ');
-      if (rStr.includes('สถานที่') || rStr.includes('ค้างตั้งแต่') || rStr.includes('อัตราค่าเช่า') || rStr.includes('ยอดหนี้') || rStr.includes('ค้างชำระ') || rStr.includes('ลำดับ')) {
-        isFile1Format = true;
-        startRowIdx = i + 1;
+      if (rStr.includes('ค้างตั้งแต่') && (rStr.includes('งวด') || rStr.includes('อายุ') || rStr.includes('ยอดหนี้'))) {
+        isSongkhla3Part = true;
+        headerRowIdx = i;
+        break;
       }
+      if (rStr.includes('เลขที่ใบแจ้งหนี้') || (rStr.includes('ผู้เช่า') && (rStr.includes('พื้นที่เช่า') || rStr.includes('ยอดคงค้าง')))) {
+        isMatrixFormat = true;
+        headerRowIdx = i;
+        break;
+      }
+    }
+
+    if (headerRowIdx === -1) headerRowIdx = 4;
+
+    function excelDateToISO(serial) {
+      if (!serial || isNaN(serial)) return `${targetPeriod}-05`;
+      const utc_days = Math.floor(serial - 25569);
+      const utc_value = utc_days * 86400;
+      const date_info = new Date(utc_value * 1000);
+      return date_info.toISOString().slice(0, 10);
     }
 
     const insCust = db.prepare("INSERT OR IGNORE INTO customers(id,name,tax_id,address) VALUES(?,?,?,?)");
@@ -1027,8 +1045,8 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
     // Clean existing port_ledgers for this branch and period to prevent duplicates
     db.prepare("DELETE FROM port_ledgers WHERE branch_id = ? AND period = ?").run(targetBranch, targetPeriod);
 
-    if (isFile1Format) {
-      rows.slice(startRowIdx).forEach(row => {
+    if (isSongkhla3Part) {
+      rows.slice(headerRowIdx + 1).forEach(row => {
         const itemNo = row[0];
         const colB = (row[1] || '').toString().trim();
         const colC = (row[2] || '').toString().trim();
@@ -1098,8 +1116,9 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
         }
       });
     } else {
+      // Format: Matrix / C-XX style (row[0]=Invoice, row[1]=Tenant, row[2]=Unit, row[3]=Rent, row[4]=AR, row[5]=Due, row[6]=Days)
       let contractSeq = 0;
-      rows.slice(5).forEach(row => {
+      rows.slice(headerRowIdx + 1).forEach(row => {
         const invCode = row[0];
         const tenantName = (row[1] || '').toString().trim();
         const unit = (row[2] || '').toString().trim();
@@ -1126,18 +1145,19 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
 
         const rentAmt = Math.round((arAmt / 1.07) * 100) / 100;
         const vatAmt = Math.round((arAmt - rentAmt) * 100) / 100;
-        const overdueMonths = Math.floor(daysOverdue / 30);
+        const overdueMonths = Math.floor(daysOverdue / 30) || (daysOverdue > 0 ? 1 : 0);
+        const dueISO = excelDateToISO(dueSerial);
 
         if (arAmt > 0) {
-          insInvoice.run(invoiceId, contractId, targetPeriod, '2026-05-25', '2026-06-25', rentAmt, 0, vatAmt, arAmt, 0, 'open');
+          insInvoice.run(invoiceId, contractId, targetPeriod, '2026-05-25', dueISO, rentAmt, 0, vatAmt, arAmt, 0, 'open');
           totalAR += arAmt;
         }
 
         insLedger.run(
           targetBranch, targetPeriod, contractId, tenantName, 'ค่าเช่าอาคารและที่ดิน', unit, rent,
-          targetPeriod, 1, overdueMonths, rentAmt, vatAmt, arAmt,
+          dueISO, 1, overdueMonths, rentAmt, vatAmt, arAmt,
           '', '', 0,
-          targetPeriod, 1, overdueMonths, rentAmt, vatAmt, arAmt,
+          dueISO, 1, overdueMonths, rentAmt, vatAmt, arAmt,
           arAmt === 0 ? 'paid' : 'unpaid'
         );
       });
@@ -1150,7 +1170,7 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
       totalAR,
       branch_id: targetBranch,
       period: targetPeriod,
-      format: isFile1Format ? 'ข้อมูลท่า (3 ส่วนแบบสงขลา 2)' : 'Provision Matrix',
+      format: isSongkhla3Part ? 'ข้อมูลท่า (3 ส่วนแบบสงขลา 2)' : 'Provision Matrix (C-XX)',
       message: `นำเข้าข้อมูลสำเร็จ ${importedCount} รายการ (ยอดหนี้รวม ${totalAR.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท)`
     });
   } catch (err) {
