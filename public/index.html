@@ -3191,7 +3191,13 @@ function renderPortLedgerTable() {
 
   const thaiMonthsFull = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
   let curPeriodText = "ประจำเดือน กรกฎาคม 2569";
-  if (typeof asof === 'function' && asof()) {
+  const selectedPeriod = document.getElementById('portLedgerPeriod')?.value || '2026-07';
+  const pParts = selectedPeriod.split('-');
+  if (pParts.length === 2) {
+    const mIdx = parseInt(pParts[1], 10) - 1;
+    const yBE = parseInt(pParts[0], 10) + 543;
+    curPeriodText = `ประจำเดือน ${thaiMonthsFull[mIdx] || 'กรกฎาคม'} ${yBE}`;
+  } else if (typeof asof === 'function' && asof()) {
     const dParts = asof().split('-');
     if (dParts.length === 3) {
       const mIdx = parseInt(dParts[1], 10) - 1;
