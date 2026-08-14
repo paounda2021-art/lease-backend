@@ -4377,17 +4377,28 @@ async function submitExcelImport() {
 
 function openImportResultModal(data, branchName, periodText) {
   const modal = document.getElementById('importResultModal');
-  if (!modal) return;
-  document.getElementById('importResultIcon').textContent = data.ok ? '🎉' : '❌';
-  document.getElementById('importResultTitle').textContent = data.ok ? 'นำเข้าข้อมูลสำเร็จเรียบร้อยแล้ว!' : 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล';
-  document.getElementById('importResultDesc').textContent = data.message || (data.ok ? 'ระบบได้บันทึกข้อมูลและปรับปรุงตารางให้พร้อมใช้งานทันที' : 'กรุณาตรวจสอบโครงสร้างไฟล์');
+  const iconEl = document.getElementById('importResultIcon');
+  const titleEl = document.getElementById('importResultTitle');
+  const descEl = document.getElementById('importResultDesc');
+  const branchEl = document.getElementById('resBranchName');
+  const periodEl = document.getElementById('resPeriodText');
+  const countEl = document.getElementById('resItemCount');
+  const totalEl = document.getElementById('resTotalAR');
 
-  document.getElementById('resBranchName').textContent = branchName || data.branch_id || '-';
-  document.getElementById('resPeriodText').textContent = periodText || data.period || '-';
-  document.getElementById('resItemCount').textContent = `${(data.count || 0).toLocaleString()} รายการ`;
-  document.getElementById('resTotalAR').textContent = `${(data.totalAR || 0).toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`;
+  if (iconEl) iconEl.textContent = data?.ok ? '🎉' : '❌';
+  if (titleEl) titleEl.textContent = data?.ok ? 'นำเข้าข้อมูลสำเร็จเรียบร้อยแล้ว!' : 'เกิดข้อผิดพลาดในการนำเข้าข้อมูล';
+  if (descEl) descEl.textContent = data?.message || (data?.ok ? 'ระบบได้บันทึกข้อมูลและปรับปรุงตารางให้พร้อมใช้งานทันที' : 'กรุณาตรวจสอบโครงสร้างไฟล์');
 
-  modal.style.display = 'flex';
+  if (branchEl) branchEl.textContent = branchName || data?.branch_id || '-';
+  if (periodEl) periodEl.textContent = periodText || data?.period || '-';
+  if (countEl) countEl.textContent = `${(data?.count || 0).toLocaleString()} รายการ`;
+  if (totalEl) totalEl.textContent = `${(data?.totalAR || 0).toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`;
+
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    toast(data?.message || `นำเข้าสำเร็จ ${(data?.count || 0).toLocaleString()} รายการ`);
+  }
 }
 
 function closeImportResultModal() {
