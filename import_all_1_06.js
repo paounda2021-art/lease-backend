@@ -1,6 +1,6 @@
 // =========================================================================
 //  สคริปต์นำเข้าไฟล์ข้อมูลจริง 17 หน่วยงาน งวดมิถุนายน 2569 (c02_1-06 ถึง c22_1-06)
-//  โครงสร้าง: ทะเบียนคุมรายตัว 3 ส่วน (GL Category, ทะเบียน, ค้างยกมา, รับชำระ, ยอดยกไป)
+//  รองรับโครงสร้าง: ทะเบียนคุมรายตัว 3 ส่วน (GL Category, ทะเบียน, ค้างยกมา, รับชำระ, ยอดยกไป)
 // =========================================================================
 const fs = require('fs');
 const path = require('path');
@@ -11,7 +11,6 @@ console.log('=================================================================')
 console.log('🚀 เริ่มต้นการนำเข้าข้อมูลจริง 17 หน่วยงาน (c02_1-06 ถึง c22_1-06)');
 console.log('=================================================================');
 
-// แมปชื่อไฟล์กับรหัสหน่วยงาน C-XX
 const branchMapping = {
   'c02': { id: 'C-02', name: 'สำนักงานสะพานปลากรุงเทพ (สป.กท.)' },
   'c03': { id: 'C-03', name: 'สำนักงานสะพานปลาสมุทรปราการ (สป.สป.)' },
@@ -37,15 +36,12 @@ function formatOverdueDate(rawVal, fallbackPeriod = '2026-06') {
   const s = String(rawVal).trim();
   if (!s || s === '-' || s === '0') return '';
 
-  // If already contains Thai text (e.g. 1 ส.ค. 67, ศาล, ก.ค.69, ธ.ค.66)
   if (/[ก-๙]/.test(s)) return s;
 
-  // If ISO date
   if (s.match(/^\d{4}-\d{2}-\d{2}$/)) {
     return s;
   }
 
-  // If Excel serial number
   const num = parseFloat(s);
   if (!isNaN(num) && num >= 36526 && num <= 73050) {
     const utc_days = Math.floor(num - 25569);
@@ -79,7 +75,6 @@ const nextPeriod = '2026-07';
 
 let grandTotalCount = 0;
 let grandTotalAR = 0;
-const summaryResults = [];
 
 const files = fs.readdirSync(__dirname).filter(f => f.match(/^c\d{2}_1-06\.(xlsx|xls)$/i)).sort();
 
@@ -93,9 +88,21 @@ files.forEach(fileName => {
   const fullPath = path.join(__dirname, fileName);
 
   try {
-    const wb = XLSX.readFile(fullPath);
-    // Find sheet for June 69
-    let sheetName = wb.SheetNames.find(s => s.toLowerCase().includes('มิย') || s.toLowerCase().includes('มิ.ย.') || s.toLowerCase().includes('1-06')) || wb.SheetNames[0];
+    const wbMeta = XLSX.readFile(fullPath, { bookSheets: true });
+    
+    // Smart Sheet Selection: Find the exact master ledger sheet (ignore 'เรียง', 'แนบ', 'รับชำระ')
+    let sheetName = wbMeta.SheetNames.find(s => s.trim() === 'มิย.69' || s.trim() === 'มิ.ย.69' || s.trim() === 'มิ.ย. 69' || s.trim() === 'มิย. 69');
+    if (!sheetName) {
+      sheetName = wbMeta.SheetNames.find(s => {
+        const name = s.trim();
+        return (name.includes('มิย') || name.includes('มิ.ย')) && !name.includes('เรียง') && !name.includes('แนบ') && !name.includes('รับชำระ') && !name.includes('ค่าเสียหาย');
+      });
+    }
+    if (!sheetName) {
+      sheetName = wbMeta.SheetNames.find(s => s.includes('(ท่าส่ง')) || wbMeta.SheetNames[0];
+    }
+
+    const wb = XLSX.readFile(fullPath, { sheets: [sheetName] });
     const ws = wb.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
@@ -106,55 +113,60 @@ files.forEach(fileName => {
     let count = 0;
     let totalAR = 0;
 
-    let headerRowIdx = 3;
-    for (let i = 0; i < Math.min(10, rows.length); i++) {
-      const rStr = (rows[i] || []).join(' ');
-      if (rStr.includes('ลำดับ') && (rStr.includes('รายชื่อ') || rStr.includes('ผู้เช่า'))) {
-        headerRowIdx = i;
-        break;
-      }
-    }
-
-    rows.slice(headerRowIdx + 1).forEach(row => {
+    rows.forEach((row, rowIdx) => {
       const itemNo = row[0];
       const colB = (row[1] || '').toString().trim();
       const colC = (row[2] || '').toString().trim();
       const rate = parseFloat(row[3]) || 0;
-      const overdueFromRaw = row[4];
-      const duePeriods = parseInt(row[5]) || 0;
-      const overdueAgeMonths = parseInt(row[6]) || 0;
-      const arAmount = parseFloat(row[7]) || 0;
-      const vatAmount = parseFloat(row[8]) || 0;
-      const totalAmount = parseFloat(row[9]) || 0;
-
-      const payDateRaw = row[10];
-      const payReceiptNo = (row[11] || '').toString().trim();
-      const payAmount = parseFloat(row[12]) || 0;
-
-      const edFromRaw = row[13];
-      const edPeriods = parseInt(row[14]) || 0;
-      const edMonths = parseInt(row[15]) || 0;
-      const edAmount = parseFloat(row[16]) || 0;
-      const edVat = parseFloat(row[17]) || 0;
-      const edTotal = parseFloat(row[18]) || 0;
 
       if (!colB) return;
 
       // Category Header Row
-      if (!itemNo && colB && !colB.includes('รวม') && !colB.includes('ทั้งหมด') && arAmount === 0 && totalAmount === 0) {
+      if (!itemNo && colB && !colB.includes('รวม') && !colB.includes('ทั้งหมด') && !colB.includes('เจ้าหน้าที่') && !colB.includes('หมายเหตุ') && !colB.startsWith('...')) {
         currentCategory = colB;
         return;
       }
 
       // Valid Debtor Row
       const isNumItem = (typeof itemNo === 'number') || (typeof itemNo === 'string' && itemNo.match(/^\d+$/));
-      if (isNumItem && colB && !colB.includes('รวม') && !colB.includes('ทั้งหมด') && colB !== '-ไม่มี-') {
+      if (isNumItem && colB && !colB.includes('รวม') && !colB.includes('ทั้งหมด') && colB !== '-ไม่มี-' && colB !== '-ไม่มีหนี้ค้างชำระ-') {
         count++;
         const custId = `CU-${branchId.replace('-', '')}-${String(count).padStart(4, '0')}`;
         const contractId = `${branchId}-CT-${String(count).padStart(4, '0')}`;
         const invoiceId = `INV-${branchId.replace('-', '')}-${String(count).padStart(4, '0')}`;
 
-        const bgTot = totalAmount !== 0 ? totalAmount : arAmount;
+        // Find amounts across standard column offsets
+        let overdueFromRaw = row[4];
+        let duePeriods = parseInt(row[5]) || 0;
+        let overdueAgeMonths = parseInt(row[6]) || 0;
+        let arAmount = parseFloat(row[7]) || 0;
+        let vatAmount = parseFloat(row[8]) || 0;
+        let totalAmount = parseFloat(row[9]) || 0;
+
+        let payDateRaw = row[10];
+        let payReceiptNo = (row[11] || '').toString().trim();
+        let payAmount = parseFloat(row[12]) || 0;
+
+        // If sheet column offsets shift (e.g. payReceiptNo in col 8..14)
+        for (let c = 4; c < Math.min(row.length, 16); c++) {
+          const val = (row[c] || '').toString().trim();
+          if (val.includes('/') && val.match(/\d+\/\d+/)) {
+            payReceiptNo = val;
+            if (row[c-1]) payDateRaw = row[c-1];
+            if (parseFloat(row[c+1])) payAmount = parseFloat(row[c+1]);
+            else if (parseFloat(row[c+2])) payAmount = parseFloat(row[c+2]);
+            else if (parseFloat(row[c+3])) payAmount = parseFloat(row[c+3]);
+          }
+        }
+
+        let edFromRaw = row[13];
+        let edPeriods = parseInt(row[14]) || 0;
+        let edMonths = parseInt(row[15]) || 0;
+        let edAmount = parseFloat(row[16]) || 0;
+        let edVat = parseFloat(row[17]) || 0;
+        let edTotal = parseFloat(row[18]) || 0;
+
+        const bgTot = totalAmount !== 0 ? totalAmount : (arAmount !== 0 ? arAmount : rate);
         const bgAmt = arAmount !== 0 ? arAmount : parseFloat((bgTot / 1.07).toFixed(2));
         const bgVat = vatAmount !== 0 ? vatAmount : parseFloat((bgTot - bgAmt).toFixed(2));
 
@@ -163,7 +175,7 @@ files.forEach(fileName => {
         const finalEdAmt = edAmount !== 0 ? edAmount : parseFloat((finalEdTot / 1.07).toFixed(2));
         const finalEdVat = edVat !== 0 ? edVat : parseFloat((finalEdTot - finalEdAmt).toFixed(2));
 
-        const bgOverdueFrom = formatOverdueDate(overdueFromRaw, targetPeriod);
+        const bgOverdueFrom = formatOverdueDate(overdueFromRaw, targetPeriod) || 'มิ.ย.69';
         const payDate = formatOverdueDate(payDateRaw, targetPeriod);
         const edOverdueFrom = formatOverdueDate(edFromRaw, targetPeriod) || (finalEdTot > 0 ? bgOverdueFrom : '');
 
@@ -208,8 +220,7 @@ files.forEach(fileName => {
 
     grandTotalCount += count;
     grandTotalAR += totalAR;
-    summaryResults.push({ branchId, name: branchInfo.name, count, totalAR, fileName });
-    console.log(`✅ [${branchId}] ${branchInfo.name}: นำเข้าสำเร็จ ${count} รายการ | ยอดหนี้รวม ${totalAR.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
+    console.log(`✅ [${branchId}] ${branchInfo.name}: นำเข้าสำเร็จ ${count} รายการ (Sheet: ${sheetName}) | ยอดหนี้รวม ${totalAR.toLocaleString('th-TH', {minimumFractionDigits:2})} บาท`);
   } catch (err) {
     console.error(`❌ [${branchId}] ข้อผิดพลาดในการนำเข้า ${fileName}:`, err.message);
   }
