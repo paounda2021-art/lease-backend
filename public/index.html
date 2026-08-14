@@ -503,6 +503,114 @@
     margin-left: 50%;
     text-align: center;
   }
+
+  /* Sticky / Freeze Left Columns for Port Ledger Table (Freeze Panes) */
+  #portLedgerTable {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  #portLedgerTable .sticky-col-0 {
+    position: sticky !important;
+    left: 0px !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+  }
+  #portLedgerTable .sticky-col-1 {
+    position: sticky !important;
+    left: 34px !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+  }
+  #portLedgerTable .sticky-col-2 {
+    position: sticky !important;
+    left: 76px !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+  #portLedgerTable .sticky-col-3 {
+    position: sticky !important;
+    left: 256px !important;
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+  }
+  #portLedgerTable .sticky-col-4 {
+    position: sticky !important;
+    left: 396px !important;
+    width: 85px !important;
+    min-width: 85px !important;
+    max-width: 85px !important;
+    border-right: 2px solid #94a3b8 !important;
+    box-shadow: 4px 0 8px -2px rgba(0,0,0,0.12) !important;
+  }
+
+  #portLedgerTable tbody td.sticky-col-0,
+  #portLedgerTable tbody td.sticky-col-1,
+  #portLedgerTable tbody td.sticky-col-2,
+  #portLedgerTable tbody td.sticky-col-3,
+  #portLedgerTable tbody td.sticky-col-4 {
+    z-index: 10;
+    background: #ffffff;
+  }
+  #portLedgerTable tbody tr:hover td.sticky-col-0,
+  #portLedgerTable tbody tr:hover td.sticky-col-1,
+  #portLedgerTable tbody tr:hover td.sticky-col-2,
+  #portLedgerTable tbody tr:hover td.sticky-col-3,
+  #portLedgerTable tbody tr:hover td.sticky-col-4 {
+    background: #f8fafc;
+  }
+  #portLedgerTable thead th.sticky-col-0,
+  #portLedgerTable thead th.sticky-col-1,
+  #portLedgerTable thead th.sticky-col-2,
+  #portLedgerTable thead th.sticky-col-3,
+  #portLedgerTable thead th.sticky-col-4 {
+    z-index: 35;
+    background: #f1f5f9;
+  }
+  #portLedgerTable thead th.sticky-col-banner {
+    position: sticky !important;
+    left: 0px !important;
+    z-index: 40 !important;
+    background: #f1f5f9;
+  }
+
+  #portLedgerTable tfoot td.sticky-tfoot {
+    position: sticky !important;
+    left: 0px !important;
+    z-index: 15;
+    background: #f1f5f9;
+    border-right: 2px solid #94a3b8 !important;
+    box-shadow: 4px 0 8px -2px rgba(0,0,0,0.12) !important;
+  }
+
+  body.dark #portLedgerTable tbody td.sticky-col-0,
+  body.dark #portLedgerTable tbody td.sticky-col-1,
+  body.dark #portLedgerTable tbody td.sticky-col-2,
+  body.dark #portLedgerTable tbody td.sticky-col-3,
+  body.dark #portLedgerTable tbody td.sticky-col-4 {
+    background: #0f172a;
+    color: #f8fafc;
+  }
+  body.dark #portLedgerTable tbody tr:hover td.sticky-col-0,
+  body.dark #portLedgerTable tbody tr:hover td.sticky-col-1,
+  body.dark #portLedgerTable tbody tr:hover td.sticky-col-2,
+  body.dark #portLedgerTable tbody tr:hover td.sticky-col-3,
+  body.dark #portLedgerTable tbody tr:hover td.sticky-col-4 {
+    background: #1e293b;
+  }
+  body.dark #portLedgerTable thead th.sticky-col-0,
+  body.dark #portLedgerTable thead th.sticky-col-1,
+  body.dark #portLedgerTable thead th.sticky-col-2,
+  body.dark #portLedgerTable thead th.sticky-col-3,
+  body.dark #portLedgerTable thead th.sticky-col-4,
+  body.dark #portLedgerTable thead th.sticky-col-banner,
+  body.dark #portLedgerTable tfoot td.sticky-tfoot {
+    background: #1e293b;
+    color: #f8fafc;
+  }
 </style>
 </head>
 <body>
@@ -3285,18 +3393,18 @@ function renderPortLedgerTable() {
     <thead>
       <!-- ส่วนหัวข้อเดือน/ปี ประจำงวด -->
       <tr style="background:#f8fafc; border:1px solid #cbd5e1;">
-        <th colspan="22" class="c" style="padding:8px 0; font-size:13.5px; font-weight:800; color:#1e293b; letter-spacing:0.5px; border-bottom:2px solid #94a3b8; background:#f1f5f9;">
+        <th colspan="22" class="c sticky-col-banner" style="padding:8px 0; font-size:13.5px; font-weight:800; color:#1e293b; letter-spacing:0.5px; border-bottom:2px solid #94a3b8; background:#f1f5f9;">
           ${curPeriodText}
         </th>
       </tr>
 
       <!-- แถวที่ 1: กลุ่มหัวข้อหลัก -->
       <tr style="background:#f8fafc; font-size:11.5px; color:#1e293b; border-bottom:1px solid #cbd5e1;">
-        <th rowspan="3" style="width:30px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c"><input type="checkbox" onchange="toggleAllLedgerCheck(this)"></th>
-        <th rowspan="3" style="width:40px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">ลำดับ</th>
-        <th rowspan="3" style="min-width:170px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">รายชื่อ</th>
-        <th rowspan="3" style="min-width:130px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">สถานที่ตั้ง / ทะเบียน</th>
-        <th rowspan="3" style="width:85px; vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c">อัตราค่าเช่า</th>
+        <th rowspan="3" style="vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c sticky-col-0"><input type="checkbox" onchange="toggleAllLedgerCheck(this)"></th>
+        <th rowspan="3" style="vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c sticky-col-1">ลำดับ</th>
+        <th rowspan="3" style="vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c sticky-col-2">รายชื่อ</th>
+        <th rowspan="3" style="vertical-align:middle; border-right:1px solid #cbd5e1; border-bottom:2px solid #94a3b8;" class="c sticky-col-3">สถานที่ตั้ง / ทะเบียน</th>
+        <th rowspan="3" style="vertical-align:middle; border-bottom:2px solid #94a3b8;" class="c sticky-col-4">อัตราค่าเช่า</th>
 
         <!-- ค้างชำระยกมา (6 คอลัมน์) -->
         <th colspan="6" class="c" style="background:#ffffff; border-right:2px solid #94a3b8; border-bottom:1px solid #cbd5e1; font-weight:800; padding:6px; font-size:12px;">
@@ -3391,14 +3499,14 @@ function renderPortLedgerTable() {
 
     h += `
       <tr style="border-bottom:1px solid #e2e8f0; font-size:12px;">
-        <td class="c"><input type="checkbox" class="ledger-chk" value="${r.id}" onchange="updateLedgerCheckSummary()"></td>
-        <td class="c"><b>${idx + 1}</b></td>
-        <td>
+        <td class="c sticky-col-0" style="border-right:1px solid #cbd5e1;"><input type="checkbox" class="ledger-chk" value="${r.id}" onchange="updateLedgerCheckSummary()"></td>
+        <td class="c sticky-col-1" style="border-right:1px solid #cbd5e1;"><b>${idx + 1}</b></td>
+        <td class="sticky-col-2" style="border-right:1px solid #cbd5e1;">
           <b style="color:var(--navy);">${r.customer_name}</b>
           ${catName ? `<div class="muted" style="font-size:10px;">${catName}</div>` : ''}
         </td>
-        <td><span class="muted">${locName}</span></td>
-        <td class="r num">${rateVal > 0 ? fmt(rateVal) : '-'}</td>
+        <td class="sticky-col-3" style="border-right:1px solid #cbd5e1;"><span class="muted">${locName}</span></td>
+        <td class="r num sticky-col-4">${rateVal > 0 ? fmt(rateVal) : '-'}</td>
 
         <td class="c" style="color:#b91c1c; border-right:1px solid #cbd5e1;">${r.bg_overdue_from ? fmtTHDate(r.bg_overdue_from) : '-'}</td>
         <td class="c" style="border-right:1px solid #cbd5e1;">${r.bg_periods || '-'}</td>
@@ -3440,7 +3548,7 @@ function renderPortLedgerTable() {
     </tbody>
     <tfoot>
       <tr style="background:#f1f5f9; font-weight:bold; font-size:12px; border-top:2px solid #cbd5e1;">
-        <td colspan="5" class="r" style="padding:8px;"><b>รวมทั้งสิ้น (${fmt(totalItems)} รายการ)</b></td>
+        <td colspan="5" class="r sticky-tfoot" style="padding:8px;"><b>รวมทั้งสิ้น (${fmt(totalItems)} รายการ)</b></td>
         
         <td colspan="3" class="c" style="background:#fee2e2; color:#991b1b;"><b>ค้างยกมา</b></td>
         <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmt(totBgAmt)}</b></td>
