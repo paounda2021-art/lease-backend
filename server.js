@@ -11,8 +11,10 @@ const XLSX = require('xlsx');
 const { db, audit } = require('./db');
 const A = require('./aging');
 const { generateToken, authenticateToken, requireRole } = require('./auth');
+const compression = require('compression');
 
 const app = express();
+app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use((req, res, next) => {
@@ -21,8 +23,18 @@ app.use((req, res, next) => {
   res.setHeader('Expires', '0');
   next();
 });
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname));
+const staticOptions = {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+    }
+  }
+};
+app.use(express.static(path.join(__dirname, 'public'), staticOptions));
+app.use(express.static(__dirname, staticOptions));
 
 const PORT = process.env.PORT || 3000;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -685,7 +697,10 @@ app.post('/api/jobs/daily', authenticateToken, requireRole('manager'), (req, res
 // ========== PORT LEDGER ROUTES (ทะเบียนคุมรับชำระและยอดยกไป 3 ส่วน) ==========
 app.get('/api/port-ledgers', authenticateToken, (req, res) => {
   try {
-    const branchId = req.query.branch_id || 'all';
+    let branchId = req.query.branch_id || 'all';
+    if (req.user.role === 'branch' && req.user.branch_id) {
+      branchId = req.user.branch_id;
+    }
     const period = req.query.period || '2026-07';
     let sql = `
       SELECT p.*, b.name AS branch_name, b.region AS branch_region 
@@ -738,7 +753,7 @@ app.get('/api/port-ledgers', authenticateToken, (req, res) => {
 });
 
 // 0. แก้ไขอัตราค่าเช่า (Admin / Manager / Branch Rate Editing)
-app.patch('/api/port-ledgers/:id/rate', authenticateToken, requireRole(['admin', 'manager', 'branch']), (req, res) => {
+const handleRateUpdate = (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const { rate_amount } = req.body;
@@ -765,7 +780,9 @@ app.patch('/api/port-ledgers/:id/rate', authenticateToken, requireRole(['admin',
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+app.patch('/api/port-ledgers/:id/rate', authenticateToken, requireRole(['admin', 'manager', 'branch']), handleRateUpdate);
+app.put('/api/port-ledgers/:id/rate', authenticateToken, requireRole(['admin', 'manager', 'branch']), handleRateUpdate);
 
 // 1. บันทึกยอดรับชำระเบื้องต้นจาก ทร. (ยังไม่ตัดยอดจริง รอส่วนกลางอนุมัติ)
 app.post('/api/port-ledgers/save-pending-pay', authenticateToken, (req, res) => {
@@ -842,7 +859,7 @@ app.get('/api/port-ledgers/pending-approval', authenticateToken, (req, res) => {
 });
 
 // 2. ส่วนกลางอนุมัติตัดยอดชำระเงินจริง (Central Approval & Settlement)
-app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin', 'manager', 'cashier']), (req, res) => {
+app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin', 'manager', 'cashier', 'branch']), (req, res) => {
   try {
     const body = req.body || {};
     const ids = body.ids; // Array of IDs to approve
@@ -891,7 +908,7 @@ app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin
 });
 
 // 3. ตัดยอดรับชำระเงินทันที (สำหรับ Admin/Manager/Cashier Direct Pay)
-app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'admin', 'manager', 'billing']), (req, res) => {
+app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'admin', 'manager', 'billing', 'branch']), (req, res) => {
   try {
     const { id, pay_date, pay_receipt_no, pay_amount } = req.body;
     if (!id) return res.status(400).json({ error: 'ไม่ระบุรหัสรายการ' });
@@ -933,7 +950,7 @@ app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'ad
 });
 
 // 2. ยกยอดยกไปตั้งต้นงวดเดือนถัดไป (Roll Forward to Next Period)
-app.post('/api/port-ledgers/roll-forward', authenticateToken, requireRole(['admin', 'manager', 'billing']), (req, res) => {
+app.post('/api/port-ledgers/roll-forward', authenticateToken, requireRole(['admin', 'manager', 'billing', 'branch']), (req, res) => {
   try {
     const branchId = req.body.branch_id || 'all';
     const currentPeriod = req.body.period || '2026-07';
