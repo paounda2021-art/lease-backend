@@ -1050,6 +1050,53 @@
   </div>
 </div>
 
+
+<!-- โมดัล แก้ไขอัตราค่าเช่า (Admin Rate Edit Modal) -->
+<div class="modal-bg" id="editRateModal" style="z-index:1200;">
+  <div class="modal" style="max-width:440px; width:92%; padding:22px; border-radius:16px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-line); padding-bottom:10px;">
+      <h3 style="margin:0; font-size:16px; color:var(--navy); display:flex; align-items:center; gap:8px;">
+        <span style="font-size:20px;">🏢</span>
+        <span>แก้ไขอัตราค่าเช่า</span>
+      </h3>
+      <button type="button" class="sm ghost" onclick="closeEditRateModal()" style="font-size:16px; padding:2px 8px; border:none; cursor:pointer;">✕</button>
+    </div>
+
+    <input type="hidden" id="editRateRowId">
+
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:16px;">
+      <div style="font-size:11px; color:#64748b; margin-bottom:2px;">ผู้เช่า / ลูกหนี้:</div>
+      <div id="editRateCustomerName" style="font-size:14px; font-weight:700; color:#1e293b; margin-bottom:8px;">-</div>
+      
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:#475569;">
+        <span>สถานที่ / ยูนิต: <b id="editRateLocation" style="color:#0f172a;">-</b></span>
+        <span>หน่วยงาน: <b id="editRateBranch" style="color:#0f172a;">-</b></span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <label for="editRateInput" style="display:block; font-size:13px; font-weight:700; color:#334155; margin-bottom:6px;">
+        อัตราค่าเช่า / ค่าบริการใหม่ (บาท/เดือน):
+      </label>
+      <div style="position:relative;">
+        <input type="number" id="editRateInput" step="0.01" min="0" placeholder="0.00" style="width:100%; font-size:18px; font-weight:800; padding:10px 14px; border:2px solid #0284c7; border-radius:10px; color:#0369a1; background:#f0f9ff; box-sizing:border-box; outline:none;" onkeydown="if(event.key==='Enter') saveEditRateModal()">
+        <span style="position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:13px; font-weight:700; color:#64748b;">บาท</span>
+      </div>
+      <div style="font-size:11.5px; color:#64748b; margin-top:5px;">
+        💡 ระบุอัตราค่าเช่ารายเดือนที่ถูกต้องตามสัญญา แล้วกดบันทึก
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid var(--border-line); padding-top:12px;">
+      <button type="button" class="sm ghost" onclick="closeEditRateModal()" style="padding:8px 16px; font-size:13px; font-weight:600;">ยกเลิก</button>
+      <button type="button" class="sm act" onclick="saveEditRateModal()" style="background:#0284c7; padding:8px 18px; font-size:13px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+        <span>💾</span>
+        <span>บันทึกข้อมูล</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- โมดัล บันทึกข้อมูลการรับชำระหนี้ (ทร.) -->
 <div class="modal-bg" id="ledgerPayModal" style="z-index:1100;">
   <div class="modal" style="max-width:950px; width:95%; padding:20px; border-radius:16px;">
@@ -3704,12 +3751,10 @@ function renderPortLedgerTable() {
           ${catName ? `<div class="muted" style="font-size:10px; margin-top:2px;">${catName}</div>` : ''}
         </td>
         <td class="sticky-col-3" style="border-right:1px solid #cbd5e1;"><span class="muted">${locName}</span></td>
-        <td class="r num sticky-col-4" style="border-right:1px solid #cbd5e1; cursor:${isAdmin ? 'pointer' : 'default'};" ${isAdmin ? `onclick="editLedgerRate(${r.id}, '${encodeURIComponent(r.customer_name)}', ${rateVal})" title="คลิกเพื่อแก้ไขอัตราค่าเช่า (Admin)"` : ''}>
+                <td class="r num sticky-col-4" style="border-right:1px solid #cbd5e1; cursor:${isAdmin ? 'pointer' : 'default'};" ${isAdmin ? `onclick="openEditRateModal(${r.id}, '${encodeURIComponent(r.customer_name || '')}', '${encodeURIComponent(locName || '')}', '${r.branch_id || ''}', ${rateVal})"` : ''} title="คลิกเพื่อแก้ไขอัตราค่าเช่า (Admin)">
           <div style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
             <span style="${isAdmin ? 'border-bottom:1px dashed #0284c7; color:#0369a1; font-weight:700;' : ''}">${rateDisplay}</span>
             ${isAdmin ? `<span style="font-size:10px; opacity:0.65; color:#0284c7;">✏️</span>` : ''}
-          </div>
-        </td>
           </div>
         </td>
 
@@ -3798,38 +3843,7 @@ function toggleAllLedgerCheck(master) {
   updateLedgerCheckSummary();
 }
 
-async function editLedgerRate(id, currentRate) {
-  const newRate = await customPrompt('กรุณาระบุอัตราค่าเช่าใหม่ (บาท):', currentRate || '');
-  if (newRate === null) return;
-  const rateNum = parseFloat(newRate);
-  if (isNaN(rateNum) || rateNum < 0) {
-    toast('กรุณาระบุจำนวนเงินที่ถูกต้อง');
-    return;
-  }
-  
-  try {
-    const res = await api('/port-ledgers/' + id + '/rate', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rate_amount: rateNum })
-    });
-    toast('บันทึกการแก้ไขอัตราค่าเช่าสำเร็จ');
-    
-    // อัปเดตข้อมูลในหน่วยความจำและหน้าจอทันที (Optimistic UI Update)
-    if (typeof D !== 'undefined' && D.portLedgers) {
-      D.portLedgers.forEach(r => {
-        if (r.id == id) {
-          r.rate_amount = rateNum;
-          r.rate = rateNum;
-        }
-      });
-      renderPortLedgerTable();
-    }
-    setTimeout(() => window.location.reload(), 1000);
-  } catch (err) {
-    toast(err.message || 'เกิดข้อผิดพลาดในการแก้ไขอัตราค่าเช่า');
-  }
-}
+
 
 const today = () => document.getElementById('asof')?.value || new Date().toISOString().split('T')[0];
 
