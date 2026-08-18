@@ -102,6 +102,17 @@ try {
   console.error('Error auto-syncing users in db.js:', err);
 }
 
+// อัตโนมัติตรวจสอบและนำเข้าข้อมูลทะเบียนคุมลูกหนี้ 17 หน่วยงาน (Auto-Seed Port Ledgers if Empty)
+try {
+  const plCount = db.prepare('SELECT COUNT(*) c FROM port_ledgers').get().c;
+  if (plCount < 100) {
+    const { seedAllLedgers } = require('./seed_all_ledgers');
+    seedAllLedgers();
+  }
+} catch (err) {
+  console.error('Error auto-seeding port ledgers in db.js:', err);
+}
+
 function audit(actor, action, entity, entity_id, detail) {
   db.prepare('INSERT INTO audit_log(actor,action,entity,entity_id,detail) VALUES(?,?,?,?,?)')
     .run(actor || 'system', action, entity, String(entity_id), detail || '');
