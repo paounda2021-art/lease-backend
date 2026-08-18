@@ -628,7 +628,7 @@
     
     <div class="fg">
       <label>ชื่อผู้ใช้งาน (Username)</label>
-      <input id="loginUser" placeholder="เช่น admin, billing, cashier, manager" style="padding: 11px;">
+      <input id="loginUser" placeholder="เช่น admin, admin1, user02" style="padding: 11px;">
     </div>
     <div class="fg" style="margin-top: 12px;">
       <label>รหัสผ่าน (Password)</label>
@@ -638,14 +638,6 @@
     <div id="loginErr" style="color: var(--red); font-size: 12.5px; margin: 12px 0; font-weight: 600; text-align: center; min-height: 18px;"></div>
     
     <button class="act" onclick="submitLogin()" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 8px;">เข้าสู่ระบบ</button>
-    
-    <div style="margin-top: 24px; padding: 12px; background: var(--grey); border-radius: 8px; border: 1px solid var(--border-line); font-size: 11.5px; line-height: 1.6; color: var(--muted-color);">
-      <b>ข้อมูลผู้ใช้จำลองสำหรับทดสอบ (รหัสผ่าน: password123):</b><br>
-      • <span style="font-weight:600; color:var(--accent);">admin</span> : เข้าใช้งานได้ทุกฟังก์ชัน<br>
-      • <span style="font-weight:600; color:var(--accent);">billing</span> : จัดการสัญญาและออกใบแจ้งหนี้<br>
-      • <span style="font-weight:600; color:var(--accent);">cashier</span> : บันทึกรับเงิน และหักเงินประกัน<br>
-      • <span style="font-weight:600; color:var(--accent);">manager</span> : อนุมัติส่งฟ้อง ตัดหนี้สูญ และปรับสำรอง
-    </div>
   </div>
 </div>
 
@@ -845,7 +837,7 @@
   <section id="contracts" class="tab">
     <div class="toolbar">
       <button class="act" id="addContractBtn" onclick="openContract()">+ เพิ่มสัญญา</button>
-      <button class="ghost" onclick="openExcelImportModal()" style="font-weight:700; color:#0369a1; border-color:#bae6fd; background:#f0f9ff; display:inline-flex; align-items:center; gap:4px;">
+      <button class="ghost excel-import-btn" onclick="openExcelImportModal()" style="font-weight:700; color:#0369a1; border-color:#bae6fd; background:#f0f9ff; display:inline-flex; align-items:center; gap:4px;">
         <span>📥</span>
         <span>นำเข้า Excel</span>
       </button>
@@ -925,8 +917,8 @@
         </button>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
-        <input id="portLedgerSearch" placeholder="ค้นหาผู้เช่า / ทะเบียน / ยูนิต..." oninput="renderPortLedgerTable()" style="width:220px; font-size:12.5px;">
-        <button class="ghost sm" onclick="openExcelImportModal()" style="font-weight:700; color:#0369a1; border-color:#bae6fd; background:#f0f9ff; display:inline-flex; align-items:center; gap:4px;">
+        <input id="portLedgerSearch" placeholder="ค้นหาผู้เช่า / ทะเบียน / หน่วยงาน..." oninput="renderPortLedgerTable()" style="width:220px; font-size:12.5px;">
+        <button class="ghost sm excel-import-btn" onclick="openExcelImportModal()" style="font-weight:700; color:#0369a1; border-color:#bae6fd; background:#f0f9ff; display:inline-flex; align-items:center; gap:4px;">
           <span>📥</span>
           <span>นำเข้า Excel</span>
         </button>
@@ -1692,6 +1684,11 @@ function onBranchChange() {
 }
 
 function selectBranch(bId) {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isBranchUser = (user.role === 'branch' || (user.username && user.username.match(/^user\d{2}$/i)));
+  if (isBranchUser && user.branch_id && bId !== user.branch_id) {
+    return; // Do not allow switching to other branches
+  }
   const sel = document.getElementById('branchSelect');
   if (sel) sel.value = bId;
   localStorage.setItem('selectedBranch', bId);
@@ -1704,15 +1701,38 @@ async function loadBranches() {
     const list = await api('/branches?asof=' + asof());
     D.branches = list || [];
     
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const isBranchUser = (user.role === 'branch' || (user.username && user.username.match(/^user\d{2}$/i)));
+
     const sel = document.getElementById('branchSelect');
     if (sel) {
-      const savedBranch = localStorage.getItem('selectedBranch') || sel.value || 'all';
-      let optHtml = '<option value="all">🏢 ภาพรวมทั้งหมด 17 หน่วยงาน</option>';
-      (D.branches || []).forEach(b => {
-        optHtml += `<option value="${b.id}">${b.name} (${b.region})</option>`;
-      });
-      sel.innerHTML = optHtml;
-      sel.value = savedBranch;
+      if (isBranchUser && user.branch_id) {
+        // ล็อกรายการให้แสดงเฉพาะสาขาของตนเอง
+        const myBranch = (D.branches || []).find(b => b.id === user.branch_id);
+        const bTitle = myBranch ? `${myBranch.name} (${myBranch.region})` : user.branch_id;
+        sel.innerHTML = `<option value="${user.branch_id}">${bTitle}</option>`;
+        sel.value = user.branch_id;
+        sel.disabled = true;
+        sel.style.background = '#f1f5f9';
+        sel.style.cursor = 'not-allowed';
+        sel.style.opacity = '0.95';
+        sel.title = 'คุณได้รับสิทธิ์การใช้งานเฉพาะส่วนงานนี้';
+        localStorage.setItem('selectedBranch', user.branch_id);
+      } else {
+        // ส่วนกลาง / Admin แสดงครบ 17 หน่วยงาน
+        sel.disabled = false;
+        sel.style.background = 'var(--bg-card)';
+        sel.style.cursor = 'pointer';
+        sel.style.opacity = '1';
+        sel.title = '';
+        const savedBranch = localStorage.getItem('selectedBranch') || 'all';
+        let optHtml = '<option value="all">🏢 ภาพรวมทั้งหมด 17 หน่วยงาน</option>';
+        (D.branches || []).forEach(b => {
+          optHtml += `<option value="${b.id}">${b.name} (${b.region})</option>`;
+        });
+        sel.innerHTML = optHtml;
+        sel.value = savedBranch;
+      }
     }
 
     const cb = document.getElementById('c_branch');
@@ -1817,15 +1837,22 @@ function hideLoginModal(user) {
 }
 
 function applyRolePermissions(user) {
+  const isBranchUser = (user.role === 'branch' || (user.username && user.username.match(/^user\d{2}$/i)));
   const isBilling = (user.role === 'admin' || user.role === 'billing');
   const isCashier = (user.role === 'admin' || user.role === 'cashier');
   const isManager = (user.role === 'admin' || user.role === 'manager');
   
-  document.getElementById('addContractBtn').style.display = isBilling ? '' : 'none';
-  document.getElementById('genInvoicesBtn').style.display = isBilling ? '' : 'none';
-  document.getElementById('saveRatesBtn').style.display = isManager ? '' : 'none';
-  document.getElementById('runJobBtn').style.display = isManager ? '' : 'none';
+  if (document.getElementById('addContractBtn')) document.getElementById('addContractBtn').style.display = isBilling && !isBranchUser ? '' : 'none';
+  if (document.getElementById('genInvoicesBtn')) document.getElementById('genInvoicesBtn').style.display = isBilling && !isBranchUser ? '' : 'none';
+  if (document.getElementById('saveRatesBtn')) document.getElementById('saveRatesBtn').style.display = isManager && !isBranchUser ? '' : 'none';
+  if (document.getElementById('runJobBtn')) document.getElementById('runJobBtn').style.display = isManager && !isBranchUser ? '' : 'none';
   
+  // ซ่อนปุ่มนำเข้า Excel สำหรับ user02 - user22 / branch users
+  document.querySelectorAll('.excel-import-btn').forEach(btn => {
+    btn.style.display = isBranchUser ? 'none' : 'inline-flex';
+  });
+
+  const branchTabs = ['dash', 'portLedger'];
   const billingTabs = ['dash', 'contracts', 'invoices', 'aging', 'portLedger'];
   const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning', 'portLedger'];
   const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'portLedger', 'audit'];
@@ -1833,7 +1860,9 @@ function applyRolePermissions(user) {
   
   document.querySelectorAll('nav button').forEach(btn => {
     const tabName = btn.getAttribute('data-tab');
-    if (user.role === 'admin' || user.role === 'viewer') {
+    if (isBranchUser) {
+      btn.style.display = branchTabs.includes(tabName) ? 'block' : 'none';
+    } else if (user.role === 'admin' || user.role === 'viewer') {
       btn.style.display = 'block';
     } else if (user.role === 'billing' && billingTabs.includes(tabName)) {
       btn.style.display = 'block';
@@ -1845,6 +1874,22 @@ function applyRolePermissions(user) {
       btn.style.display = 'none';
     }
   });
+
+  // ถ้าเปิดแท็บที่ไม่มีสิทธิ์ค้างไว้ ให้เปลี่ยนมาหน้าแดชบอร์ด
+  if (isBranchUser) {
+    const curTab = window.location.hash.replace('#', '') || 'dash';
+    if (!branchTabs.includes(curTab)) {
+      showTab('dash');
+    }
+    // ถ้าผู้ใช้มี branch_id ประจำตัว ให้เลือกสาขานั้นเป็นค่าเริ่มต้น
+    if (user.branch_id) {
+      const topSel = document.getElementById('branchSelect');
+      if (topSel && topSel.value !== user.branch_id) {
+        topSel.value = user.branch_id;
+        localStorage.setItem('selectedBranch', user.branch_id);
+      }
+    }
+  }
 }
 
 async function submitLogin() {
@@ -1872,7 +1917,10 @@ async function submitLogin() {
     
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
+    localStorage.setItem('activeTab', 'dash');
+    window.location.hash = '#dash';
     hideLoginModal(data.user);
+    showTab('dash');
     loadAll();
   } catch (e) {
     errDiv.textContent = e.message;
@@ -1882,6 +1930,8 @@ async function submitLogin() {
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
+  localStorage.removeItem('activeTab');
+  window.location.hash = '#dash';
   showLoginModal();
 }
 
@@ -3483,7 +3533,9 @@ function renderPortLedgerTable() {
   let list = (D.portLedgers || []).filter(r => {
     const name = (r.customer_name || '').toLowerCase();
     const unit = (r.unit_no || '').toLowerCase();
-    return !searchQ || name.includes(searchQ) || unit.includes(searchQ);
+    const bId = (r.branch_id || '').toLowerCase();
+    const bName = (r.branch_name || '').toLowerCase();
+    return !searchQ || name.includes(searchQ) || unit.includes(searchQ) || bId.includes(searchQ) || bName.includes(searchQ);
   });
 
   const totalItems = list.length;
@@ -3621,16 +3673,24 @@ function renderPortLedgerTable() {
     const catName = r.category_name || '';
     const rateVal = (r.rate_amount !== undefined && r.rate_amount !== null) ? r.rate_amount : (r.rate || 0);
 
+    const isAdmin = (user.role === 'admin' || user.role === 'manager');
+    const rateDisplay = rateVal > 0 ? fmt(rateVal) : '-';
+
     h += `
       <tr style="border-bottom:1px solid #e2e8f0; font-size:12px;">
         <td class="c sticky-col-0" style="border-right:1px solid #cbd5e1;"><input type="checkbox" class="ledger-chk" value="${r.id}" onchange="updateLedgerCheckSummary()"></td>
         <td class="c sticky-col-1" style="border-right:1px solid #cbd5e1;"><b>${idx + 1}</b></td>
         <td class="sticky-col-2" style="border-right:1px solid #cbd5e1;">
           <b style="color:var(--navy);">${r.customer_name}</b>
-          ${catName ? `<div class="muted" style="font-size:10px;">${catName}</div>` : ''}
+          ${catName ? `<div class="muted" style="font-size:10px; margin-top:2px;">${catName}</div>` : ''}
         </td>
         <td class="sticky-col-3" style="border-right:1px solid #cbd5e1;"><span class="muted">${locName}</span></td>
-        <td class="r num sticky-col-4">${rateVal > 0 ? fmt(rateVal) : '-'}</td>
+        <td class="r num sticky-col-4" style="border-right:1px solid #cbd5e1; cursor:${isAdmin ? 'pointer' : 'default'};" ${isAdmin ? `onclick="editLedgerRate(${r.id}, '${encodeURIComponent(r.customer_name)}', ${rateVal})" title="คลิกเพื่อแก้ไขอัตราค่าเช่า (Admin)"` : ''}>
+          <div style="display:flex; align-items:center; justify-content:flex-end; gap:4px;">
+            <span style="${isAdmin ? 'border-bottom:1px dashed #0284c7; color:#0369a1; font-weight:700;' : ''}">${rateDisplay}</span>
+            ${isAdmin ? `<span style="font-size:10px; opacity:0.65; color:#0284c7;">✏️</span>` : ''}
+          </div>
+        </td>
 
         <td class="c" style="color:#b91c1c; border-right:1px solid #cbd5e1;">${r.bg_overdue_from ? fmtTHDate(r.bg_overdue_from) : '-'}</td>
         <td class="c" style="border-right:1px solid #cbd5e1;">${r.bg_periods || '-'}</td>
@@ -3718,6 +3778,43 @@ function toggleAllLedgerCheck(master) {
 }
 
 const today = () => document.getElementById('asof')?.value || new Date().toISOString().split('T')[0];
+
+async function editLedgerRate(id, customerName, currentRate) {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.role !== 'admin' && user.role !== 'manager') {
+    toast('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขอัตราค่าเช่าได้');
+    return;
+  }
+
+  const decodedName = decodeURIComponent(customerName);
+  const inputVal = prompt(`🏢 แก้ไขอัตราค่าเช่า (Admin)\nผู้เช่า: ${decodedName}\n\nกรุณาระบุอัตราค่าเช่า/ค่าบริการใหม่ (บาท):`, currentRate || 0);
+  if (inputVal === null) return; // User canceled
+
+  const newRate = parseFloat(inputVal.replace(/,/g, '').trim());
+  if (isNaN(newRate) || newRate < 0) {
+    toast('กรุณาระบุจำนวนเงินที่ถูกต้อง (ตัวเลข)');
+    return;
+  }
+
+  try {
+    const res = await api(`/port-ledgers/${id}/rate`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rate_amount: newRate })
+    });
+    toast(res.message || 'บันทึกอัตราค่าเช่าเรียบร้อยแล้ว');
+    
+    // Update local memory
+    const item = (D.portLedgers || []).find(x => x.id === id);
+    if (item) {
+      item.rate = newRate;
+      item.rate_amount = newRate;
+    }
+    renderPortLedgerTable();
+  } catch (err) {
+    toast(err.message || 'เกิดข้อผิดพลาดในการบันทึกอัตราค่าเช่า');
+  }
+}
 
 async function openLedgerPayModal(customerName) {
   if (!D.portLedgers || !D.portLedgers.length) {
@@ -4022,9 +4119,17 @@ async function approveSinglePayment(id) {
 }
 
 async function rollForwardLedger() {
-  if (!confirm('ยืนยันการยกยอดค้างยกไป (โซนสีเขียว) ไปตั้งต้นเป็นยอดยกมาของเดือนใหม่หรือไม่?')) return;
+  const branchId = document.getElementById('branchSelect')?.value || 'all';
+  const period = document.getElementById('portLedgerPeriod')?.value || '2026-07';
+  const branchText = branchId === 'all' ? 'ทุกหน่วยงาน (ครบ 17 หน่วยงาน)' : `เฉพาะส่วนงาน ${branchId}`;
+
+  if (!confirm(`ยืนยันการยกยอดค้างยกไป (โซนสีเขียว) งวด ${period} ของ ${branchText} ไปตั้งต้นเป็นยอดยกมาของงวดถัดไปหรือไม่?`)) return;
   try {
-    const res = await api('/port-ledgers/roll-forward', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const res = await api('/port-ledgers/roll-forward', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branch_id: branchId, period: period })
+    });
     toast(res.message || 'ยกยอดไปตั้งต้นเดือนถัดไปสำเร็จ');
     await loadPortLedger();
   } catch (err) {
@@ -4035,17 +4140,20 @@ async function rollForwardLedger() {
 function exportLedgerCSV() {
   if (!D.portLedgers || !D.portLedgers.length) return;
   let csv = '\uFEFF';
-  csv += 'ลำดับ,รายชื่อ,สถานที่ตั้ง,อัตราค่าเช่า,ค้างตั้งแต่,งวด,อายุ(ด.),จำนวนเงินยกมา,ภาษียกมา,รวมยกมา,วดป.รับชำระ,เลขที่ใบเสร็จ,จำนวนเงินชำระ,สถานะรับยอด,ค้างตั้งแต่ยกไป,งวดยกไป,อายุยกไป,จำนวนเงินยกไป,ภาษียกไป,รวมยกไป\n';
+  csv += 'ลำดับ,รหัสหน่วยงาน,ชื่อหน่วยงาน,รายชื่อ,สถานที่ตั้ง,หมวดหมู่,อัตราค่าเช่า,ค้างตั้งแต่,งวด,อายุ(ด.),จำนวนเงินยกมา,ภาษียกมา,รวมยกมา,วดป.รับชำระ,เลขที่ใบเสร็จ,จำนวนเงินชำระ,สถานะรับยอด,ค้างตั้งแต่ยกไป,งวดยกไป,อายุยกไป,จำนวนเงินยกไป,ภาษียกไป,รวมยกไป\n';
   D.portLedgers.forEach((r, idx) => {
+    const bId = r.branch_id || '';
+    const bName = r.branch_name || '';
     const loc = r.location_detail || r.unit_no || '';
+    const cat = r.category_name || '';
     const rateVal = (r.rate_amount !== undefined && r.rate_amount !== null) ? r.rate_amount : (r.rate || 0);
-    csv += `"${idx+1}","${r.customer_name}","${loc}","${rateVal}","${r.bg_overdue_from||''}","${r.bg_periods||''}","${r.bg_overdue_months||0}","${r.bg_amount||0}","${r.bg_vat||0}","${r.bg_total||0}","${r.pay_date||''}","${r.pay_receipt_no||''}","${r.pay_amount||0}","${r.pay_status||''}","${r.ed_overdue_from||''}","${r.ed_periods||''}","${r.ed_overdue_months||0}","${r.ed_amount||0}","${r.ed_vat||0}","${r.ed_total||0}"\n`;
+    csv += `"${idx+1}","${bId}","${bName}","${r.customer_name}","${loc}","${cat}","${rateVal}","${r.bg_overdue_from||''}","${r.bg_periods||''}","${r.bg_overdue_months||0}","${r.bg_amount||0}","${r.bg_vat||0}","${r.bg_total||0}","${r.pay_date||''}","${r.pay_receipt_no||''}","${r.pay_amount||0}","${r.pay_status||''}","${r.ed_overdue_from||''}","${r.ed_periods||''}","${r.ed_overdue_months||0}","${r.ed_amount||0}","${r.ed_vat||0}","${r.ed_total||0}"\n`;
   });
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `port_ledger_${document.getElementById('branchSelect')?.value || 'all'}.csv`;
+  a.download = `port_ledger_${document.getElementById('branchSelect')?.value || 'all'}_${document.getElementById('portLedgerPeriod')?.value || '2026-07'}.csv`;
   a.click();
 }
 

@@ -685,23 +685,27 @@ app.post('/api/jobs/daily', authenticateToken, requireRole('manager'), (req, res
 // ========== PORT LEDGER ROUTES (ทะเบียนคุมรับชำระและยอดยกไป 3 ส่วน) ==========
 app.get('/api/port-ledgers', authenticateToken, (req, res) => {
   try {
-    const branchId = req.query.branch_id || 'C-12';
+    const branchId = req.query.branch_id || 'all';
     const period = req.query.period || '2026-07';
-    let sql = "SELECT * FROM port_ledgers";
+    let sql = `
+      SELECT p.*, b.name AS branch_name, b.region AS branch_region 
+      FROM port_ledgers p 
+      LEFT JOIN branches b ON p.branch_id = b.id
+    `;
     const params = [];
     const conds = [];
 
     if (branchId && branchId !== 'all') {
-      conds.push("branch_id = ?");
+      conds.push("p.branch_id = ?");
       params.push(branchId);
     }
     if (period) {
-      conds.push("period = ?");
+      conds.push("p.period = ?");
       params.push(period);
     }
 
     if (conds.length > 0) sql += " WHERE " + conds.join(" AND ");
-    sql += " ORDER BY category_name, id";
+    sql += " ORDER BY p.branch_id, p.category_name, p.id";
 
     const rows = db.prepare(sql).all(...params);
     const updatedRows = rows.map(r => {
@@ -728,6 +732,36 @@ app.get('/api/port-ledgers', authenticateToken, (req, res) => {
       };
     });
     res.json(updatedRows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 0. แก้ไขอัตราค่าเช่า (Admin / Manager / Branch Rate Editing)
+app.patch('/api/port-ledgers/:id/rate', authenticateToken, requireRole(['admin', 'manager', 'branch']), (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { rate_amount } = req.body;
+    const rateVal = parseFloat(rate_amount) || 0;
+
+    const item = db.prepare("SELECT * FROM port_ledgers WHERE id = ?").get(id);
+    if (!item) {
+      return res.status(404).json({ error: 'ไม่พบรายการทะเบียนคุมลูกหนี้' });
+    }
+
+    db.prepare("UPDATE port_ledgers SET rate_amount = ? WHERE id = ?").run(rateVal, id);
+
+    if (item.contract_id) {
+      db.prepare("UPDATE contracts SET rent_monthly = ? WHERE id = ?").run(rateVal, item.contract_id);
+    }
+
+    audit(req.user.username, 'update-rate', 'port_ledgers', id, `Updated rate for ${item.customer_name} (ID: ${id}) to ${rateVal}`);
+    res.json({ 
+      ok: true, 
+      id, 
+      rate_amount: rateVal, 
+      message: `บันทึกอัตราค่าเช่า ${rateVal.toLocaleString('th-TH', {minimumFractionDigits: 2})} บาท สำเร็จ` 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -901,7 +935,7 @@ app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'ad
 // 2. ยกยอดยกไปตั้งต้นงวดเดือนถัดไป (Roll Forward to Next Period)
 app.post('/api/port-ledgers/roll-forward', authenticateToken, requireRole(['admin', 'manager', 'billing']), (req, res) => {
   try {
-    const branchId = req.body.branch_id || 'C-12';
+    const branchId = req.body.branch_id || 'all';
     const currentPeriod = req.body.period || '2026-07';
 
     // Parse current period year and month to get next period (e.g. 2026-07 -> 2026-08)
@@ -914,14 +948,20 @@ app.post('/api/port-ledgers/roll-forward', authenticateToken, requireRole(['admi
     }
     const nextPeriod = `${nextYear}-${String(nextMonth).padStart(2, '0')}`;
 
-    // Get all items in current period for branch
-    const currentItems = db.prepare("SELECT * FROM port_ledgers WHERE branch_id = ? AND period = ?").all(branchId, currentPeriod);
-    if (!currentItems.length) {
-      return res.status(400).json({ error: 'ไม่พบรายการในงวดปัจจุบันสำหรับยกยอด' });
+    let currentItems;
+    if (branchId && branchId !== 'all') {
+      currentItems = db.prepare("SELECT * FROM port_ledgers WHERE branch_id = ? AND period = ?").all(branchId, currentPeriod);
+      if (!currentItems.length) {
+        return res.status(400).json({ error: `ไม่พบรายการในงวด ${currentPeriod} สำหรับสาขา ${branchId}` });
+      }
+      db.prepare("DELETE FROM port_ledgers WHERE branch_id = ? AND period = ?").run(branchId, nextPeriod);
+    } else {
+      currentItems = db.prepare("SELECT * FROM port_ledgers WHERE period = ?").all(currentPeriod);
+      if (!currentItems.length) {
+        return res.status(400).json({ error: `ไม่พบรายการในงวด ${currentPeriod} สำหรับยกยอด` });
+      }
+      db.prepare("DELETE FROM port_ledgers WHERE period = ?").run(nextPeriod);
     }
-
-    // Delete existing entries in next period for branch to avoid duplicates
-    db.prepare("DELETE FROM port_ledgers WHERE branch_id = ? AND period = ?").run(branchId, nextPeriod);
 
     const insLedger = db.prepare(`
       INSERT INTO port_ledgers (
@@ -954,7 +994,13 @@ app.post('/api/port-ledgers/roll-forward', authenticateToken, requireRole(['admi
     });
 
     audit(req.user.username, 'roll-forward', 'port_ledgers', branchId, `Rolled forward ${rolledCount} items from ${currentPeriod} to ${nextPeriod}`);
-    res.json({ ok: true, currentPeriod, nextPeriod, rolledCount });
+    res.json({ 
+      ok: true, 
+      currentPeriod, 
+      nextPeriod, 
+      rolledCount,
+      message: `ยกยอดสำเร็จ ${rolledCount} รายการ (${branchId === 'all' ? 'ครบ 17 หน่วยงาน' : branchId}) ไปสู่งวด ${nextPeriod}` 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
