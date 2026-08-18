@@ -3847,38 +3847,71 @@ function toggleAllLedgerCheck(master) {
 
 const today = () => document.getElementById('asof')?.value || new Date().toISOString().split('T')[0];
 
-async function openEditRateModal(id, customerName, currentRate) {
+// ==========================================
+//  ระบบโมดัลแก้ไขอัตราค่าเช่า (Admin Rate Edit Modal & Toast)
+// ==========================================
+function openEditRateModal(id, customerName, locationDetail, branchId, currentRate) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  if (user.role !== 'admin' && user.role !== 'manager') {
+  if (user.role !== 'admin' && user.role !== 'manager' && user.role !== 'branch') {
     toast('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขอัตราค่าเช่าได้');
     return;
   }
 
-  const decodedName = decodeURIComponent(customerName);
-  const inputVal = prompt(`🏢 แก้ไขอัตราค่าเช่า (Admin)\nผู้เช่า: ${decodedName}\n\nกรุณาระบุอัตราค่าเช่า/ค่าบริการใหม่ (บาท):`, currentRate || 0);
-  if (inputVal === null) return; // User canceled
+  const modal = document.getElementById('editRateModal');
+  if (!modal) return;
 
-  const newRate = parseFloat(inputVal.replace(/,/g, '').trim());
+  document.getElementById('editRateRowId').value = id;
+  document.getElementById('editRateCustomerName').textContent = decodeURIComponent(customerName || '-');
+  document.getElementById('editRateLocation').textContent = decodeURIComponent(locationDetail || '-');
+  document.getElementById('editRateBranch').textContent = branchId || '-';
+  
+  const rateInput = document.getElementById('editRateInput');
+  const numRate = parseFloat(currentRate);
+  rateInput.value = (!isNaN(numRate) && numRate > 0) ? numRate : '';
+
+  modal.classList.add('open');
+  setTimeout(() => {
+    rateInput.focus();
+    rateInput.select();
+  }, 80);
+}
+
+function closeEditRateModal() {
+  const modal = document.getElementById('editRateModal');
+  if (modal) modal.classList.remove('open');
+}
+
+async function saveEditRateModal() {
+  const id = document.getElementById('editRateRowId').value;
+  const rateValStr = document.getElementById('editRateInput').value.trim();
+  const newRate = rateValStr === '' ? 0 : parseFloat(rateValStr);
+
   if (isNaN(newRate) || newRate < 0) {
     toast('กรุณาระบุจำนวนเงินที่ถูกต้อง (ตัวเลข)');
     return;
   }
 
   try {
-    const res = await api(`/port-ledgers/${id}/rate`, {
+    const res = await api('/port-ledgers/' + id + '/rate', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rate_amount: newRate })
     });
-    toast(res.message || 'บันทึกอัตราค่าเช่าเรียบร้อยแล้ว');
-    
-    // Update local memory
-    const item = (D.portLedgers || []).find(x => x.id === id);
-    if (item) {
-      item.rate = newRate;
-      item.rate_amount = newRate;
+
+    closeEditRateModal();
+    const fmtRate = newRate.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    toast(`บันทึกอัตราค่าเช่า ${fmtRate} บาท เรียบร้อยแล้ว`);
+
+    // อัปเดตข้อมูลในหน่วยความจำและหน้าจอทันที (Optimistic UI Update)
+    if (typeof D !== 'undefined' && D.portLedgers) {
+      D.portLedgers.forEach(r => {
+        if (r.id == id) {
+          r.rate_amount = newRate;
+          r.rate = newRate;
+        }
+      });
+      renderPortLedgerTable();
     }
-    renderPortLedgerTable();
   } catch (err) {
     toast(err.message || 'เกิดข้อผิดพลาดในการบันทึกอัตราค่าเช่า');
   }
