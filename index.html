@@ -223,7 +223,7 @@
   .right { margin-left: auto; }
   
   .modal-bg { position: fixed; inset: 0; background: var(--bg-modal-backdrop); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px; transition: background-color 0.3s; }
-  .modal-bg.on { display: flex; }
+  .modal-bg.on, .modal-bg.open { display: flex !important; }
   .modal { background: var(--bg-modal); color: var(--text-body); border-radius: 16px; padding: 24px; width: 100%; max-width: 550px; max-height: 90vh; overflow: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); transition: background-color 0.3s, color 0.3s; }
   .modal h3 { color: var(--panel-header-text); margin-bottom: 16px; font-weight: 700; font-size: 18px; border-bottom: 1px solid var(--border-line); padding-bottom: 10px; }
   .fg { margin-bottom: 12px; }
@@ -1052,7 +1052,7 @@
 
 
 <!-- โมดัล แก้ไขอัตราค่าเช่า (Admin Rate Edit Modal) -->
-<div class="modal-bg" id="editRateModal" style="z-index:1200;">
+<div class="modal-bg" id="editRateModal" style="z-index:1200;" onclick="if(event.target===this) closeEditRateModal()">
   <div class="modal" style="max-width:440px; width:92%; padding:22px; border-radius:16px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border-line); padding-bottom:10px;">
       <h3 style="margin:0; font-size:16px; color:var(--navy); display:flex; align-items:center; gap:8px;">
@@ -3869,7 +3869,7 @@ function openEditRateModal(id, customerName, locationDetail, branchId, currentRa
   const numRate = parseFloat(currentRate);
   rateInput.value = (!isNaN(numRate) && numRate > 0) ? numRate : '';
 
-  modal.classList.add('open');
+  modal.classList.add('on'); modal.classList.add('open'); modal.style.display = 'flex';
   setTimeout(() => {
     rateInput.focus();
     rateInput.select();
@@ -3878,7 +3878,7 @@ function openEditRateModal(id, customerName, locationDetail, branchId, currentRa
 
 function closeEditRateModal() {
   const modal = document.getElementById('editRateModal');
-  if (modal) modal.classList.remove('open');
+  if (modal) { modal.classList.remove('on'); modal.classList.remove('open'); modal.style.display = 'none'; }
 }
 
 async function saveEditRateModal() {
