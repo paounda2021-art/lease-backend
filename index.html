@@ -3847,7 +3847,7 @@ function toggleAllLedgerCheck(master) {
 
 const today = () => document.getElementById('asof')?.value || new Date().toISOString().split('T')[0];
 
-async function editLedgerRate(id, customerName, currentRate) {
+async function openEditRateModal(id, customerName, currentRate) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   if (user.role !== 'admin' && user.role !== 'manager') {
     toast('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขอัตราค่าเช่าได้');
