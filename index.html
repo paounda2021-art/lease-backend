@@ -1718,7 +1718,7 @@ async function loadBranches() {
 
     const sel = document.getElementById('branchSelect');
     if (sel) {
-if (isBranchUser && user.branch_id) {
+      if (isBranchUser && user.branch_id) {
         // ล็อกรายการให้แสดงเฉพาะสาขาของตนเอง
         const myBranch = (D.branches || []).find(b => b.id === user.branch_id);
         const bTitle = myBranch ? `${myBranch.name} (${myBranch.region})` : user.branch_id;
@@ -1744,7 +1744,6 @@ if (isBranchUser && user.branch_id) {
         });
         sel.innerHTML = optHtml;
         sel.value = savedBranch;
-      }
       }
     }
 
@@ -1859,15 +1858,10 @@ function applyRolePermissions(user) {
   const isCashier = (user.role === 'admin' || user.role === 'cashier');
   const isManager = (user.role === 'admin' || user.role === 'manager');
   
-if (document.getElementById('addContractBtn')) document.getElementById('addContractBtn').style.display = isBilling && !isBranchUser ? '' : 'none';
+  if (document.getElementById('addContractBtn')) document.getElementById('addContractBtn').style.display = isBilling && !isBranchUser ? '' : 'none';
   if (document.getElementById('genInvoicesBtn')) document.getElementById('genInvoicesBtn').style.display = isBilling && !isBranchUser ? '' : 'none';
   if (document.getElementById('saveRatesBtn')) document.getElementById('saveRatesBtn').style.display = isManager && !isBranchUser ? '' : 'none';
   if (document.getElementById('runJobBtn')) document.getElementById('runJobBtn').style.display = isManager && !isBranchUser ? '' : 'none';
-  
-  // ซ่อนปุ่มนำเข้า Excel สำหรับ user02 - user22 / branch users
-  document.querySelectorAll('.excel-import-btn').forEach(btn => {
-    btn.style.display = isBranchUser ? 'none' : 'inline-flex';
-  });
   
   // ซ่อนปุ่มนำเข้า Excel สำหรับ user02 - user22 / branch users
   document.querySelectorAll('.excel-import-btn').forEach(btn => {
@@ -1879,15 +1873,12 @@ if (document.getElementById('addContractBtn')) document.getElementById('addContr
   const cashierTabs = ['dash', 'contracts', 'invoices', 'dunning', 'portLedger'];
   const managerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'portLedger', 'audit'];
   const viewerTabs = ['dash', 'contracts', 'invoices', 'aging', 'dunning', 'portLedger', 'audit'];
-  const branchTabs = ['dash', 'portLedger'];
   
   document.querySelectorAll('nav button').forEach(btn => {
     const tabName = btn.getAttribute('data-tab');
     if (isBranchUser) {
       btn.style.display = branchTabs.includes(tabName) ? 'block' : 'none';
     } else if (user.role === 'admin' || user.role === 'viewer') {
-      btn.style.display = 'block';
-    } else if (user.role === 'branch' && branchTabs.includes(tabName)) {
       btn.style.display = 'block';
     } else if (user.role === 'billing' && billingTabs.includes(tabName)) {
       btn.style.display = 'block';
@@ -4207,10 +4198,8 @@ function exportLedgerCSV() {
   if (!D.portLedgers || !D.portLedgers.length) return;
   const periodLbl = document.getElementById('portLedgerPeriodLabel')?.textContent || '';
   let csv = '\uFEFF';
-  csv += `"ข้อมูลทะเบียนคุมรับชำระและยอดยกไป งวดประมวลผล: ${periodLbl}",,,,,,,,,,,,,,,,,,,
-`;
-  csv += 'ลำดับ,รหัสหน่วยงาน,ชื่อหน่วยงาน,รายชื่อ,สถานที่ตั้ง,หมวดหมู่,อัตราค่าเช่า,ค้างตั้งแต่,งวด,อายุ(ด.),จำนวนเงินยกมา,ภาษียกมา,รวมยกมา,วดป.รับชำระ,เลขที่ใบเสร็จ,จำนวนเงินชำระ,สถานะรับยอด,ค้างตั้งแต่ยกไป,งวดยกไป,อายุยกไป,จำนวนเงินยกไป,ภาษียกไป,รวมยกไป
-';
+  csv += `"ข้อมูลทะเบียนคุมรับชำระและยอดยกไป งวดประมวลผล: ${periodLbl}",,,,,,,,,,,,,,,,,,,\n`;
+  csv += 'ลำดับ,รหัสหน่วยงาน,ชื่อหน่วยงาน,รายชื่อ,สถานที่ตั้ง,หมวดหมู่,อัตราค่าเช่า,ค้างตั้งแต่,งวด,อายุ(ด.),จำนวนเงินยกมา,ภาษียกมา,รวมยกมา,วดป.รับชำระ,เลขที่ใบเสร็จ,จำนวนเงินชำระ,สถานะรับยอด,ค้างตั้งแต่ยกไป,งวดยกไป,อายุยกไป,จำนวนเงินยกไป,ภาษียกไป,รวมยกไป\n';
   D.portLedgers.forEach((r, idx) => {
     const bId = r.branch_id || '';
     const bName = r.branch_name || '';
