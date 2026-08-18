@@ -1370,6 +1370,7 @@ const API = '/api';
 let D = { dash: null, contracts: [], invoices: [], aging: null, prov: null, rates: {}, branches: [] };
 const BK = [['cur','ยังไม่ครบกำหนด','#22c55e'],['b1','1–30 วัน','#3b82f6'],['b2','31–60 วัน','#eab308'],['b3','61–90 วัน','#f97316'],['b4','91–180 วัน','#ef4444'],['b5','181–365 วัน','#b91c1c'],['b6','เกิน 365 วัน','#7f1d1d']];
 const fmt = n => Math.round(n || 0).toLocaleString('en-US');
+const fmtMoney = n => { const num = parseFloat(n); if (isNaN(num)) return '-'; return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
 const asof = () => document.getElementById('asof').value;
 
 // ==========================================
@@ -3740,7 +3741,7 @@ function renderPortLedgerTable() {
     const rateVal = (r.rate_amount !== undefined && r.rate_amount !== null) ? r.rate_amount : (r.rate || 0);
 
     const isAdmin = (user.role === 'admin' || user.role === 'manager');
-    const rateDisplay = rateVal > 0 ? fmt(rateVal) : '-';
+    const rateDisplay = rateVal > 0 ? fmtMoney(rateVal) : '-';
 
     h += `
       <tr style="border-bottom:1px solid #e2e8f0; font-size:12px;">
@@ -3761,23 +3762,23 @@ function renderPortLedgerTable() {
         <td class="c" style="color:#b91c1c; border-right:1px solid #cbd5e1;">${r.bg_overdue_from ? fmtTHDate(r.bg_overdue_from) : '-'}</td>
         <td class="c" style="border-right:1px solid #cbd5e1;">${r.bg_periods || '-'}</td>
         <td class="c" style="border-right:1px solid #cbd5e1;">${r.bg_overdue_months || '-'}</td>
-        <td class="r num" style="border-right:1px solid #cbd5e1;">${bgAmt > 0 ? fmt(bgAmt) : '-'}</td>
-        <td class="r num" style="border-right:1px solid #cbd5e1;">${bgVat > 0 ? fmt(bgVat) : '-'}</td>
-        <td class="r num" style="color:#b91c1c; font-weight:700; background:#fff1f2; border-right:2px solid #94a3b8;">${bgTot > 0 ? fmt(bgTot) : '-'}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${bgAmt > 0 ? fmtMoney(bgAmt) : '-'}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${bgVat > 0 ? fmtMoney(bgVat) : '-'}</td>
+        <td class="r num" style="color:#b91c1c; font-weight:700; background:#fff1f2; border-right:2px solid #94a3b8;">${bgTot > 0 ? fmtMoney(bgTot) : '-'}</td>
 
         <!-- รับชำระ (4 คอลัมน์ เติมสีเหลืองอ่อนนวลตาครบทุกช่อง) -->
         <td class="c" style="background:#fffdf0; color:#854d0e; border-right:1px solid #fef08a;">${r.pay_date ? fmtTHDate(r.pay_date) : '-'}</td>
         <td class="c" style="background:#fffdf0; color:#854d0e; font-weight:600; border-right:1px solid #fef08a;">${r.pay_receipt_no || '-'}</td>
-        <td class="r num" style="background:#fef9c3; color:#713f12; font-weight:800; border-right:1px solid #fef08a;">${payAmt > 0 ? fmt(payAmt) : '-'}</td>
+        <td class="r num" style="background:#fef9c3; color:#713f12; font-weight:800; border-right:1px solid #fef08a;">${payAmt > 0 ? fmtMoney(payAmt) : '-'}</td>
         <td class="c" style="background:#fffdf0; border-right:2px solid #94a3b8;">${statusBadge}</td>
 
         <!-- ค้างชำระยกไป (6 คอลัมน์) -->
         <td class="c" style="color:#15803d; border-right:1px solid #cbd5e1;">${r.ed_overdue_from ? fmtTHDate(r.ed_overdue_from) : '-'}</td>
         <td class="c" style="border-right:1px solid #cbd5e1;">${r.ed_periods || '-'}</td>
         <td class="c" style="border-right:1px solid #cbd5e1;">${r.ed_overdue_months || '-'}</td>
-        <td class="r num" style="border-right:1px solid #cbd5e1;">${edAmt > 0 ? fmt(edAmt) : (bgTot > 0 || payAmt > 0 ? '0' : '-')}</td>
-        <td class="r num" style="border-right:1px solid #cbd5e1;">${edVat > 0 ? fmt(edVat) : (bgTot > 0 || payAmt > 0 ? '0' : '-')}</td>
-        <td class="r num" style="color:${edTot > 0 ? '#15803d' : '#166534'}; font-weight:800; background:#f0fdf4; border-right:1px solid #cbd5e1;">${bgTot > 0 || payAmt > 0 ? fmt(edTot) : '-'}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${edAmt > 0 ? fmtMoney(edAmt) : (bgTot > 0 || payAmt > 0 ? '0.00' : '-')}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${edVat > 0 ? fmtMoney(edVat) : (bgTot > 0 || payAmt > 0 ? '0.00' : '-')}</td>
+        <td class="r num" style="color:${edTot > 0 ? '#15803d' : '#166534'}; font-weight:800; background:#f0fdf4; border-right:1px solid #cbd5e1;">${bgTot > 0 || payAmt > 0 ? fmtMoney(edTot) : '-'}</td>
 
         <td class="c">
           ${isPending && isCentral ? `
@@ -3801,17 +3802,17 @@ function renderPortLedgerTable() {
         <td colspan="5" class="r sticky-tfoot" style="padding:8px;"><b>รวมทั้งสิ้น (${fmt(totalItems)} รายการ)</b></td>
         
         <td colspan="3" class="c" style="background:#fee2e2; color:#991b1b;"><b>ค้างยกมา</b></td>
-        <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmt(totBgAmt)}</b></td>
-        <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmt(totBgVat)}</b></td>
-        <td class="r num" style="background:#fca5a5; color:#7f1d1d; font-weight:800;"><b>${fmt(totBgTotal)}</b></td>
+        <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmtMoney(totBgAmt)}</b></td>
+        <td class="r num" style="background:#fee2e2; color:#991b1b;"><b>${fmtMoney(totBgVat)}</b></td>
+        <td class="r num" style="background:#fca5a5; color:#7f1d1d; font-weight:800;"><b>${fmtMoney(totBgTotal)}</b></td>
 
         <td colspan="3" class="c" style="background:#fef9c3; color:#854d0e;"><b>รวมชำระ</b></td>
-        <td class="r num" style="background:#fde047; color:#713f12; font-weight:800;"><b>${fmt(totPayAmt)}</b></td>
+        <td class="r num" style="background:#fde047; color:#713f12; font-weight:800;"><b>${fmtMoney(totPayAmt)}</b></td>
 
         <td colspan="3" class="c" style="background:#dcfce7; color:#166534;"><b>ค้างยกไป</b></td>
-        <td class="r num" style="background:#dcfce7; color:#166534;"><b>${fmt(totEdAmt)}</b></td>
-        <td class="r num" style="background:#dcfce7; color:#166534;"><b>${fmt(totEdVat)}</b></td>
-        <td class="r num" style="background:#86efac; color:#14532d; font-weight:800;"><b>${fmt(totEdTotal)}</b></td>
+        <td class="r num" style="background:#dcfce7; color:#166534;"><b>${fmtMoney(totEdAmt)}</b></td>
+        <td class="r num" style="background:#dcfce7; color:#166534;"><b>${fmtMoney(totEdVat)}</b></td>
+        <td class="r num" style="background:#86efac; color:#14532d; font-weight:800;"><b>${fmtMoney(totEdTotal)}</b></td>
 
         <td></td>
       </tr>
@@ -3834,7 +3835,7 @@ function updateLedgerCheckSummary() {
   const btn = document.getElementById('ledgerPaySelectedBtn');
   if (btn) {
     btn.style.display = count > 0 ? 'inline-flex' : 'none';
-    btn.textContent = `💵 บันทึกรับยอด (${count} รายการ - ${fmt(totalAmt)} บาท)`;
+    btn.textContent = `💵 บันทึกรับยอด (${count} รายการ - ${fmtMoney(totalAmt)} บาท)`;
   }
 }
 
@@ -3975,8 +3976,8 @@ function filterLedgerPayItems() {
           <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:600; font-size:11px;">${locName}</span>
         </td>
         <td class="r num">
-          <div style="color:#b91c1c; font-weight:700;">${fmt(r.bg_total)}</div>
-          ${rateVal > 0 ? `<div class="muted" style="font-size:10px;">(อัตรา ${fmt(rateVal)})</div>` : ''}
+          <div style="color:#b91c1c; font-weight:700;">${fmtMoney(r.bg_total)}</div>
+          ${rateVal > 0 ? `<div class="muted" style="font-size:10px;">(อัตรา ${fmtMoney(rateVal)})</div>` : ''}
         </td>
         <td class="c">
           <div style="position:relative; display:inline-flex; align-items:center;">
@@ -4106,7 +4107,7 @@ async function renderPendingApprovalList() {
   const brEl = document.getElementById('pendingStatBranches');
   if (countEl) countEl.textContent = filtered.length;
   if (countBadge) countBadge.textContent = `${filtered.length} รายการ`;
-  if (sumEl) sumEl.textContent = fmt(totalSum);
+  if (sumEl) sumEl.textContent = fmtMoney(totalSum);
   if (brEl) brEl.textContent = branchSet.size;
 
   if (!filtered.length) {
@@ -4141,9 +4142,9 @@ async function renderPendingApprovalList() {
         </td>
         <td><span class="muted">${locText}</span></td>
         <td class="c" style="font-weight:700; color:#854d0e;">${r.pay_receipt_no || '-'}</td>
-        <td class="r num" style="color:#854d0e; font-weight:800; background:#fef9c3;">${fmt(pAmt)}</td>
-        <td class="r num">${fmt(bgTot)}</td>
-        <td class="r num" style="color:#15803d; font-weight:700; background:#f0fdf4;">${fmt(edTot)}</td>
+        <td class="r num" style="color:#854d0e; font-weight:800; background:#fef9c3;">${fmtMoney(pAmt)}</td>
+        <td class="r num">${fmtMoney(bgTot)}</td>
+        <td class="r num" style="color:#15803d; font-weight:700; background:#f0fdf4;">${fmtMoney(edTot)}</td>
         <td class="c muted" style="font-size:11px;">${r.pay_requested_by || 'เจ้าหน้าที่สาขา'}</td>
         <td class="c">
           <button type="button" class="sm act" style="padding:4px 10px; font-size:11px; background:#16a34a; font-weight:700; white-space:nowrap;" onclick="approvePendingItem(${r.id})">
