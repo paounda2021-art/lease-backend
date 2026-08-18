@@ -102,10 +102,12 @@ try {
   console.error('Error auto-syncing users in db.js:', err);
 }
 
-// อัตโนมัติตรวจสอบและนำเข้าข้อมูลทะเบียนคุมลูกหนี้ 17 หน่วยงาน (Auto-Seed Port Ledgers if Empty)
+// อัตโนมัติตรวจสอบและนำเข้าข้อมูลทะเบียนคุมลูกหนี้ 17 หน่วยงาน (Auto-Seed Port Ledgers if Not Full)
 try {
+  const branchCount = db.prepare('SELECT COUNT(DISTINCT branch_id) c FROM port_ledgers').get().c;
   const plCount = db.prepare('SELECT COUNT(*) c FROM port_ledgers').get().c;
-  if (plCount < 100) {
+  if (branchCount < 17 || plCount < 5000) {
+    console.log(`[Auto-Seed] Found only ${branchCount} branches and ${plCount} rows in port_ledgers. Populating all 17 branches...`);
     const { seedAllLedgers } = require('./seed_all_ledgers');
     seedAllLedgers();
   }
