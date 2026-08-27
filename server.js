@@ -1223,7 +1223,7 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
           const invoiceId = `INV-${targetBranch.replace('-', '')}-${String(importedCount).padStart(4, '0')}`;
 
           const bgTot = totalAmount > 0 ? totalAmount : arAmount;
-          const isRent = category.includes('ค่าเช่า');
+          const isRent = (currentCategory || "").includes('ค่าเช่า');
           const bgAmt = arAmount > 0 ? arAmount : (isRent ? bgTot : parseFloat((bgTot / 1.07).toFixed(2)));
           const bgVat = vatAmount > 0 ? vatAmount : (isRent ? 0 : parseFloat((bgTot - bgAmt).toFixed(2)));
 
