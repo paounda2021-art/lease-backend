@@ -3607,6 +3607,28 @@ async function loadPortLedger() {
   }
 }
 
+function fixLedgerHeader() {
+  const table = document.getElementById('portLedgerTable');
+  if(!table) return;
+  const thead = table.querySelector('thead');
+  if(!thead) return;
+  let currentTop = 0;
+  const rows = thead.querySelectorAll('tr');
+  rows.forEach(row => {
+    const ths = row.querySelectorAll('th');
+    ths.forEach(th => {
+      th.style.position = 'sticky';
+      th.style.top = currentTop + 'px';
+      if(th.className.includes('sticky-col')) {
+        th.style.zIndex = '45';
+      } else {
+        th.style.zIndex = '30';
+      }
+    });
+    currentTop += row.getBoundingClientRect().height;
+  });
+}
+
 function renderPortLedgerTable() {
   const tbl = document.getElementById('portLedgerTable');
   if (!tbl) return;
@@ -3852,6 +3874,8 @@ function renderPortLedgerTable() {
   `;
 
   tbl.innerHTML = h;
+  setTimeout(fixLedgerHeader, 10);
+  
   updateLedgerCheckSummary();
 }
 
