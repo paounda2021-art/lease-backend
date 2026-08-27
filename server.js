@@ -726,7 +726,8 @@ app.get('/api/port-ledgers', authenticateToken, (req, res) => {
     const updatedRows = rows.map(r => {
       const bgTot = parseFloat(r.bg_total) || 0;
       const payAmt = parseFloat(r.pay_amount) || 0;
-      const edTot = Math.max(0, bgTot - payAmt);
+      const rateAmt = parseFloat(r.rate_amount || r.rate || 0) || 0;
+      const edTot = Math.max(0, rateAmt + bgTot - payAmt);
       const edAmt = parseFloat((edTot / 1.07).toFixed(2));
       const edVat = parseFloat((edTot - edAmt).toFixed(2));
       const edFrom = edTot > 0 ? (r.bg_overdue_from || '') : '';
@@ -817,7 +818,8 @@ app.post('/api/port-ledgers/save-pending-pay', authenticateToken, (req, res) => 
       const item = getStmt.get(it.id);
       if (item) {
         const bgTot = parseFloat(item.bg_total) || 0;
-        const edTot = Math.max(0, bgTot - pAmt);
+        const rateAmt = typeof rate !== 'undefined' ? parseFloat(rate) : (typeof item !== 'undefined' ? parseFloat(item.rate_amount || 0) : (typeof ledger !== 'undefined' ? parseFloat(ledger.rate_amount || 0) : 0));
+        const edTot = Math.max(0, rateAmt + bgTot - pAmt);
         const edAmt = parseFloat((edTot / 1.07).toFixed(2));
         const edVat = parseFloat((edTot - edAmt).toFixed(2));
         const edFrom = edTot > 0 ? (item.bg_overdue_from || '') : '';
@@ -887,7 +889,8 @@ app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin
       if (item && item.pay_status === 'pending_approval') {
         const pAmt = parseFloat(item.pay_amount) || 0;
         const bgTot = parseFloat(item.bg_total) || 0;
-        const edTot = Math.max(0, bgTot - pAmt);
+        const rateAmt = typeof rate !== 'undefined' ? parseFloat(rate) : (typeof item !== 'undefined' ? parseFloat(item.rate_amount || 0) : (typeof ledger !== 'undefined' ? parseFloat(ledger.rate_amount || 0) : 0));
+        const edTot = Math.max(0, rateAmt + bgTot - pAmt);
         const edAmt = parseFloat((edTot / 1.07).toFixed(2));
         const edVat = parseFloat((edTot - edAmt).toFixed(2));
 
@@ -919,7 +922,8 @@ app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'ad
 
     const pAmt = parseFloat(pay_amount) || 0;
     const bgTot = parseFloat(item.bg_total) || 0;
-    const edTot = Math.max(0, bgTot - pAmt);
+    const rateAmt = typeof rate !== 'undefined' ? parseFloat(rate) : (typeof item !== 'undefined' ? parseFloat(item.rate_amount || 0) : (typeof ledger !== 'undefined' ? parseFloat(ledger.rate_amount || 0) : 0));
+        const edTot = Math.max(0, rateAmt + bgTot - pAmt);
     const edAmt = parseFloat((edTot / 1.07).toFixed(2));
     const edVat = parseFloat((edTot - edAmt).toFixed(2));
 
@@ -1135,6 +1139,10 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
         const colB = (row[1] || '').toString().trim();
         const colC = (row[2] || '').toString().trim();
         
+        if (colB.includes('ปัฎวลัย')) {
+          console.log('DEBUG ROW:', row);
+        }
+        
         const parseAmt = (v) => parseFloat((v || '').toString().replace(/,/g, '')) || 0;
         const parseIntClean = (v) => parseInt((v || '').toString().replace(/,/g, '')) || 0;
         
@@ -1204,7 +1212,8 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
           const bgVat = vatAmount > 0 ? vatAmount : parseFloat((bgTot - bgAmt).toFixed(2));
 
           const paid = payAmount;
-          const edTot = Math.max(0, bgTot - paid);
+          const rateAmt = parseFloat(rate) || 0;
+          const edTot = Math.max(0, rateAmt + bgTot - paid);
           const edAmt = parseFloat((edTot / 1.07).toFixed(2));
           const edVat = parseFloat((edTot - edAmt).toFixed(2));
           const edFrom = edTot > 0 ? overdueFrom : '';
