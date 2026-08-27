@@ -1135,60 +1135,56 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
         const colB = (row[1] || '').toString().trim();
         const colC = (row[2] || '').toString().trim();
         
-        let rate = parseFloat(row[3]) || 0;
+        const parseAmt = (v) => parseFloat((v || '').toString().replace(/,/g, '')) || 0;
+        const parseIntClean = (v) => parseInt((v || '').toString().replace(/,/g, '')) || 0;
+        
+        let rate = parseAmt(row[3]);
         let overdueFrom = (row[4] || '').toString().trim();
-        let duePeriods = parseInt(row[5]) || 0;
+        let duePeriods = parseIntClean(row[5]);
         let offset = 6;
         
         const row3Str = (row[3] || '').toString().trim();
-        if (row3Str && isNaN(parseFloat(row3Str)) && (row3Str.includes('-') || /[มกพคยฐทธ]/.test(row3Str))) {
+        if (row3Str && isNaN(parseAmt(row3Str)) && (row3Str.includes('-') || /[มกพคยฐทธ]/.test(row3Str))) {
           rate = 0;
           overdueFrom = row3Str;
-          duePeriods = parseInt(row[4]) || 0;
+          duePeriods = parseIntClean(row[4]);
           offset = 5;
         }
 
         let overdueAgeMonths = 0;
         let arAmount = 0, vatAmount = 0, totalAmount = 0;
         
-        // Try to find the [Amount, Vat, Total] triplet
-        // It could be at [offset], [offset+1], [offset+2]
-        // or [offset+1], [offset+2], [offset+3]
-        
-        const val0 = parseFloat(row[offset]) || 0;
-        const val1 = parseFloat(row[offset+1]) || 0;
-        const val2 = parseFloat(row[offset+2]) || 0;
-        const val3 = parseFloat(row[offset+3]) || 0;
+        const val0 = parseAmt(row[offset]);
+        const val1 = parseAmt(row[offset+1]);
+        const val2 = parseAmt(row[offset+2]);
+        const val3 = parseAmt(row[offset+3]);
         
         if (Math.abs(val1 + val2 - val3) < 0.1 && val3 > 0) {
-          // Format is: Age, Amount, Vat, Total
-          overdueAgeMonths = parseInt(row[offset]) || 0;
+          overdueAgeMonths = parseIntClean(row[offset]);
           arAmount = val1;
           vatAmount = val2;
           totalAmount = val3;
           offset += 4;
         } else if (Math.abs(val0 + val1 - val2) < 0.1 && val2 > 0) {
-          // Format is: Amount, Vat, Total (No Age column)
           overdueAgeMonths = 0;
           arAmount = val0;
           vatAmount = val1;
           totalAmount = val2;
           offset += 3;
         } else {
-          // Fallback to hasAgeColumn logic
           if (hasAgeColumn) {
-            overdueAgeMonths = parseInt(row[offset]) || 0;
+            overdueAgeMonths = parseIntClean(row[offset]);
             offset++;
           }
-          arAmount = parseFloat(row[offset]) || 0;
-          vatAmount = parseFloat(row[offset+1]) || 0;
-          totalAmount = parseFloat(row[offset+2]) || 0;
+          arAmount = parseAmt(row[offset]);
+          vatAmount = parseAmt(row[offset+1]);
+          totalAmount = parseAmt(row[offset+2]);
           offset += 3;
         }
 
         const payDate = (row[offset] || '').toString().trim();
         const payReceiptNo = (row[offset+1] || '').toString().trim();
-        const payAmount = parseFloat(row[offset+2]) || 0;
+        const payAmount = parseAmt(row[offset+2]);
 
         if (!colB) return;
 
