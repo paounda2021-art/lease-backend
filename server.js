@@ -728,8 +728,17 @@ app.get('/api/port-ledgers', authenticateToken, (req, res) => {
       const payAmt = parseFloat(r.pay_amount) || 0;
       const rateAmt = parseFloat(r.rate_amount || r.rate || 0) || 0;
       const edTot = Math.max(0, rateAmt + bgTot - payAmt);
-      const edAmt = parseFloat((edTot / 1.07).toFixed(2));
-      const edVat = parseFloat((edTot - edAmt).toFixed(2));
+      let edAmt, edVat;
+      if (parseFloat(r.ed_total) > 0 && parseFloat(r.ed_vat) == 0) {
+        edAmt = edTot;
+        edVat = 0;
+      } else if (parseFloat(r.bg_total) > 0 && parseFloat(r.bg_vat) == 0) {
+        edAmt = edTot;
+        edVat = 0;
+      } else {
+        edAmt = parseFloat((edTot / 1.07).toFixed(2));
+        edVat = parseFloat((edTot - edAmt).toFixed(2));
+      }
       const edFrom = edTot > 0 ? (r.bg_overdue_from || '') : '';
       const edPeriods = edTot > 0 ? (r.bg_periods || '') : '';
       const edMonths = edTot > 0 ? (r.bg_overdue_months || 0) : 0;
