@@ -735,6 +735,9 @@ app.get('/api/port-ledgers', authenticateToken, (req, res) => {
       } else if (parseFloat(r.bg_total) > 0 && parseFloat(r.bg_vat) == 0) {
         edAmt = edTot;
         edVat = 0;
+      } else if (r.category_name && r.category_name.includes('ค่าเช่า')) {
+        edAmt = edTot;
+        edVat = 0;
       } else {
         edAmt = parseFloat((edTot / 1.07).toFixed(2));
         edVat = parseFloat((edTot - edAmt).toFixed(2));
@@ -829,8 +832,9 @@ app.post('/api/port-ledgers/save-pending-pay', authenticateToken, (req, res) => 
         const bgTot = parseFloat(item.bg_total) || 0;
         const rateAmt = typeof rate !== 'undefined' ? parseFloat(rate) : (typeof item !== 'undefined' ? parseFloat(item.rate_amount || 0) : (typeof ledger !== 'undefined' ? parseFloat(ledger.rate_amount || 0) : 0));
         const edTot = Math.max(0, rateAmt + bgTot - pAmt);
-        const edAmt = parseFloat((edTot / 1.07).toFixed(2));
-        const edVat = parseFloat((edTot - edAmt).toFixed(2));
+        const isRent = (item.category_name || '').includes('ค่าเช่า');
+        const edAmt = isRent ? edTot : parseFloat((edTot / 1.07).toFixed(2));
+        const edVat = isRent ? 0 : parseFloat((edTot - edAmt).toFixed(2));
         const edFrom = edTot > 0 ? (item.bg_overdue_from || '') : '';
         const edPeriods = edTot > 0 ? (item.bg_periods || '') : '';
         const edMonths = edTot > 0 ? (item.bg_overdue_months || 0) : 0;
@@ -900,8 +904,9 @@ app.post('/api/port-ledgers/approve-pay', authenticateToken, requireRole(['admin
         const bgTot = parseFloat(item.bg_total) || 0;
         const rateAmt = typeof rate !== 'undefined' ? parseFloat(rate) : (typeof item !== 'undefined' ? parseFloat(item.rate_amount || 0) : (typeof ledger !== 'undefined' ? parseFloat(ledger.rate_amount || 0) : 0));
         const edTot = Math.max(0, rateAmt + bgTot - pAmt);
-        const edAmt = parseFloat((edTot / 1.07).toFixed(2));
-        const edVat = parseFloat((edTot - edAmt).toFixed(2));
+        const isRent = (item.category_name || '').includes('ค่าเช่า');
+        const edAmt = isRent ? edTot : parseFloat((edTot / 1.07).toFixed(2));
+        const edVat = isRent ? 0 : parseFloat((edTot - edAmt).toFixed(2));
 
         let status = 'unpaid';
         if (pAmt >= bgTot && bgTot > 0) status = 'paid';
@@ -933,8 +938,9 @@ app.post('/api/port-ledgers/pay', authenticateToken, requireRole(['cashier', 'ad
     const bgTot = parseFloat(item.bg_total) || 0;
     const rateAmt = typeof rate !== 'undefined' ? parseFloat(rate) : (typeof item !== 'undefined' ? parseFloat(item.rate_amount || 0) : (typeof ledger !== 'undefined' ? parseFloat(ledger.rate_amount || 0) : 0));
         const edTot = Math.max(0, rateAmt + bgTot - pAmt);
-    const edAmt = parseFloat((edTot / 1.07).toFixed(2));
-    const edVat = parseFloat((edTot - edAmt).toFixed(2));
+        const isRent = (item.category_name || '').includes('ค่าเช่า');
+        const edAmt = isRent ? edTot : parseFloat((edTot / 1.07).toFixed(2));
+        const edVat = isRent ? 0 : parseFloat((edTot - edAmt).toFixed(2));
 
     let status = 'unpaid';
     if (pAmt >= bgTot && bgTot > 0) status = 'paid';
@@ -1217,14 +1223,15 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
           const invoiceId = `INV-${targetBranch.replace('-', '')}-${String(importedCount).padStart(4, '0')}`;
 
           const bgTot = totalAmount > 0 ? totalAmount : arAmount;
-          const bgAmt = arAmount > 0 ? arAmount : parseFloat((bgTot / 1.07).toFixed(2));
-          const bgVat = vatAmount > 0 ? vatAmount : parseFloat((bgTot - bgAmt).toFixed(2));
+          const isRent = category.includes('ค่าเช่า');
+          const bgAmt = arAmount > 0 ? arAmount : (isRent ? bgTot : parseFloat((bgTot / 1.07).toFixed(2)));
+          const bgVat = vatAmount > 0 ? vatAmount : (isRent ? 0 : parseFloat((bgTot - bgAmt).toFixed(2)));
 
           const paid = payAmount;
           const rateAmt = parseFloat(rate) || 0;
           const edTot = Math.max(0, rateAmt + bgTot - paid);
-          const edAmt = parseFloat((edTot / 1.07).toFixed(2));
-          const edVat = parseFloat((edTot - edAmt).toFixed(2));
+          const edAmt = isRent ? edTot : parseFloat((edTot / 1.07).toFixed(2));
+          const edVat = isRent ? 0 : parseFloat((edTot - edAmt).toFixed(2));
           const edFrom = edTot > 0 ? overdueFrom : '';
           const edPeriods = edTot > 0 ? duePeriods : 0;
           const edMonths = edTot > 0 ? overdueAgeMonths : 0;
@@ -1285,8 +1292,8 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
 
         insContract.run(contractId, targetBranch, custId, unit, rent, Math.round(rent * 0.1), '2024-01-01', '2027-12-31', 5, rent * 3, rent * 3, 1.5, riskTier);
 
-        const rentAmt = Math.round((arAmt / 1.07) * 100) / 100;
-        const vatAmt = Math.round((arAmt - rentAmt) * 100) / 100;
+        const rentAmt = isRent ? arAmt : Math.round((arAmt / 1.07) * 100) / 100;
+        const vatAmt = isRent ? 0 : Math.round((arAmt - rentAmt) * 100) / 100;
         const overdueMonths = Math.floor(daysOverdue / 30) || (daysOverdue > 0 ? 1 : 0);
         const dueISO = excelDateToISO(dueSerial);
 
