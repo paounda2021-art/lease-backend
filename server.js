@@ -804,8 +804,9 @@ app.post('/api/port-ledgers/save-pending-pay', authenticateToken, (req, res) => 
         ed_overdue_from = ?,
         ed_periods = ?,
         ed_overdue_months = ?,
-        pay_status = 'pending_approval',
-        pay_requested_by = ?
+        pay_status = 'approved',
+        pay_requested_by = ?,
+        pay_approved_by = 'auto'
       WHERE id = ?
     `);
 
