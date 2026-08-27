@@ -1064,12 +1064,14 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
     let isSongkhla3Part = false;
     let isMatrixFormat = false;
     let headerRowIdx = -1;
+    let hasAgeColumn = false;
 
     for (let i = 0; i < Math.min(15, rows.length); i++) {
       const rStr = (rows[i] || []).join(' ');
       if (rStr.includes('ค้างตั้งแต่') && (rStr.includes('งวด') || rStr.includes('อายุ') || rStr.includes('ยอดหนี้'))) {
         isSongkhla3Part = true;
         headerRowIdx = i;
+        hasAgeColumn = rStr.includes('อายุ');
         break;
       }
       if (rStr.includes('เลขที่ใบแจ้งหนี้') || (rStr.includes('ผู้เช่า') && (rStr.includes('พื้นที่เช่า') || rStr.includes('ยอดคงค้าง')))) {
@@ -1135,14 +1137,21 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
         const rate = parseFloat(row[3]) || 0;
         const overdueFrom = (row[4] || '').toString().trim();
         const duePeriods = parseInt(row[5]) || 0;
-        const overdueAgeMonths = parseInt(row[6]) || 0;
-        const arAmount = parseFloat(row[7]) || 0;
-        const vatAmount = parseFloat(row[8]) || 0;
-        const totalAmount = parseFloat(row[9]) || 0;
+        
+        let overdueAgeMonths = 0;
+        let offset = 6;
+        if (hasAgeColumn) {
+          overdueAgeMonths = parseInt(row[offset]) || 0;
+          offset++;
+        }
 
-        const payDate = (row[10] || '').toString().trim();
-        const payReceiptNo = (row[11] || '').toString().trim();
-        const payAmount = parseFloat(row[12]) || 0;
+        const arAmount = parseFloat(row[offset]) || 0;
+        const vatAmount = parseFloat(row[offset+1]) || 0;
+        const totalAmount = parseFloat(row[offset+2]) || 0;
+
+        const payDate = (row[offset+3] || '').toString().trim();
+        const payReceiptNo = (row[offset+4] || '').toString().trim();
+        const payAmount = parseFloat(row[offset+5]) || 0;
 
         if (!colB) return;
 
