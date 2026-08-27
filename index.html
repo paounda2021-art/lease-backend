@@ -923,11 +923,7 @@
         <button id="btnRollForwardLedger" class="ghost sm" onclick="rollForwardLedger()" style="border-color:#16a34a; color:#16a34a; font-weight:700;">
           <span>🔄 ยกยอดค้างยกไปตั้งต้นงวดเดือนถัดไป</span>
         </button>
-        <button id="pendingApprovalNavBtn" type="button" onclick="openPendingApprovalModal()" class="act sm" style="background:#f59e0b; color:#fff; font-weight:700; display:inline-flex; align-items:center; gap:6px; border:none; padding:4px 12px; border-radius:6px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05);" title="รายการรับชำระเงินที่รอตรวจสอบและอนุมัติตัดยอด">
-          <span>🔔</span>
-          <span>รอตรวจสอบ</span>
-          <span id="pendingApprovalBadge" style="background:#dc2626; color:#fff; font-weight:800; font-size:11px; padding:1px 7px; border-radius:10px; display:none; box-shadow:0 0 4px rgba(220,38,38,0.5);">0</span>
-        </button>
+
         <button class="act sm" id="ledgerPaySelectedBtn" onclick="openLedgerPayModal()" style="background:#16a34a; font-weight:700; display:none;">
           💵 บันทึกรับยอดที่เลือก
         </button>
@@ -3758,7 +3754,11 @@ function renderPortLedgerTable() {
     const catName = r.category_name || '';
     let accountCode = '-';
     let itemName = catName;
-    if (catName.includes('/')) {
+    const codeMatch = catName.match(/(\d{7})/);
+    if (codeMatch) {
+      accountCode = codeMatch[1];
+      itemName = catName.replace(accountCode, '').replace('/', '').trim();
+    } else if (catName.includes('/')) {
       const parts = catName.split('/');
       accountCode = parts[0].trim();
       itemName = parts.slice(1).join('/').trim();
@@ -4282,7 +4282,11 @@ function exportLedgerCSV() {
     const cat = r.category_name || '';
     let accountCode = '-';
     let itemName = cat;
-    if (cat.includes('/')) {
+    const codeMatch = cat.match(/(\d{7})/);
+    if (codeMatch) {
+      accountCode = codeMatch[1];
+      itemName = cat.replace(accountCode, '').replace('/', '').trim();
+    } else if (cat.includes('/')) {
       const parts = cat.split('/');
       accountCode = parts[0].trim();
       itemName = parts.slice(1).join('/').trim();
