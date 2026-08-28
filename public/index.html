@@ -917,15 +917,15 @@
             </div>
           </div>
         </div>
-        <button class="act sm" onclick="openLedgerPayModal()" style="background:#0284c7; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
-          <span>💵 บันทึกรับยอด (ทร.)</span>
+        <button class="act sm" onclick="openLedgerPayModal()" style="background:#0284c7; color:#ffffff !important; font-weight:700; display:inline-flex; align-items:center; gap:4px; border:none; border-radius:8px; padding:6px 14px; box-shadow:0 1px 3px rgba(2,132,199,0.3); cursor:pointer;">
+          <span style="color:#ffffff !important; font-weight:700;">💵 บันทึกรับยอด (ทร.)</span>
         </button>
-        <button id="btnRollForwardLedger" class="ghost sm" onclick="rollForwardLedger()" style="border-color:#16a34a; color:#16a34a; font-weight:700;">
+        <button id="btnRollForwardLedger" class="ghost sm" onclick="rollForwardLedger()" style="border:1px solid #16a34a; background:#f0fdf4; color:#15803d; font-weight:700; border-radius:8px; padding:6px 12px; cursor:pointer;">
           <span>🔄 ยกยอดค้างยกไปตั้งต้นงวดเดือนถัดไป</span>
         </button>
 
-        <button class="act sm" id="ledgerPaySelectedBtn" onclick="openLedgerPayModal()" style="background:#16a34a; font-weight:700; display:none;">
-          💵 บันทึกรับยอดที่เลือก
+        <button class="act sm" id="ledgerPaySelectedBtn" onclick="openLedgerPayModal()" style="background:#16a34a; color:#ffffff !important; font-weight:700; border:none; border-radius:8px; padding:6px 14px; box-shadow:0 1px 3px rgba(22,163,74,0.3); cursor:pointer; display:none;">
+          <span style="color:#ffffff !important; font-weight:700;">💵 บันทึกรับยอดที่เลือก</span>
         </button>
       </div>
         <input id="portLedgerSearch" placeholder="ค้นหาผู้เช่า / ทะเบียน / หน่วยงาน..." oninput="renderPortLedgerTable()" style="width:220px; font-size:12.5px;">
@@ -3896,7 +3896,7 @@ function updateLedgerCheckSummary() {
   const btn = document.getElementById('ledgerPaySelectedBtn');
   if (btn) {
     btn.style.display = count > 0 ? 'inline-flex' : 'none';
-    btn.textContent = `💵 บันทึกรับยอด (${count} รายการ - ${fmtMoney(totalAmt)} บาท)`;
+    btn.innerHTML = `<span style="color:#ffffff !important; font-weight:700;">💵 บันทึกรับยอด (${count} รายการ - ${fmtMoney(totalAmt)} บาท)</span>`;
   }
 }
 
