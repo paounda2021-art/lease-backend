@@ -1906,22 +1906,43 @@ async function api(path, opt = {}) {
 }
 
 function showLoginModal() {
-  document.getElementById('loginModal').style.display = 'flex';
-  document.getElementById('mainNav').style.display = 'none';
-  document.getElementById('mainContainer').style.display = 'none';
-  document.getElementById('userInfo').style.display = 'none';
-  document.getElementById('loginErr').textContent = '';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.style.display = 'flex';
+  const header = document.getElementById('mainHeader');
+  if (header) header.style.display = 'none';
+  const footer = document.getElementById('mainFooter');
+  if (footer) footer.style.display = 'none';
+  const nav = document.getElementById('mainNav');
+  if (nav) nav.style.display = 'none';
+  const main = document.getElementById('mainContainer');
+  if (main) main.style.display = 'none';
+  const userInfo = document.getElementById('userInfo');
+  if (userInfo) userInfo.style.display = 'none';
+  const errDiv = document.getElementById('loginErr');
+  if (errDiv) errDiv.textContent = '';
+  const uInput = document.getElementById('loginUser');
+  if (uInput) uInput.value = '';
+  const pInput = document.getElementById('loginPass');
+  if (pInput) pInput.value = '';
 }
 
 function hideLoginModal(user) {
-  document.getElementById('loginModal').style.display = 'none';
-  document.getElementById('mainNav').style.display = 'flex';
-  document.getElementById('mainContainer').style.display = 'block';
-  document.getElementById('userInfo').style.display = 'flex';
-  document.getElementById('userFullname').textContent = user ? user.fullname : 'ผู้ใช้งาน';
-  document.getElementById('userRole').textContent = user ? user.role : '';
+  const modal = document.getElementById('loginModal');
+  if (modal) modal.style.display = 'none';
+  const header = document.getElementById('mainHeader');
+  if (header) header.style.display = 'flex';
+  const footer = document.getElementById('mainFooter');
+  if (footer) footer.style.display = 'block';
+  const nav = document.getElementById('mainNav');
+  if (nav) nav.style.display = 'flex';
+  const main = document.getElementById('mainContainer');
+  if (main) main.style.display = 'block';
+  const userInfo = document.getElementById('userInfo');
+  if (userInfo) userInfo.style.display = 'flex';
+  const fnEl = document.getElementById('userFullname');
+  if (fnEl) fnEl.textContent = user ? user.fullname : 'ผู้ใช้งาน';
+  const roleEl = document.getElementById('userRole');
+  if (roleEl) roleEl.textContent = user ? user.role : '';
   applyRolePermissions(user || {});
 }
 
@@ -1964,20 +1985,20 @@ function applyRolePermissions(user) {
     }
   });
 
-  // ถ้าเปิดแท็บที่ไม่มีสิทธิ์ค้างไว้ ให้เปลี่ยนมาหน้าแดชบอร์ด
+  // ถ้าเป็นผู้ใช้สาขา ให้เลือกและล็อคสาขานั้น
+  const topSel = document.getElementById('branchSelect');
   if (isBranchUser) {
+    if (user.branch_id && topSel) {
+      topSel.value = user.branch_id;
+      topSel.disabled = true;
+      localStorage.setItem('selectedBranch', user.branch_id);
+    }
     const curTab = window.location.hash.replace('#', '') || 'dash';
     if (!branchTabs.includes(curTab)) {
       showTab('dash');
     }
-    // ถ้าผู้ใช้มี branch_id ประจำตัว ให้เลือกสาขานั้นเป็นค่าเริ่มต้น
-    if (user.branch_id) {
-      const topSel = document.getElementById('branchSelect');
-      if (topSel && topSel.value !== user.branch_id) {
-        topSel.value = user.branch_id;
-        localStorage.setItem('selectedBranch', user.branch_id);
-      }
-    }
+  } else if (topSel) {
+    topSel.disabled = false;
   }
 }
 
