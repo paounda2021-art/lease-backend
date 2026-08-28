@@ -1328,7 +1328,7 @@ app.post('/api/import/excel-ledger', authenticateToken, requireRole(['admin', 'm
   }
 });
 
-app.get('/api/audit', authenticateToken, requireRole(['manager', 'viewer']), (req, res) => {
+app.get('/api/audit', authenticateToken, requireRole(['admin', 'manager', 'viewer']), (req, res) => {
   try {
     res.json(db.prepare('SELECT * FROM audit_log ORDER BY id DESC LIMIT 200').all());
   } catch (err) {

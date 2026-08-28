@@ -1874,14 +1874,27 @@ async function api(path, opt = {}) {
   
   const r = await fetch(API + path, opt);
   if (r.status === 401) {
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('activeTab');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('activeTab');
     showLoginModal();
     const errData = await r.json().catch(() => ({}));
     throw new Error(errData.error || 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
   }
   if (r.status === 403) {
     const errData = await r.json().catch(() => ({}));
+    if ((errData.error || '').includes('Token') || (errData.error || '').includes('เข้าสู่ระบบ')) {
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('activeTab');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('activeTab');
+      showLoginModal();
+    }
     throw new Error(errData.error || 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลส่วนนี้');
   }
   

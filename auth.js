@@ -28,7 +28,7 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ error: 'Token หมดอายุ หรือไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่' });
+      return res.status(401).json({ error: 'Token หมดอายุ หรือไม่ถูกต้อง กรุณาเข้าสู่ระบบใหม่' });
     }
     req.user = user;
     next();
