@@ -505,11 +505,6 @@
   }
 
   /* Sticky / Freeze Left Columns for Port Ledger Table (Freeze Panes) */
-#portLedgerTable thead {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-}
   #portLedgerTable {
     border-collapse: separate;
     border-spacing: 0;
@@ -662,7 +657,7 @@
   </div>
 </div>
 
-<header>
+<header id="mainHeader" style="display: none;">
   <div style="display: flex; align-items: center; gap: 10px;">
     <img src="/fmo-logo.png" style="height: 36px; width: 36px; object-fit: contain; background: white; padding: 2px; border-radius: 50%;">
     <h1>ระบบติดตามหนี้เช่า</h1>
@@ -922,14 +917,14 @@
             </div>
           </div>
         </div>
-        <button class="act sm" onclick="openLedgerPayModal()" style="background:#0284c7; color:#fff; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+        <button class="act sm" onclick="openLedgerPayModal()" style="background:#0284c7; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
           <span>💵 บันทึกรับยอด (ทร.)</span>
         </button>
         <button id="btnRollForwardLedger" class="ghost sm" onclick="rollForwardLedger()" style="border-color:#16a34a; color:#16a34a; font-weight:700;">
           <span>🔄 ยกยอดค้างยกไปตั้งต้นงวดเดือนถัดไป</span>
         </button>
 
-        <button class="act sm" id="ledgerPaySelectedBtn" onclick="openLedgerPayModal()" style="background:#16a34a; color:#fff; font-weight:700; display:none;">
+        <button class="act sm" id="ledgerPaySelectedBtn" onclick="openLedgerPayModal()" style="background:#16a34a; font-weight:700; display:none;">
           💵 บันทึกรับยอดที่เลือก
         </button>
       </div>
@@ -1377,7 +1372,7 @@
   </div>
 </div>
 
-<footer>
+<footer id="mainFooter" style="display: none;">
   <div>ระบบติดตามหนี้เช่า (Lease Receivables Tracker) · ความปลอดภัยระดับองค์กร</div>
   <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">@2026 องค์การสะพานปลา (อสป.) สงวนลิขสิทธิ์</div>
 </footer>
@@ -1868,7 +1863,7 @@ function renderAll() {
 // ฟังก์ชันดึงข้อมูล API ที่ผูก JWT Token ใน Header อัตโนมัติ
 async function api(path, opt = {}) {
   opt.headers = opt.headers || {};
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
   if (token) {
     opt.headers['Authorization'] = 'Bearer ' + token;
   }
@@ -3607,28 +3602,6 @@ async function loadPortLedger() {
   }
 }
 
-function fixLedgerHeader() {
-  const table = document.getElementById('portLedgerTable');
-  if(!table) return;
-  const thead = table.querySelector('thead');
-  if(!thead) return;
-  let currentTop = 0;
-  const rows = thead.querySelectorAll('tr');
-  rows.forEach(row => {
-    const ths = row.querySelectorAll('th');
-    ths.forEach(th => {
-      th.style.position = 'sticky';
-      th.style.top = currentTop + 'px';
-      if(th.className.includes('sticky-col')) {
-        th.style.zIndex = '45';
-      } else {
-        th.style.zIndex = '30';
-      }
-    });
-    currentTop += row.getBoundingClientRect().height;
-  });
-}
-
 function renderPortLedgerTable() {
   const tbl = document.getElementById('portLedgerTable');
   if (!tbl) return;
@@ -3830,9 +3803,9 @@ function renderPortLedgerTable() {
         <td class="c" style="color:#15803d; border-right:1px solid #cbd5e1;">${r.ed_overdue_from ? fmtTHDate(r.ed_overdue_from) : '-'}</td>
         <td class="c" style="border-right:1px solid #cbd5e1;">${r.ed_periods || '-'}</td>
         <td class="c" style="border-right:1px solid #cbd5e1;">${r.ed_overdue_months || '-'}</td>
-        <td class="r num" style="border-right:1px solid #cbd5e1;">${edAmt > 0 ? fmtMoney(edAmt) : '-'}</td>
-        <td class="r num" style="border-right:1px solid #cbd5e1;">${edVat > 0 ? fmtMoney(edVat) : '-'}</td>
-        <td class="r num" style="color:${edTot > 0 ? '#15803d' : '#166534'}; font-weight:800; background:#f0fdf4; border-right:1px solid #cbd5e1;">${edTot > 0 ? fmtMoney(edTot) : '-'}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${edAmt > 0 ? fmtMoney(edAmt) : (bgTot > 0 || payAmt > 0 ? '0.00' : '-')}</td>
+        <td class="r num" style="border-right:1px solid #cbd5e1;">${edVat > 0 ? fmtMoney(edVat) : (bgTot > 0 || payAmt > 0 ? '0.00' : '-')}</td>
+        <td class="r num" style="color:${edTot > 0 ? '#15803d' : '#166534'}; font-weight:800; background:#f0fdf4; border-right:1px solid #cbd5e1;">${bgTot > 0 || payAmt > 0 ? fmtMoney(edTot) : '-'}</td>
 
         <td class="c">
           ${isPending && isCentral ? `
@@ -3874,8 +3847,6 @@ function renderPortLedgerTable() {
   `;
 
   tbl.innerHTML = h;
-  setTimeout(fixLedgerHeader, 10);
-  
   updateLedgerCheckSummary();
 }
 
@@ -4786,4 +4757,4 @@ if (token) {
 }
 </script>
 </body>
-</html>
+</html>

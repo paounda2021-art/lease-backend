@@ -657,7 +657,7 @@
   </div>
 </div>
 
-<header>
+<header id="mainHeader" style="display: none;">
   <div style="display: flex; align-items: center; gap: 10px;">
     <img src="/fmo-logo.png" style="height: 36px; width: 36px; object-fit: contain; background: white; padding: 2px; border-radius: 50%;">
     <h1>ระบบติดตามหนี้เช่า</h1>
@@ -1372,7 +1372,7 @@
   </div>
 </div>
 
-<footer>
+<footer id="mainFooter" style="display: none;">
   <div>ระบบติดตามหนี้เช่า (Lease Receivables Tracker) · ความปลอดภัยระดับองค์กร</div>
   <div style="margin-top: 6px; font-size: 11px; opacity: 0.85;">@2026 องค์การสะพานปลา (อสป.) สงวนลิขสิทธิ์</div>
 </footer>
@@ -1863,7 +1863,7 @@ function renderAll() {
 // ฟังก์ชันดึงข้อมูล API ที่ผูก JWT Token ใน Header อัตโนมัติ
 async function api(path, opt = {}) {
   opt.headers = opt.headers || {};
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
   if (token) {
     opt.headers['Authorization'] = 'Bearer ' + token;
   }
